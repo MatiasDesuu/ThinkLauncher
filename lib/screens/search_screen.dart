@@ -9,6 +9,7 @@ const _kItemPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 const _kBorderRadius = 12.0;
 const _kFontSize = 18.0;
 const _kCursorWidth = 2.0;
+const _kItemHeight = 48.0; // Altura fija de cada item de la lista
 
 // Static cache for app list
 class _AppCache {
@@ -65,10 +66,14 @@ class _SearchScreenState extends State<SearchScreen> {
   List<AppInfo> _installedApps = [];
   String? _errorMessage;
   bool _isLoading = true;
+  int _currentPage = 0;
+  bool _usePagination = false;
+  int _appsPerPage = 10; // Valor inicial, se actualizará dinámicamente
 
   @override
   void initState() {
     super.initState();
+    _usePagination = widget.prefs.getBool('usePagination') ?? false;
     _loadInstalledApps();
   }
 
@@ -78,6 +83,35 @@ class _SearchScreenState extends State<SearchScreen> {
     if (widget.autoFocus && mounted) {
       Future.microtask(() => _searchFocusNode.requestFocus());
     }
+    // Calcular apps por página cuando cambian las dependencias (tamaño de pantalla)
+    _calculateAppsPerPage();
+  }
+
+  void _calculateAppsPerPage() {
+    if (!mounted) return;
+
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final appBarHeight = AppBar().preferredSize.height;
+    const searchFieldHeight = 72.0; // Altura aproximada del campo de búsqueda
+    const paginationHeight =
+        64.0; // Altura aproximada de los controles de paginación
+    final topPadding = mediaQuery.padding.top;
+    final bottomPadding = mediaQuery.padding.bottom;
+
+    // Calcular el espacio disponible para la lista
+    final availableHeight = screenHeight -
+        appBarHeight -
+        searchFieldHeight -
+        paginationHeight -
+        topPadding -
+        bottomPadding;
+
+    // Calcular cuántos items caben en el espacio disponible
+    final itemsThatFit = (availableHeight / _kItemHeight).floor();
+
+    // Asegurarnos de que al menos haya 5 items por página
+    _appsPerPage = itemsThatFit.clamp(5, 20);
   }
 
   @override
@@ -85,6 +119,30 @@ class _SearchScreenState extends State<SearchScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  List<AppInfo> get _currentPageApps {
+    if (!_usePagination) return _searchResults;
+    final start = _currentPage * _appsPerPage;
+    return _searchResults.skip(start).take(_appsPerPage).toList();
+  }
+
+  int get _totalPages => (_searchResults.length / _appsPerPage).ceil();
+
+  void _nextPage() {
+    if (_currentPage < _totalPages - 1) {
+      setState(() {
+        _currentPage++;
+      });
+    }
+  }
+
+  void _previousPage() {
+    if (_currentPage > 0) {
+      setState(() {
+        _currentPage--;
+      });
+    }
   }
 
   Future<void> _loadInstalledApps() async {
@@ -149,6 +207,7 @@ class _SearchScreenState extends State<SearchScreen> {
               .where(
                   (app) => app.name.toLowerCase().contains(query.toLowerCase()))
               .toList();
+      _currentPage = 0; // Reset to first page when filtering
     });
   }
 
@@ -196,6 +255,43 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  Widget _buildPaginationControls() {
+    if (!_usePagination) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, size: 32),
+            iconSize: 32,
+            onPressed: _currentPage > 0 ? _previousPage : null,
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(12),
+              minimumSize: const Size(48, 48),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            'Page ${_currentPage + 1} of $_totalPages',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward, size: 32),
+            iconSize: 32,
+            onPressed: _currentPage < _totalPages - 1 ? _nextPage : null,
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(12),
+              minimumSize: const Size(48, 48),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAppList() {
     if (_isLoading) {
       return const Center(
@@ -214,8 +310,12 @@ class _SearchScreenState extends State<SearchScreen> {
       child: ScrollConfiguration(
         behavior: NoGlowScrollBehavior(),
         child: ListView.builder(
-          itemCount: _searchResults.length,
-          itemBuilder: (context, index) => _buildAppItem(_searchResults[index]),
+          physics: _usePagination
+              ? const NeverScrollableScrollPhysics()
+              : const ClampingScrollPhysics(),
+          itemCount: _currentPageApps.length,
+          itemBuilder: (context, index) =>
+              _buildAppItem(_currentPageApps[index]),
         ),
       ),
     );
@@ -266,6 +366,7 @@ class _SearchScreenState extends State<SearchScreen> {
           body: Column(
             children: [
               _buildSearchField(),
+              _buildPaginationControls(),
               _buildAppList(),
             ],
           ),

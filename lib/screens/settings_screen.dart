@@ -36,9 +36,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool enableScroll = true;
   bool showIcons = false;
   bool showAppTitles = true;
+  bool showStatusBar = false;
+  bool usePagination = false;
   List<String> selectedApps = [];
   bool isLoading = false;
   String? errorMessage;
+  bool showSavedMessage = false;
 
   @override
   void initState() {
@@ -59,6 +62,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       enableScroll = widget.prefs.getBool('enableScroll') ?? true;
       showIcons = widget.prefs.getBool('showIcons') ?? false;
       showAppTitles = widget.prefs.getBool('showAppTitles') ?? true;
+      showStatusBar = widget.prefs.getBool('showStatusBar') ?? false;
+      usePagination = widget.prefs.getBool('usePagination') ?? false;
       selectedApps = widget.prefs.getStringList('selectedApps') ?? [];
 
       // Check if both are disabled and enable settings button if necessary
@@ -68,6 +73,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         showSettingsButton = true;
         widget.prefs.setBool('showSettingsButton', true);
       }
+
+      // Desactivar gestos verticales si el list scrolling está activado
+      if (enableScroll) {
+        final enableSwipeUp = widget.prefs.getBool('enableSwipeUp') ?? true;
+        final enableSwipeDown = widget.prefs.getBool('enableSwipeDown') ?? true;
+
+        if (enableSwipeUp) {
+          widget.prefs.setBool('enableSwipeUp', false);
+        }
+        if (enableSwipeDown) {
+          widget.prefs.setBool('enableSwipeDown', false);
+        }
+      }
     });
   }
 
@@ -76,6 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         isLoading = true;
         errorMessage = null;
+        showSavedMessage = false;
       });
 
       // Validate that there are no more selected apps than the maximum number
@@ -101,16 +120,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await widget.prefs.setBool('enableScroll', enableScroll);
       await widget.prefs.setBool('showIcons', showIcons);
       await widget.prefs.setBool('showAppTitles', showAppTitles);
+      await widget.prefs.setBool('showStatusBar', showStatusBar);
+      await widget.prefs.setBool('usePagination', usePagination);
       await widget.prefs.setStringList('selectedApps', selectedApps);
 
       // Update status bar visibility
-      final showStatusBar = widget.prefs.getBool('showStatusBar') ?? false;
       SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: showStatusBar
             ? [SystemUiOverlay.top, SystemUiOverlay.bottom]
             : [SystemUiOverlay.bottom],
       );
+
+      if (mounted) {
+        setState(() {
+          showSavedMessage = true;
+        });
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              showSavedMessage = false;
+            });
+          }
+        });
+      }
     } catch (e) {
       debugPrint('Error saving settings: $e');
       if (mounted) {
@@ -175,6 +208,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final enableLongPressGesture =
         widget.prefs.getBool('enableLongPressGesture') ?? true;
+    final enableSwipeUp = widget.prefs.getBool('enableSwipeUp') ?? true;
+    final enableSwipeDown = widget.prefs.getBool('enableSwipeDown') ?? true;
+    final hasVerticalGestures = enableSwipeUp || enableSwipeDown;
 
     return Container(
       color: Colors.white,
@@ -192,6 +228,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
+              if (showSavedMessage)
+                const Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: Text(
+                    'Saved',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: FilledButton.tonal(
@@ -456,19 +503,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       // 7. Enable list scrolling
                       SwitchListTile(
                         title: const Text(
-                          'Enable list scrolling',
+                          'Enable List Scrolling',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         value: enableScroll,
-                        onChanged: (value) {
-                          setState(() {
-                            enableScroll = value;
-                          });
-                        },
+                        onChanged: hasVerticalGestures
+                            ? null
+                            : (value) async {
+                                setState(() {
+                                  enableScroll = value;
+                                });
+                                if (value) {
+                                  // Desactivar gestos verticales si se activa el list scrolling
+                                  await widget.prefs
+                                      .setBool('enableSwipeUp', false);
+                                  await widget.prefs
+                                      .setBool('enableSwipeDown', false);
+                                }
+                              },
                       ),
+                      if (hasVerticalGestures)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'Vertical swipe gestures are enabled. Disable them in gesture settings to use list scrolling.',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
 
                       // 8. Show icons
                       SwitchListTile(
@@ -501,7 +568,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           setState(() {
                             showAppTitles = value;
                           });
-                          widget.prefs.setBool('showAppTitles', value);
                         },
                       ),
 
@@ -514,15 +580,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        value: widget.prefs.getBool('showStatusBar') ?? false,
+                        value: showStatusBar,
                         onChanged: (value) {
                           setState(() {
-                            widget.prefs.setBool('showStatusBar', value);
+                            showStatusBar = value;
                           });
                         },
                       ),
 
-                      // 11. App font size
+                      // 11. Pagination option
+                      SwitchListTile(
+                        title: const Text(
+                          'Use pagination in search',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Show search results in pages instead of a scrollable list',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        value: usePagination,
+                        onChanged: (value) {
+                          setState(() {
+                            usePagination = value;
+                          });
+                        },
+                      ),
+
+                      // 12. App font size
                       const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
@@ -593,7 +680,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
 
-                      // 12. App icon size
+                      // 13. App icon size
                       const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
@@ -664,7 +751,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
 
-                      // 13. App list
+                      // 14. App list
                       ListTile(
                         title: const Text(
                           'App list',
@@ -679,7 +766,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: _selectApps,
                       ),
 
-                      // 14. Reorder apps
+                      // 15. Reorder apps
                       ListTile(
                         title: const Text(
                           'Reorder apps',
@@ -692,7 +779,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: selectedApps.isEmpty ? null : _reorderApps,
                       ),
 
-                      // 15. Gestures
+                      // 16. Gestures
                       ListTile(
                         title: const Text(
                           'Gestures',

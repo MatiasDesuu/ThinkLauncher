@@ -22,8 +22,14 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
   bool _enableSearchGesture = true;
   bool _autoFocusSearch = true;
   bool _enableLongPressGesture = true;
-  String? _leftToRightApp;
-  String? _rightToLeftApp;
+  String? _swipeLeftApp;
+  String? _swipeRightApp;
+  String? _swipeDownApp;
+  String? _swipeUpApp;
+  bool _useSearchForSwipeLeft = true;
+  bool _useSearchForSwipeRight = true;
+  bool _useSearchForSwipeDown = true;
+  bool _useSearchForSwipeUp = true;
   final Map<String, AppInfo> _appInfoCache = {};
   bool _isLoading = true;
 
@@ -40,11 +46,17 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
     });
 
     try {
-      if (_leftToRightApp != null) {
-        await _getAppInfo(_leftToRightApp!);
+      if (_swipeLeftApp != null) {
+        await _getAppInfo(_swipeLeftApp!);
       }
-      if (_rightToLeftApp != null) {
-        await _getAppInfo(_rightToLeftApp!);
+      if (_swipeRightApp != null) {
+        await _getAppInfo(_swipeRightApp!);
+      }
+      if (_swipeDownApp != null) {
+        await _getAppInfo(_swipeDownApp!);
+      }
+      if (_swipeUpApp != null) {
+        await _getAppInfo(_swipeUpApp!);
       }
     } catch (e) {
       debugPrint('Error preloading app info: $e');
@@ -87,8 +99,18 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
       _autoFocusSearch = widget.prefs.getBool('autoFocusSearch') ?? true;
       _enableLongPressGesture =
           widget.prefs.getBool('enableLongPressGesture') ?? true;
-      _leftToRightApp = widget.prefs.getString('leftToRightApp');
-      _rightToLeftApp = widget.prefs.getString('rightToLeftApp');
+      _swipeLeftApp = widget.prefs.getString('swipeLeftApp');
+      _swipeRightApp = widget.prefs.getString('swipeRightApp');
+      _swipeDownApp = widget.prefs.getString('swipeDownApp');
+      _swipeUpApp = widget.prefs.getString('swipeUpApp');
+      _useSearchForSwipeLeft =
+          widget.prefs.getBool('useSearchForSwipeLeft') ?? true;
+      _useSearchForSwipeRight =
+          widget.prefs.getBool('useSearchForSwipeRight') ?? true;
+      _useSearchForSwipeDown =
+          widget.prefs.getBool('useSearchForSwipeDown') ?? true;
+      _useSearchForSwipeUp =
+          widget.prefs.getBool('useSearchForSwipeUp') ?? true;
     });
   }
 
@@ -97,39 +119,138 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
     await widget.prefs.setBool('autoFocusSearch', _autoFocusSearch);
     await widget.prefs
         .setBool('enableLongPressGesture', _enableLongPressGesture);
-    if (_leftToRightApp != null) {
-      await widget.prefs.setString('leftToRightApp', _leftToRightApp!);
+    await widget.prefs.setBool('useSearchForSwipeLeft', _useSearchForSwipeLeft);
+    await widget.prefs
+        .setBool('useSearchForSwipeRight', _useSearchForSwipeRight);
+    await widget.prefs.setBool('useSearchForSwipeDown', _useSearchForSwipeDown);
+    await widget.prefs.setBool('useSearchForSwipeUp', _useSearchForSwipeUp);
+    if (_swipeLeftApp != null) {
+      await widget.prefs.setString('swipeLeftApp', _swipeLeftApp!);
     }
-    if (_rightToLeftApp != null) {
-      await widget.prefs.setString('rightToLeftApp', _rightToLeftApp!);
+    if (_swipeRightApp != null) {
+      await widget.prefs.setString('swipeRightApp', _swipeRightApp!);
+    }
+    if (_swipeDownApp != null) {
+      await widget.prefs.setString('swipeDownApp', _swipeDownApp!);
+    }
+    if (_swipeUpApp != null) {
+      await widget.prefs.setString('swipeUpApp', _swipeUpApp!);
     }
   }
 
-  Future<void> _selectApp(bool isLeftToRight) async {
+  Future<void> _selectSwipeLeftApp() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SwipeAppSelectionScreen(
+          prefs: widget.prefs,
+          selectedApp: _swipeLeftApp,
+          useSearch: _useSearchForSwipeLeft,
+          direction: 'SwipeLeft',
+          title: 'Swipe left action',
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _useSearchForSwipeLeft = result['useSearch'] as bool;
+        _swipeLeftApp = result['app'] as String?;
+        widget.prefs.setBool('useSearchForSwipeLeft', _useSearchForSwipeLeft);
+        if (_swipeLeftApp != null) {
+          widget.prefs.setString('swipeLeftApp', _swipeLeftApp!);
+          _getAppInfo(_swipeLeftApp!);
+        }
+      });
+    }
+  }
+
+  Future<void> _selectSwipeRightApp() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SwipeAppSelectionScreen(
+          prefs: widget.prefs,
+          selectedApp: _swipeRightApp,
+          useSearch: _useSearchForSwipeRight,
+          direction: 'SwipeRight',
+          title: 'Swipe right action',
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _useSearchForSwipeRight = result['useSearch'] as bool;
+        _swipeRightApp = result['app'] as String?;
+        widget.prefs.setBool('useSearchForSwipeRight', _useSearchForSwipeRight);
+        if (_swipeRightApp != null) {
+          widget.prefs.setString('swipeRightApp', _swipeRightApp!);
+          _getAppInfo(_swipeRightApp!);
+        }
+      });
+    }
+  }
+
+  Future<void> _selectSwipeDownApp() async {
     final result = await Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            GestureAppSelectionScreen(
+            SwipeAppSelectionScreen(
           prefs: widget.prefs,
-          selectedApp: isLeftToRight ? _leftToRightApp : _rightToLeftApp,
+          selectedApp: _swipeDownApp,
+          useSearch: _useSearchForSwipeDown,
+          direction: 'SwipeDown',
+          title: 'Swipe down action',
         ),
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),
     );
 
-    if (result != null && result is String) {
+    if (result != null && result is Map<String, dynamic>) {
       setState(() {
-        if (isLeftToRight) {
-          _leftToRightApp = result;
-        } else {
-          _rightToLeftApp = result;
-        }
+        _useSearchForSwipeDown = result['useSearch'] as bool;
+        _swipeDownApp = result['app'] as String?;
+        final isEnabled = result['enabled'] as bool;
+        widget.prefs.setBool('enableSwipeDown', isEnabled);
       });
       _saveSettings();
-      // Preload new selected app info
-      await _getAppInfo(result);
+      if (_swipeDownApp != null) {
+        await _getAppInfo(_swipeDownApp!);
+      }
+    }
+  }
+
+  Future<void> _selectSwipeUpApp() async {
+    final result = await Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            SwipeAppSelectionScreen(
+          prefs: widget.prefs,
+          selectedApp: _swipeUpApp,
+          useSearch: _useSearchForSwipeUp,
+          direction: 'SwipeUp',
+          title: 'Swipe up action',
+        ),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _useSearchForSwipeUp = result['useSearch'] as bool;
+        _swipeUpApp = result['app'] as String?;
+        final isEnabled = result['enabled'] as bool;
+        widget.prefs.setBool('enableSwipeUp', isEnabled);
+      });
+      _saveSettings();
+      if (_swipeUpApp != null) {
+        await _getAppInfo(_swipeUpApp!);
+      }
     }
   }
 
@@ -173,29 +294,158 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                     child: ListView(
                       physics: const ClampingScrollPhysics(),
                       children: [
-                        SwitchListTile(
+                        ListTile(
                           title: const Text(
-                            'Enable search gesture',
+                            'Swipe Down',
                             style: TextStyle(
                               fontSize: _kFontSize,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle: const Text(
-                            'Swipe down to open search',
-                            style: TextStyle(fontSize: _kSubtitleFontSize),
+                          subtitle: !(widget.prefs.getBool('enableSwipeDown') ??
+                                  true)
+                              ? const Text(
+                                  'Disabled',
+                                  style:
+                                      TextStyle(fontSize: _kSubtitleFontSize),
+                                )
+                              : _useSearchForSwipeDown
+                                  ? const Text(
+                                      'Open search screen',
+                                      style: TextStyle(
+                                          fontSize: _kSubtitleFontSize),
+                                    )
+                                  : _swipeDownApp != null &&
+                                          _appInfoCache
+                                              .containsKey(_swipeDownApp!)
+                                      ? Text(
+                                          _appInfoCache[_swipeDownApp!]!.name,
+                                          style: const TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        )
+                                      : const Text(
+                                          'Not selected',
+                                          style: TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _selectSwipeDownApp(),
+                        ),
+                        ListTile(
+                          title: const Text(
+                            'Swipe Up',
+                            style: TextStyle(
+                              fontSize: _kFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          value: _enableSearchGesture,
-                          onChanged: (value) {
-                            setState(() {
-                              _enableSearchGesture = value;
-                            });
-                            _saveSettings();
-                          },
+                          subtitle: !(widget.prefs.getBool('enableSwipeUp') ??
+                                  true)
+                              ? const Text(
+                                  'Disabled',
+                                  style:
+                                      TextStyle(fontSize: _kSubtitleFontSize),
+                                )
+                              : _useSearchForSwipeUp
+                                  ? const Text(
+                                      'Open search screen',
+                                      style: TextStyle(
+                                          fontSize: _kSubtitleFontSize),
+                                    )
+                                  : _swipeUpApp != null &&
+                                          _appInfoCache
+                                              .containsKey(_swipeUpApp!)
+                                      ? Text(
+                                          _appInfoCache[_swipeUpApp!]!.name,
+                                          style: const TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        )
+                                      : const Text(
+                                          'Not selected',
+                                          style: TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _selectSwipeUpApp(),
+                        ),
+                        ListTile(
+                          title: const Text(
+                            'Swipe Left',
+                            style: TextStyle(
+                              fontSize: _kFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: !(widget.prefs.getBool('enableSwipeLeft') ??
+                                  true)
+                              ? const Text(
+                                  'Disabled',
+                                  style:
+                                      TextStyle(fontSize: _kSubtitleFontSize),
+                                )
+                              : _useSearchForSwipeLeft
+                                  ? const Text(
+                                      'Open search screen',
+                                      style: TextStyle(
+                                          fontSize: _kSubtitleFontSize),
+                                    )
+                                  : _swipeLeftApp != null &&
+                                          _appInfoCache
+                                              .containsKey(_swipeLeftApp!)
+                                      ? Text(
+                                          _appInfoCache[_swipeLeftApp!]!.name,
+                                          style: const TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        )
+                                      : const Text(
+                                          'Not selected',
+                                          style: TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _selectSwipeLeftApp(),
+                        ),
+                        ListTile(
+                          title: const Text(
+                            'Swipe Right',
+                            style: TextStyle(
+                              fontSize: _kFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: !(widget.prefs
+                                      .getBool('enableSwipeRight') ??
+                                  true)
+                              ? const Text(
+                                  'Disabled',
+                                  style:
+                                      TextStyle(fontSize: _kSubtitleFontSize),
+                                )
+                              : _useSearchForSwipeRight
+                                  ? const Text(
+                                      'Open search screen',
+                                      style: TextStyle(
+                                          fontSize: _kSubtitleFontSize),
+                                    )
+                                  : _swipeRightApp != null &&
+                                          _appInfoCache
+                                              .containsKey(_swipeRightApp!)
+                                      ? Text(
+                                          _appInfoCache[_swipeRightApp!]!.name,
+                                          style: const TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        )
+                                      : const Text(
+                                          'Not selected',
+                                          style: TextStyle(
+                                              fontSize: _kSubtitleFontSize),
+                                        ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _selectSwipeRightApp(),
                         ),
                         SwitchListTile(
                           title: const Text(
-                            'Auto focus search',
+                            'Auto Focus Search',
                             style: TextStyle(
                               fontSize: _kFontSize,
                               fontWeight: FontWeight.bold,
@@ -215,7 +465,7 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                         ),
                         SwitchListTile(
                           title: const Text(
-                            'Enable long press gesture',
+                            'Enable Long Press Gesture',
                             style: TextStyle(
                               fontSize: _kFontSize,
                               fontWeight: FontWeight.bold,
@@ -246,52 +496,6 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                               ),
                             ),
                           ),
-                        ListTile(
-                          title: const Text(
-                            'Left to right app',
-                            style: TextStyle(
-                              fontSize: _kFontSize,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: _leftToRightApp != null &&
-                                  _appInfoCache.containsKey(_leftToRightApp!)
-                              ? Text(
-                                  _appInfoCache[_leftToRightApp!]!.name,
-                                  style: const TextStyle(
-                                      fontSize: _kSubtitleFontSize),
-                                )
-                              : const Text(
-                                  'Not selected',
-                                  style:
-                                      TextStyle(fontSize: _kSubtitleFontSize),
-                                ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _selectApp(true),
-                        ),
-                        ListTile(
-                          title: const Text(
-                            'Right to left app',
-                            style: TextStyle(
-                              fontSize: _kFontSize,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: _rightToLeftApp != null &&
-                                  _appInfoCache.containsKey(_rightToLeftApp!)
-                              ? Text(
-                                  _appInfoCache[_rightToLeftApp!]!.name,
-                                  style: const TextStyle(
-                                      fontSize: _kSubtitleFontSize),
-                                )
-                              : const Text(
-                                  'Not selected',
-                                  style:
-                                      TextStyle(fontSize: _kSubtitleFontSize),
-                                ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _selectApp(false),
-                        ),
                       ],
                     ),
                   ),
@@ -302,33 +506,46 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
   }
 }
 
-class GestureAppSelectionScreen extends StatefulWidget {
+class SwipeAppSelectionScreen extends StatefulWidget {
   final SharedPreferences prefs;
   final String? selectedApp;
+  final bool useSearch;
+  final String direction;
+  final String title;
 
-  const GestureAppSelectionScreen({
+  const SwipeAppSelectionScreen({
     super.key,
     required this.prefs,
     this.selectedApp,
+    required this.useSearch,
+    required this.direction,
+    required this.title,
   });
 
   @override
-  State<GestureAppSelectionScreen> createState() =>
-      _GestureAppSelectionScreenState();
+  State<SwipeAppSelectionScreen> createState() =>
+      _SwipeAppSelectionScreenState();
 }
 
-class _GestureAppSelectionScreenState extends State<GestureAppSelectionScreen> {
+class _SwipeAppSelectionScreenState extends State<SwipeAppSelectionScreen> {
   List<AppInfo> _apps = [];
   List<AppInfo> _filteredApps = [];
   final TextEditingController _searchController = TextEditingController();
   String? _selectedApp;
   bool _isLoading = true;
   String? _errorMessage;
+  bool _useSearch = true;
+  bool _isEnabled = true;
+  bool _isVerticalGesture = false;
 
   @override
   void initState() {
     super.initState();
     _selectedApp = widget.selectedApp;
+    _useSearch = widget.useSearch;
+    _isEnabled = widget.prefs.getBool('enable${widget.direction}') ?? true;
+    _isVerticalGesture =
+        widget.direction == 'SwipeUp' || widget.direction == 'SwipeDown';
     _loadApps();
   }
 
@@ -388,6 +605,9 @@ class _GestureAppSelectionScreenState extends State<GestureAppSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final enableScroll = widget.prefs.getBool('enableScroll') ?? true;
+    final canEnableGesture = !_isVerticalGesture || !enableScroll;
+
     return Container(
       color: Colors.white,
       child: Padding(
@@ -395,106 +615,179 @@ class _GestureAppSelectionScreenState extends State<GestureAppSelectionScreen> {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            title: const Text('Select app'),
+            title: Text(widget.title),
             backgroundColor: Colors.white,
             foregroundColor: Colors.black,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context, {
+                'useSearch': _useSearch,
+                'app': _selectedApp,
+                'enabled': _isEnabled,
+              }),
             ),
           ),
           body: Column(
             children: [
-              Padding(
-                padding: _kPadding,
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: false,
-                  showCursor: true,
-                  cursorColor: Colors.black,
-                  cursorWidth: 2,
-                  cursorRadius: const Radius.circular(1),
-                  cursorOpacityAnimates: false,
-                  decoration: InputDecoration(
-                    hintText: 'Search apps...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
+              SwitchListTile(
+                title: Text(
+                  'Enable ${widget.direction.replaceAll('Swipe', 'Swipe ')}',
+                  style: const TextStyle(
+                    fontSize: _kFontSize,
+                    fontWeight: FontWeight.bold,
                   ),
-                  onChanged: _filterApps,
                 ),
+                subtitle: Text(
+                  'Enable or disable the ${widget.direction.toLowerCase()} gesture',
+                  style: const TextStyle(fontSize: _kSubtitleFontSize),
+                ),
+                value: _isEnabled,
+                onChanged: canEnableGesture
+                    ? (value) {
+                        setState(() {
+                          _isEnabled = value;
+                        });
+                        widget.prefs
+                            .setBool('enable${widget.direction}', value);
+                      }
+                    : null,
               ),
-              Expanded(
-                child: _isLoading
-                    ? const Center(
-                        child: Text(
-                          'Loading...',
-                          style: TextStyle(fontSize: _kFontSize),
+              if (!canEnableGesture)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'List scrolling is enabled. Disable it in settings to use vertical swipe gestures.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: _kSubtitleFontSize,
+                    ),
+                  ),
+                ),
+              if (_isEnabled && canEnableGesture) ...[
+                SwitchListTile(
+                  title: const Text(
+                    'Use Search Screen',
+                    style: TextStyle(
+                      fontSize: _kFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Open search screen when swiping ${widget.direction.toLowerCase().replaceAll('swipe', '')}',
+                    style: const TextStyle(fontSize: _kSubtitleFontSize),
+                  ),
+                  value: _useSearch,
+                  onChanged: (value) {
+                    setState(() {
+                      _useSearch = value;
+                      if (value) {
+                        _selectedApp = null;
+                      }
+                    });
+                  },
+                ),
+                if (!_useSearch) ...[
+                  Padding(
+                    padding: _kPadding,
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: false,
+                      showCursor: true,
+                      cursorColor: Colors.black,
+                      cursorWidth: 2,
+                      cursorRadius: const Radius.circular(1),
+                      cursorOpacityAnimates: false,
+                      decoration: InputDecoration(
+                        hintText: 'Search Apps...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                      )
-                    : _errorMessage != null
-                        ? Center(
+                        filled: true,
+                        fillColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                      ),
+                      onChanged: _filterApps,
+                    ),
+                  ),
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(
                             child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(fontSize: _kFontSize),
+                              'Loading...',
+                              style: TextStyle(fontSize: _kFontSize),
                             ),
                           )
-                        : ScrollConfiguration(
-                            behavior: NoGlowScrollBehavior(),
-                            child: ListView.builder(
-                              physics: const ClampingScrollPhysics(),
-                              itemCount: _filteredApps.length,
-                              itemBuilder: (context, index) {
-                                final app = _filteredApps[index];
-                                final isSelected =
-                                    app.packageName == _selectedApp;
-                                return Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.pop(context, app.packageName);
-                                    },
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0,
-                                        vertical: 8.0,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              app.name,
-                                              style: const TextStyle(
-                                                fontSize: _kFontSize,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            ),
+                        : _errorMessage != null
+                            ? Center(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(fontSize: _kFontSize),
+                                ),
+                              )
+                            : ScrollConfiguration(
+                                behavior: NoGlowScrollBehavior(),
+                                child: ListView.builder(
+                                  physics: const ClampingScrollPhysics(),
+                                  itemCount: _filteredApps.length,
+                                  itemBuilder: (context, index) {
+                                    final app = _filteredApps[index];
+                                    final isSelected =
+                                        app.packageName == _selectedApp;
+                                    return Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedApp = app.packageName;
+                                          });
+                                          Navigator.pop(context, {
+                                            'useSearch': _useSearch,
+                                            'app': _selectedApp,
+                                            'enabled': _isEnabled,
+                                          });
+                                        },
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0,
+                                            vertical: 8.0,
                                           ),
-                                          if (isSelected)
-                                            const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.black,
-                                            ),
-                                        ],
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  app.name,
+                                                  style: const TextStyle(
+                                                    fontSize: _kFontSize,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                ),
+                                              ),
+                                              if (isSelected)
+                                                const Icon(
+                                                  Icons.check_circle,
+                                                  color: Colors.black,
+                                                ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-              ),
+                                    );
+                                  },
+                                ),
+                              ),
+                  ),
+                ],
+              ],
             ],
           ),
         ),

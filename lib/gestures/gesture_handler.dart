@@ -13,27 +13,68 @@ class GestureHandler {
   });
 
   void handleVerticalDrag(DragUpdateDetails details) {
-    final enableSearchGesture = prefs.getBool('enableSearchGesture');
-    if (enableSearchGesture == false) return;
-
     if (details.delta.dy > 0) {
       // Swipe down
-      _openSearch();
+      final isSwipeDownEnabled = prefs.getBool('enableSwipeDown') ?? true;
+      if (!isSwipeDownEnabled) return;
+
+      final useSearchForSwipeDown =
+          prefs.getBool('useSearchForSwipeDown') ?? true;
+      if (useSearchForSwipeDown) {
+        _openSearch();
+      } else {
+        final appPackage = prefs.getString('swipeDownApp');
+        if (appPackage != null) {
+          InstalledApps.startApp(appPackage);
+        }
+      }
+    } else if (details.delta.dy < 0) {
+      // Swipe up
+      final isSwipeUpEnabled = prefs.getBool('enableSwipeUp') ?? true;
+      if (!isSwipeUpEnabled) return;
+
+      final useSearchForSwipeUp = prefs.getBool('useSearchForSwipeUp') ?? true;
+      if (useSearchForSwipeUp) {
+        _openSearch();
+      } else {
+        final appPackage = prefs.getString('swipeUpApp');
+        if (appPackage != null) {
+          InstalledApps.startApp(appPackage);
+        }
+      }
     }
   }
 
   void handleHorizontalDrag(DragUpdateDetails details) {
     if (details.delta.dx > 0) {
       // Left to right
-      final appPackage = prefs.getString('leftToRightApp');
-      if (appPackage != null) {
-        InstalledApps.startApp(appPackage);
+      final isSwipeRightEnabled = prefs.getBool('enableSwipeRight') ?? true;
+      if (!isSwipeRightEnabled) return;
+
+      final useSearchForSwipeRight =
+          prefs.getBool('useSearchForSwipeRight') ?? true;
+      if (useSearchForSwipeRight) {
+        _openSearch();
+      } else {
+        final appPackage = prefs.getString('swipeRightApp');
+        if (appPackage != null) {
+          InstalledApps.startApp(appPackage);
+        }
       }
     } else {
       // Right to left
-      final appPackage = prefs.getString('rightToLeftApp');
-      if (appPackage != null) {
-        InstalledApps.startApp(appPackage);
+      final isSwipeLeftEnabled = prefs.getBool('enableSwipeLeft') ?? true;
+      if (!isSwipeLeftEnabled) return;
+
+      final useSearchForSwipeLeft =
+          prefs.getBool('useSearchForSwipeLeft') ?? true;
+      if (useSearchForSwipeLeft) {
+        _openSearch();
+      } else {
+        final appPackage = prefs.getString('swipeLeftApp');
+        if (appPackage != null) {
+          InstalledApps.startApp(appPackage);
+        }
       }
     }
   }
