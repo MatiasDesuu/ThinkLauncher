@@ -40,6 +40,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   late int _batteryLevel;
   late bool _showAppTitles;
   late double _appIconSize;
+  late bool _useBlackAndWhiteIcons;
 
   // Timers
   Timer? _dateTimeTimer;
@@ -73,6 +74,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     _showIcons = widget.prefs.getBool('showIcons') ?? false;
     _showAppTitles = widget.prefs.getBool('showAppTitles') ?? true;
     _appIconSize = widget.prefs.getDouble('appIconSize') ?? 18.0;
+    _useBlackAndWhiteIcons =
+        widget.prefs.getBool('useBlackAndWhiteIcons') ?? false;
     _currentTime = _timeFormatter.format(DateTime.now());
     _currentDate = _dateFormatter.format(DateTime.now());
     _batteryLevel = 0;
@@ -156,6 +159,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       final newShowAppTitles = widget.prefs.getBool('showAppTitles') ?? true;
       final newSelectedApps = widget.prefs.getStringList('selectedApps') ?? [];
       final newAppIconSize = widget.prefs.getDouble('appIconSize') ?? 18.0;
+      final newUseBlackAndWhiteIcons =
+          widget.prefs.getBool('useBlackAndWhiteIcons') ?? false;
 
       final hasChanges = _numApps != newNumApps ||
           _numColumns != newNumColumns ||
@@ -168,7 +173,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           _showIcons != newShowIcons ||
           _showAppTitles != newShowAppTitles ||
           !listEquals(_selectedApps, newSelectedApps) ||
-          _appIconSize != newAppIconSize;
+          _appIconSize != newAppIconSize ||
+          _useBlackAndWhiteIcons != newUseBlackAndWhiteIcons;
 
       if (hasChanges) {
         setState(() {
@@ -184,6 +190,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           _showAppTitles = newShowAppTitles;
           _selectedApps = newSelectedApps;
           _appIconSize = newAppIconSize;
+          _useBlackAndWhiteIcons = newUseBlackAndWhiteIcons;
         });
 
         final showStatusBar = widget.prefs.getBool('showStatusBar') ?? false;
@@ -377,12 +384,32 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         if (_showIcons && app.icon != null)
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: Image.memory(
-              app.icon!,
-              width: _appIconSize,
-              height: _appIconSize,
-              fit: BoxFit.contain,
-            ),
+            child: _useBlackAndWhiteIcons
+                ? FutureBuilder<Uint8List?>(
+                    future: app.getProcessedIcon(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        return Image.memory(
+                          snapshot.data!,
+                          width: _appIconSize,
+                          height: _appIconSize,
+                          fit: BoxFit.contain,
+                        );
+                      }
+                      return Image.memory(
+                        app.icon!,
+                        width: _appIconSize,
+                        height: _appIconSize,
+                        fit: BoxFit.contain,
+                      );
+                    },
+                  )
+                : Image.memory(
+                    app.icon!,
+                    width: _appIconSize,
+                    height: _appIconSize,
+                    fit: BoxFit.contain,
+                  ),
           ),
         if (_showAppTitles)
           Expanded(
@@ -409,12 +436,32 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         if (_showIcons && app.icon != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: Image.memory(
-              app.icon!,
-              width: _appIconSize,
-              height: _appIconSize,
-              fit: BoxFit.contain,
-            ),
+            child: _useBlackAndWhiteIcons
+                ? FutureBuilder<Uint8List?>(
+                    future: app.getProcessedIcon(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        return Image.memory(
+                          snapshot.data!,
+                          width: _appIconSize,
+                          height: _appIconSize,
+                          fit: BoxFit.contain,
+                        );
+                      }
+                      return Image.memory(
+                        app.icon!,
+                        width: _appIconSize,
+                        height: _appIconSize,
+                        fit: BoxFit.contain,
+                      );
+                    },
+                  )
+                : Image.memory(
+                    app.icon!,
+                    width: _appIconSize,
+                    height: _appIconSize,
+                    fit: BoxFit.contain,
+                  ),
           ),
         if (_showAppTitles)
           Flexible(

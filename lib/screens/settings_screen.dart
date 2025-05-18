@@ -42,6 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool isLoading = false;
   String? errorMessage;
   bool showSavedMessage = false;
+  bool useBlackAndWhiteIcons = false;
 
   @override
   void initState() {
@@ -65,6 +66,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       showStatusBar = widget.prefs.getBool('showStatusBar') ?? false;
       usePagination = widget.prefs.getBool('usePagination') ?? false;
       selectedApps = widget.prefs.getStringList('selectedApps') ?? [];
+      useBlackAndWhiteIcons =
+          widget.prefs.getBool('useBlackAndWhiteIcons') ?? false;
 
       // Check if both are disabled and enable settings button if necessary
       final enableLongPressGesture =
@@ -123,6 +126,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await widget.prefs.setBool('showStatusBar', showStatusBar);
       await widget.prefs.setBool('usePagination', usePagination);
       await widget.prefs.setStringList('selectedApps', selectedApps);
+      await widget.prefs
+          .setBool('useBlackAndWhiteIcons', useBlackAndWhiteIcons);
 
       // Update status bar visibility
       SystemChrome.setEnabledSystemUIMode(
@@ -801,6 +806,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               reverseTransitionDuration: Duration.zero,
                             ),
                           );
+                        },
+                      ),
+
+                      // 17. Black & White icons
+                      SwitchListTile(
+                        title: const Text(
+                          'Black & White icons',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Experimental feature: may look pixelated or lose details in some icons.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        value: useBlackAndWhiteIcons,
+                        onChanged: (value) {
+                          setState(() {
+                            useBlackAndWhiteIcons = value;
+                          });
                         },
                       ),
                     ],

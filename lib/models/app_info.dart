@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import '../services/icon_processor_service.dart';
 
 enum BuiltWith {
   flutter,
@@ -14,6 +15,7 @@ class AppInfo {
   final int versionCode;
   final BuiltWith builtWith;
   final int installedTimestamp;
+  Uint8List? _processedIcon;
 
   AppInfo({
     required this.name,
@@ -24,6 +26,12 @@ class AppInfo {
     required this.builtWith,
     required this.installedTimestamp,
   });
+
+  Future<Uint8List?> getProcessedIcon() async {
+    if (_processedIcon != null) return _processedIcon;
+    _processedIcon = await IconProcessorService.getProcessedIcon(packageName);
+    return _processedIcon;
+  }
 
   factory AppInfo.fromInstalledApps(dynamic app) {
     return AppInfo(
