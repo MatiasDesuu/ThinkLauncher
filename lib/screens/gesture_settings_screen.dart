@@ -30,6 +30,7 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
   bool _useSearchForSwipeRight = true;
   bool _useSearchForSwipeDown = true;
   bool _useSearchForSwipeUp = true;
+  bool _enablePageNavigation = false;
   final Map<String, AppInfo> _appInfoCache = {};
   bool _isLoading = true;
 
@@ -111,6 +112,8 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
           widget.prefs.getBool('useSearchForSwipeDown') ?? true;
       _useSearchForSwipeUp =
           widget.prefs.getBool('useSearchForSwipeUp') ?? true;
+      _enablePageNavigation =
+          widget.prefs.getBool('enablePageNavigation') ?? false;
     });
   }
 
@@ -124,6 +127,7 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
         .setBool('useSearchForSwipeRight', _useSearchForSwipeRight);
     await widget.prefs.setBool('useSearchForSwipeDown', _useSearchForSwipeDown);
     await widget.prefs.setBool('useSearchForSwipeUp', _useSearchForSwipeUp);
+    await widget.prefs.setBool('enablePageNavigation', _enablePageNavigation);
     if (_swipeLeftApp != null) {
       await widget.prefs.setString('swipeLeftApp', _swipeLeftApp!);
     }
@@ -271,7 +275,7 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
             foregroundColor: Colors.black,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back_rounded),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -328,7 +332,7 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                                           style: TextStyle(
                                               fontSize: _kSubtitleFontSize),
                                         ),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const Icon(Icons.chevron_right_rounded),
                           onTap: () => _selectSwipeDownApp(),
                         ),
                         ListTile(
@@ -365,19 +369,21 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                                           style: TextStyle(
                                               fontSize: _kSubtitleFontSize),
                                         ),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const Icon(Icons.chevron_right_rounded),
                           onTap: () => _selectSwipeUpApp(),
                         ),
                         ListTile(
-                          title: const Text(
+                          title: Text(
                             'Swipe Left',
                             style: TextStyle(
                               fontSize: _kFontSize,
                               fontWeight: FontWeight.bold,
+                              color: _enablePageNavigation ? Colors.grey : null,
                             ),
                           ),
                           subtitle: !(widget.prefs.getBool('enableSwipeLeft') ??
-                                  true)
+                                      true) ||
+                                  _enablePageNavigation
                               ? const Text(
                                   'Disabled',
                                   style:
@@ -402,20 +408,27 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                                           style: TextStyle(
                                               fontSize: _kSubtitleFontSize),
                                         ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _selectSwipeLeftApp(),
+                          trailing: Icon(
+                            Icons.chevron_right_rounded,
+                            color: _enablePageNavigation ? Colors.grey : null,
+                          ),
+                          onTap: _enablePageNavigation
+                              ? null
+                              : () => _selectSwipeLeftApp(),
                         ),
                         ListTile(
-                          title: const Text(
+                          title: Text(
                             'Swipe Right',
                             style: TextStyle(
                               fontSize: _kFontSize,
                               fontWeight: FontWeight.bold,
+                              color: _enablePageNavigation ? Colors.grey : null,
                             ),
                           ),
                           subtitle: !(widget.prefs
-                                      .getBool('enableSwipeRight') ??
-                                  true)
+                                          .getBool('enableSwipeRight') ??
+                                      true) ||
+                                  _enablePageNavigation
                               ? const Text(
                                   'Disabled',
                                   style:
@@ -440,8 +453,13 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                                           style: TextStyle(
                                               fontSize: _kSubtitleFontSize),
                                         ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _selectSwipeRightApp(),
+                          trailing: Icon(
+                            Icons.chevron_right_rounded,
+                            color: _enablePageNavigation ? Colors.grey : null,
+                          ),
+                          onTap: _enablePageNavigation
+                              ? null
+                              : () => _selectSwipeRightApp(),
                         ),
                         SwitchListTile(
                           title: const Text(
@@ -496,6 +514,43 @@ class _GestureSettingsScreenState extends State<GestureSettingsScreen> {
                               ),
                             ),
                           ),
+                        SwitchListTile(
+                          title: const Text(
+                            'Page Navigation with Gestures',
+                            style: TextStyle(
+                              fontSize: _kFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'Navigate between pages with swipe left/right',
+                            style: TextStyle(fontSize: _kSubtitleFontSize),
+                          ),
+                          value: _enablePageNavigation,
+                          onChanged: (value) {
+                            setState(() {
+                              _enablePageNavigation = value;
+                              if (value) {
+                                // Desactivar los gestos de swipe left/right para apps y búsqueda
+                                widget.prefs.setBool('enableSwipeLeft', false);
+                                widget.prefs.setBool('enableSwipeRight', false);
+                              }
+                            });
+                            _saveSettings();
+                          },
+                        ),
+                        if (_enablePageNavigation)
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              'Swipe left/right gestures for apps and search are disabled when page navigation is enabled.',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: _kSubtitleFontSize,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -537,6 +592,9 @@ class _SwipeAppSelectionScreenState extends State<SwipeAppSelectionScreen> {
   bool _useSearch = true;
   bool _isEnabled = true;
   bool _isVerticalGesture = false;
+  int _currentPage = 0;
+  int _itemsPerPage = 10;
+  bool _usePagination = true;
 
   @override
   void initState() {
@@ -546,7 +604,82 @@ class _SwipeAppSelectionScreenState extends State<SwipeAppSelectionScreen> {
     _isEnabled = widget.prefs.getBool('enable${widget.direction}') ?? true;
     _isVerticalGesture =
         widget.direction == 'SwipeUp' || widget.direction == 'SwipeDown';
+    _usePagination = widget.prefs.getBool('usePagination') ?? true;
+    _searchController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadApps();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _calculateItemsPerPage();
+  }
+
+  void _calculateItemsPerPage() {
+    if (!mounted) return;
+
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final appBarHeight = AppBar().preferredSize.height;
+    const searchBarHeight = 72.0;
+    const paginationHeight = 64.0;
+    final topPadding = mediaQuery.padding.top;
+    final bottomPadding = mediaQuery.padding.bottom;
+
+    // Calcular el espacio disponible para la lista
+    final availableHeight = screenHeight -
+        appBarHeight -
+        searchBarHeight -
+        paginationHeight -
+        topPadding -
+        bottomPadding;
+
+    // Calcular cuántos items caben en el espacio disponible
+    const itemHeight = 56.0; // Altura de cada item de la lista
+    final itemsThatFit = (availableHeight / itemHeight).floor();
+
+    // Asegurarnos de que al menos haya 5 items por página
+    _itemsPerPage = itemsThatFit.clamp(5, 20);
+
+    // Si estamos en modo paginación, asegurarnos de que la página actual sea válida
+    if (_filteredApps.isNotEmpty) {
+      final maxPage = (_filteredApps.length / _itemsPerPage).ceil() - 1;
+      if (_currentPage > maxPage) {
+        _currentPage = maxPage.clamp(0, maxPage);
+      }
+    } else {
+      _currentPage = 0;
+    }
+  }
+
+  void _nextPage() {
+    if (_currentPage < _totalPages - 1) {
+      setState(() {
+        _currentPage++;
+      });
+    }
+  }
+
+  void _previousPage() {
+    if (_currentPage > 0) {
+      setState(() {
+        _currentPage--;
+      });
+    }
+  }
+
+  int get _totalPages {
+    if (_filteredApps.isEmpty) return 0;
+    return (_filteredApps.length / _itemsPerPage).ceil();
+  }
+
+  List<AppInfo> get _currentPageItems {
+    if (_filteredApps.isEmpty) return [];
+    final start = _currentPage * _itemsPerPage;
+    final end = (start + _itemsPerPage).clamp(0, _filteredApps.length);
+    return _filteredApps.sublist(start, end);
   }
 
   @override
@@ -620,7 +753,7 @@ class _SwipeAppSelectionScreenState extends State<SwipeAppSelectionScreen> {
             foregroundColor: Colors.black,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back_rounded),
               onPressed: () => Navigator.pop(context, {
                 'useSearch': _useSearch,
                 'app': _selectedApp,
@@ -664,7 +797,7 @@ class _SwipeAppSelectionScreenState extends State<SwipeAppSelectionScreen> {
                     ),
                   ),
                 ),
-              if (_isEnabled && canEnableGesture) ...[
+              if (_isEnabled)
                 SwitchListTile(
                   title: const Text(
                     'Use Search Screen',
@@ -687,106 +820,169 @@ class _SwipeAppSelectionScreenState extends State<SwipeAppSelectionScreen> {
                     });
                   },
                 ),
-                if (!_useSearch) ...[
-                  Padding(
-                    padding: _kPadding,
-                    child: TextField(
-                      controller: _searchController,
-                      autofocus: false,
-                      showCursor: true,
-                      cursorColor: Colors.black,
-                      cursorWidth: 2,
-                      cursorRadius: const Radius.circular(1),
-                      cursorOpacityAnimates: false,
-                      decoration: InputDecoration(
-                        hintText: 'Search Apps...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
+              if (!_useSearch && _isEnabled) ...[
+                Padding(
+                  padding: _kPadding,
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: false,
+                    showCursor: true,
+                    cursorColor: Colors.black,
+                    cursorWidth: 2,
+                    cursorRadius: const Radius.circular(1),
+                    cursorOpacityAnimates: false,
+                    decoration: InputDecoration(
+                      hintText: 'Search Apps...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                _filterApps('');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                      onChanged: _filterApps,
+                      filled: true,
+                      fillColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                     ),
+                    onChanged: _filterApps,
                   ),
-                  Expanded(
-                    child: _isLoading
-                        ? const Center(
-                            child: Text(
-                              'Loading...',
-                              style: TextStyle(fontSize: _kFontSize),
-                            ),
-                          )
-                        : _errorMessage != null
-                            ? Center(
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(fontSize: _kFontSize),
-                                ),
-                              )
-                            : ScrollConfiguration(
-                                behavior: NoGlowScrollBehavior(),
-                                child: ListView.builder(
-                                  physics: const ClampingScrollPhysics(),
-                                  itemCount: _filteredApps.length,
-                                  itemBuilder: (context, index) {
-                                    final app = _filteredApps[index];
-                                    final isSelected =
-                                        app.packageName == _selectedApp;
-                                    return Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedApp = app.packageName;
-                                          });
-                                          Navigator.pop(context, {
-                                            'useSearch': _useSearch,
-                                            'app': _selectedApp,
-                                            'enabled': _isEnabled,
-                                          });
-                                        },
-                                        splashColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        hoverColor: Colors.transparent,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16.0,
-                                            vertical: 8.0,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  app.name,
-                                                  style: const TextStyle(
-                                                    fontSize: _kFontSize,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 1,
-                                                ),
+                ),
+                Expanded(
+                  child: _isLoading
+                      ? const Center(
+                          child: Text(
+                            'Loading...',
+                            style: TextStyle(fontSize: _kFontSize),
+                          ),
+                        )
+                      : _errorMessage != null
+                          ? Center(
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(fontSize: _kFontSize),
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                Expanded(
+                                  child: ScrollConfiguration(
+                                    behavior: NoGlowScrollBehavior(),
+                                    child: ListView.builder(
+                                      physics: _usePagination
+                                          ? const NeverScrollableScrollPhysics()
+                                          : null,
+                                      itemCount: _usePagination
+                                          ? _currentPageItems.length
+                                          : _filteredApps.length,
+                                      itemBuilder: (context, index) {
+                                        final app = _usePagination
+                                            ? _currentPageItems[index]
+                                            : _filteredApps[index];
+                                        final isSelected =
+                                            app.packageName == _selectedApp;
+                                        return Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedApp = app.packageName;
+                                              });
+                                            },
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 16.0,
+                                                vertical: 8.0,
                                               ),
-                                              if (isSelected)
-                                                const Icon(
-                                                  Icons.check_circle,
-                                                  color: Colors.black,
-                                                ),
-                                            ],
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      app.name,
+                                                      style: const TextStyle(
+                                                        fontSize: _kFontSize,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 1,
+                                                    ),
+                                                  ),
+                                                  if (isSelected)
+                                                    const Icon(
+                                                      Icons
+                                                          .check_circle_rounded,
+                                                      color: Colors.black,
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                if (_usePagination && _totalPages > 1)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.arrow_back_rounded,
+                                              size: 32),
+                                          iconSize: 32,
+                                          onPressed: _currentPage > 0
+                                              ? _previousPage
+                                              : null,
+                                          style: IconButton.styleFrom(
+                                            padding: const EdgeInsets.all(12),
+                                            minimumSize: const Size(48, 48),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                  ),
-                ],
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          'Page ${_currentPage + 1} of $_totalPages',
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.arrow_forward_rounded,
+                                              size: 32),
+                                          iconSize: 32,
+                                          onPressed:
+                                              _currentPage < _totalPages - 1
+                                                  ? _nextPage
+                                                  : null,
+                                          style: IconButton.styleFrom(
+                                            padding: const EdgeInsets.all(12),
+                                            minimumSize: const Size(48, 48),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                ),
               ],
             ],
           ),

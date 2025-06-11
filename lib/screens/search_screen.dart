@@ -5,10 +5,7 @@ import '../models/app_info.dart';
 
 // Theme and style constants
 const _kSearchPadding = EdgeInsets.all(16.0);
-const _kItemPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
-const _kBorderRadius = 12.0;
 const _kFontSize = 18.0;
-const _kCursorWidth = 2.0;
 const _kItemHeight = 48.0; // Altura fija de cada item de la lista
 
 // Static cache for app list
@@ -67,13 +64,16 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _errorMessage;
   bool _isLoading = true;
   int _currentPage = 0;
-  bool _usePagination = false;
-  int _appsPerPage = 10; // Valor inicial, se actualizará dinámicamente
+  bool _usePagination = true;
+  int _appsPerPage = 10;
 
   @override
   void initState() {
     super.initState();
-    _usePagination = widget.prefs.getBool('usePagination') ?? false;
+    _usePagination = widget.prefs.getBool('usePagination') ?? true;
+    _searchController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadInstalledApps();
   }
 
@@ -93,13 +93,11 @@ class _SearchScreenState extends State<SearchScreen> {
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
     final appBarHeight = AppBar().preferredSize.height;
-    const searchFieldHeight = 72.0; // Altura aproximada del campo de búsqueda
-    const paginationHeight =
-        64.0; // Altura aproximada de los controles de paginación
+    const searchFieldHeight = 72.0;
+    const paginationHeight = 64.0;
     final topPadding = mediaQuery.padding.top;
     final bottomPadding = mediaQuery.padding.bottom;
 
-    // Calcular el espacio disponible para la lista
     final availableHeight = screenHeight -
         appBarHeight -
         searchFieldHeight -
@@ -107,10 +105,8 @@ class _SearchScreenState extends State<SearchScreen> {
         topPadding -
         bottomPadding;
 
-    // Calcular cuántos items caben en el espacio disponible
     final itemsThatFit = (availableHeight / _kItemHeight).floor();
 
-    // Asegurarnos de que al menos haya 5 items por página
     _appsPerPage = itemsThatFit.clamp(5, 20);
   }
 
@@ -207,7 +203,7 @@ class _SearchScreenState extends State<SearchScreen> {
               .where(
                   (app) => app.name.toLowerCase().contains(query.toLowerCase()))
               .toList();
-      _currentPage = 0; // Reset to first page when filtering
+      _currentPage = 0;
     });
   }
 
@@ -228,148 +224,186 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Widget _buildSearchField() {
-    return Padding(
-      padding: _kSearchPadding,
-      child: TextField(
-        controller: _searchController,
-        focusNode: _searchFocusNode,
-        autofocus: widget.autoFocus,
-        showCursor: true,
-        cursorColor: Colors.black,
-        cursorWidth: _kCursorWidth,
-        cursorRadius: const Radius.circular(1),
-        cursorOpacityAnimates: false,
-        decoration: InputDecoration(
-          hintText: 'Search apps...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(_kBorderRadius),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        ),
-        onChanged: _filterApps,
-      ),
-    );
-  }
-
-  Widget _buildPaginationControls() {
-    if (!_usePagination) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, size: 32),
-            iconSize: 32,
-            onPressed: _currentPage > 0 ? _previousPage : null,
-            style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(12),
-              minimumSize: const Size(48, 48),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            'Page ${_currentPage + 1} of $_totalPages',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward, size: 32),
-            iconSize: 32,
-            onPressed: _currentPage < _totalPages - 1 ? _nextPage : null,
-            style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(12),
-              minimumSize: const Size(48, 48),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppList() {
-    if (_isLoading) {
-      return const Center(
-          child: Text('Loading...', style: TextStyle(fontSize: _kFontSize)));
-    }
-
-    if (_errorMessage != null) {
-      return Padding(
-        padding: _kSearchPadding,
-        child:
-            Text(_errorMessage!, style: const TextStyle(color: Colors.black)),
-      );
-    }
-
-    return Expanded(
-      child: ScrollConfiguration(
-        behavior: NoGlowScrollBehavior(),
-        child: ListView.builder(
-          physics: _usePagination
-              ? const NeverScrollableScrollPhysics()
-              : const ClampingScrollPhysics(),
-          itemCount: _currentPageApps.length,
-          itemBuilder: (context, index) =>
-              _buildAppItem(_currentPageApps[index]),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppItem(AppInfo app) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _launchApp(app.packageName),
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        child: Padding(
-          padding: _kItemPadding,
-          child: Text(
-            app.name,
-            style: const TextStyle(
-              fontSize: _kFontSize,
-              fontWeight: FontWeight.bold,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 16.0),
-        child: Scaffold(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          scrolledUnderElevation: 0,
+          title: const Text('Search'),
           backgroundColor: Colors.white,
-          appBar: AppBar(
-            title: const Text('Search apps'),
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+          foregroundColor: Colors.black,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: _kSearchPadding,
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                autofocus: widget.autoFocus,
+                showCursor: true,
+                cursorColor: Colors.black,
+                cursorWidth: 2,
+                cursorRadius: const Radius.circular(1),
+                cursorOpacityAnimates: false,
+                decoration: InputDecoration(
+                  hintText: 'Search Apps...',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterApps('');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                onChanged: _filterApps,
+              ),
             ),
-          ),
-          body: Column(
-            children: [
-              _buildSearchField(),
-              _buildPaginationControls(),
-              _buildAppList(),
-            ],
-          ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: Text(
+                        'Loading...',
+                        style: TextStyle(fontSize: _kFontSize),
+                      ),
+                    )
+                  : _errorMessage != null
+                      ? Center(
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(fontSize: _kFontSize),
+                          ),
+                        )
+                      : _searchResults.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No apps found',
+                                style: TextStyle(fontSize: _kFontSize),
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                Expanded(
+                                  child: ScrollConfiguration(
+                                    behavior: NoGlowScrollBehavior(),
+                                    child: ListView.builder(
+                                      physics: _usePagination
+                                          ? const NeverScrollableScrollPhysics()
+                                          : null,
+                                      itemCount: _usePagination
+                                          ? _currentPageApps.length
+                                          : _searchResults.length,
+                                      itemBuilder: (context, index) {
+                                        final app = _usePagination
+                                            ? _currentPageApps[index]
+                                            : _searchResults[index];
+                                        return Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () {
+                                              _launchApp(app.packageName);
+                                            },
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 16.0,
+                                                vertical: 8.0,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      app.name,
+                                                      style: const TextStyle(
+                                                        fontSize: _kFontSize,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 1,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                if (_usePagination && _totalPages > 1)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.arrow_back_rounded,
+                                              size: 32),
+                                          iconSize: 32,
+                                          onPressed: _currentPage > 0
+                                              ? _previousPage
+                                              : null,
+                                          style: IconButton.styleFrom(
+                                            padding: const EdgeInsets.all(12),
+                                            minimumSize: const Size(48, 48),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          'Page ${_currentPage + 1} of $_totalPages',
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.arrow_forward_rounded,
+                                              size: 32),
+                                          iconSize: 32,
+                                          onPressed:
+                                              _currentPage < _totalPages - 1
+                                                  ? _nextPage
+                                                  : null,
+                                          style: IconButton.styleFrom(
+                                            padding: const EdgeInsets.all(12),
+                                            minimumSize: const Size(48, 48),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+            ),
+          ],
         ),
       ),
     );

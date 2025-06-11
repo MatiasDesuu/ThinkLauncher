@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'screens/main_screen.dart';
+import 'services/icon_cache_service.dart';
 
-// Constantes para el tema
 const _kPrimaryColor = Colors.black;
 const _kSurfaceColor = Colors.white;
 const _kBorderRadius = 12.0;
@@ -13,8 +14,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
 
-  // Configurar UI del sistema
+  await IconCacheService.initialize();
+
   _configureSystemUI(prefs);
+  timeDilation = 0.0001;
 
   runApp(MyApp(prefs: prefs));
 }
@@ -69,6 +72,8 @@ class MyApp extends StatelessWidget {
         outlineVariant: _kPrimaryColor,
       ),
       appBarTheme: const AppBarTheme(
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         backgroundColor: _kSurfaceColor,
         foregroundColor: _kPrimaryColor,
         elevation: 0,

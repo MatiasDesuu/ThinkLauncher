@@ -6,10 +6,14 @@ import '../screens/search_screen.dart';
 class GestureHandler {
   final SharedPreferences prefs;
   final BuildContext context;
+  final Function()? onNextPage;
+  final Function()? onPreviousPage;
 
   GestureHandler({
     required this.prefs,
     required this.context,
+    this.onNextPage,
+    this.onPreviousPage,
   });
 
   void handleVerticalDrag(DragUpdateDetails details) {
@@ -46,35 +50,55 @@ class GestureHandler {
   }
 
   void handleHorizontalDrag(DragUpdateDetails details) {
-    if (details.delta.dx > 0) {
-      // Left to right
-      final isSwipeRightEnabled = prefs.getBool('enableSwipeRight') ?? true;
-      if (!isSwipeRightEnabled) return;
+    final enablePageNavigation = prefs.getBool('enablePageNavigation') ?? true;
+    if (!enablePageNavigation) {
+      // Si la navegación entre páginas está deshabilitada, usar los gestos normales
+      if (details.delta.dx > 0) {
+        // Swipe right
+        final isSwipeRightEnabled = prefs.getBool('enableSwipeRight') ?? true;
+        if (!isSwipeRightEnabled) return;
 
-      final useSearchForSwipeRight =
-          prefs.getBool('useSearchForSwipeRight') ?? true;
-      if (useSearchForSwipeRight) {
-        _openSearch();
-      } else {
-        final appPackage = prefs.getString('swipeRightApp');
-        if (appPackage != null) {
-          InstalledApps.startApp(appPackage);
+        final useSearchForSwipeRight =
+            prefs.getBool('useSearchForSwipeRight') ?? true;
+        if (useSearchForSwipeRight) {
+          _openSearch();
+        } else {
+          final appPackage = prefs.getString('swipeRightApp');
+          if (appPackage != null) {
+            InstalledApps.startApp(appPackage);
+          }
+        }
+      } else if (details.delta.dx < 0) {
+        // Swipe left
+        final isSwipeLeftEnabled = prefs.getBool('enableSwipeLeft') ?? true;
+        if (!isSwipeLeftEnabled) return;
+
+        final useSearchForSwipeLeft =
+            prefs.getBool('useSearchForSwipeLeft') ?? true;
+        if (useSearchForSwipeLeft) {
+          _openSearch();
+        } else {
+          final appPackage = prefs.getString('swipeLeftApp');
+          if (appPackage != null) {
+            InstalledApps.startApp(appPackage);
+          }
         }
       }
-    } else {
-      // Right to left
-      final isSwipeLeftEnabled = prefs.getBool('enableSwipeLeft') ?? true;
-      if (!isSwipeLeftEnabled) return;
+    }
+  }
 
-      final useSearchForSwipeLeft =
-          prefs.getBool('useSearchForSwipeLeft') ?? true;
-      if (useSearchForSwipeLeft) {
-        _openSearch();
-      } else {
-        final appPackage = prefs.getString('swipeLeftApp');
-        if (appPackage != null) {
-          InstalledApps.startApp(appPackage);
-        }
+  void handleHorizontalDragEnd(DragEndDetails details) {
+    final enablePageNavigation = prefs.getBool('enablePageNavigation') ?? true;
+    if (!enablePageNavigation) return;
+
+    // Determinar la dirección del gesto basado en la velocidad
+    if (details.primaryVelocity != null) {
+      if (details.primaryVelocity! > 300) {
+        // Swipe right - página anterior
+        onPreviousPage?.call();
+      } else if (details.primaryVelocity! < -300) {
+        // Swipe left - página siguiente
+        onNextPage?.call();
       }
     }
   }
