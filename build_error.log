@@ -1,0 +1,603 @@
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugJavaWithJavac FAILED
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:636: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:636: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:638: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:676: error: cannot find symbol
+        updatePaddingPx();
+        ^
+  symbol:   method updatePaddingPx()
+  location: class MainActivity
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:874: error: cannot find symbol
+            updatePaddingPx();
+            ^
+  symbol:   method updatePaddingPx()
+  location: class MainActivity
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:989: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:989: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:991: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1108: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+                    int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
+                                                                                         ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1391: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+                int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
+                                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1661: warning: [deprecation] onBackPressed() in Activity has been deprecated
+    public void onBackPressed() {
+                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1805: warning: [deprecation] getSystemWindowInsetTop() in WindowInsets has been deprecated
+                        statusBarHeight = insets.getSystemWindowInsetTop();
+                                                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1806: warning: [deprecation] getSystemWindowInsetBottom() in WindowInsets has been deprecated
+                        navBarHeight = insets.getSystemWindowInsetBottom();
+                                             ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:2051: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+            int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
+                                                                                 ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:82: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:82: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:84: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:111: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:503: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:705: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:71: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:71: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:73: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:84: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:172: warning: [deprecation] startActivityForResult(Intent,int) in ComponentActivity has been deprecated
+        startActivityForResult(intent, 1000);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:233: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:70: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:70: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:72: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:88: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:216: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:82: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:82: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:84: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:108: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:166: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:173: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:447: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:79: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:79: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:81: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:104: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:407: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:77: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:77: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:79: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:99: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:116: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:123: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:130: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:137: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:144: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:151: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:159: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:167: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:215: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:247: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:82: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:82: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:84: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:97: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:284: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:109: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:109: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:111: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:144: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:396: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:95: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:95: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:97: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:130: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:303: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                overridePendingTransition(0, 0);
+                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:312: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                overridePendingTransition(0, 0);
+                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:325: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                    overridePendingTransition(0, 0);
+                    ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:340: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                    overridePendingTransition(0, 0);
+                    ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:351: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                    overridePendingTransition(0, 0);
+                    ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:369: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                    overridePendingTransition(0, 0);
+                    ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:378: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                overridePendingTransition(0, 0);
+                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:388: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:443: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:118: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:118: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:120: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:184: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                overridePendingTransition(0, 0);
+                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:197: warning: [deprecation] startActivityForResult(Intent,int) in ComponentActivity has been deprecated
+                startActivityForResult(intent, REQUEST_ADD_APP);
+                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:584: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:109: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                     ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:109: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:111: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                                          ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:144: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+            overridePendingTransition(0, 0);
+            ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:156: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+        float scaledDensity = dm.scaledDensity;
+                                ^
+E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:375: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+        overridePendingTransition(0, 0);
+        ^
+2 errors
+90 warnings
+
+[Incubating] Problems report is available at: file:///E:/Documents/Projects/Apps/ThinkLauncherV2/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:636: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:636: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:638: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:989: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:989: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:991: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1108: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+                      int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
+                                                                                           ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1391: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+                  int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
+                                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1661: warning: [deprecation] onBackPressed() in Activity has been deprecated
+      public void onBackPressed() {
+                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1805: warning: [deprecation] getSystemWindowInsetTop() in WindowInsets has been deprecated
+                          statusBarHeight = insets.getSystemWindowInsetTop();
+                                                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:1806: warning: [deprecation] getSystemWindowInsetBottom() in WindowInsets has been deprecated
+                          navBarHeight = insets.getSystemWindowInsetBottom();
+                                               ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:2051: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+              int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
+                                                                                   ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:82: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:82: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:84: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:111: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:503: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\DisplaySettingsActivity.java:705: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:71: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:71: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:73: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:84: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:172: warning: [deprecation] startActivityForResult(Intent,int) in ComponentActivity has been deprecated
+          startActivityForResult(intent, 1000);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\GestureSettingsActivity.java:233: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:70: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:70: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:72: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:88: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeScreenPaddingActivity.java:216: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:82: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:82: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:84: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:108: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:166: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:173: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\HomeSettingsActivity.java:447: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:79: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:79: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:81: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:104: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\IconSettingsActivity.java:407: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:77: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:77: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:79: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:99: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:116: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:123: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:130: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:137: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:144: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:151: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:159: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:167: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:215: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\SettingsActivity.java:247: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:82: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:82: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:84: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:97: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\settings\WallpaperSettingsActivity.java:284: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:109: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:109: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:111: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:144: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppLauncherActivity.java:396: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:95: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:95: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:97: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:130: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:303: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                  overridePendingTransition(0, 0);
+                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:312: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                  overridePendingTransition(0, 0);
+                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:325: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                      overridePendingTransition(0, 0);
+                      ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:340: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                      overridePendingTransition(0, 0);
+                      ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:351: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                      overridePendingTransition(0, 0);
+                      ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:369: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                      overridePendingTransition(0, 0);
+                      ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:378: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                  overridePendingTransition(0, 0);
+                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:388: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\AppSelectorActivity.java:443: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:118: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:118: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:120: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:184: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+                  overridePendingTransition(0, 0);
+                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:197: warning: [deprecation] startActivityForResult(Intent,int) in ComponentActivity has been deprecated
+                  startActivityForResult(intent, REQUEST_ADD_APP);
+                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\FolderActivity.java:584: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:109: warning: [deprecation] SYSTEM_UI_FLAG_LIGHT_STATUS_BAR in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                                                       ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:109: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:111: warning: [deprecation] setSystemUiVisibility(int) in View has been deprecated
+                  getWindow().getDecorView().setSystemUiVisibility(0);
+                                            ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:144: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+              overridePendingTransition(0, 0);
+              ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:156: warning: [deprecation] scaledDensity in DisplayMetrics has been deprecated
+          float scaledDensity = dm.scaledDensity;
+                                  ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\ui\HideAppsActivity.java:375: warning: [deprecation] overridePendingTransition(int,int) in Activity has been deprecated
+          overridePendingTransition(0, 0);
+          ^
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:676: error: cannot find symbol
+          updatePaddingPx();
+          ^
+    symbol:   method updatePaddingPx()
+    location: class MainActivity
+  E:\Documents\Projects\Apps\ThinkLauncherV2\app\src\main\java\org\matiasdesu\thinklauncherv2\MainActivity.java:874: error: cannot find symbol
+              updatePaddingPx();
+              ^
+    symbol:   method updatePaddingPx()
+    location: class MainActivity
+  2 errors
+  90 warnings
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to generate a Build Scan (powered by Develocity).
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1s
+15 actionable tasks: 1 executed, 14 up-to-date

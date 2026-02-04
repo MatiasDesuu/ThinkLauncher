@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="280dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/change_folder_name_button"
+            style="@style/DialogButton"
+            android:text="Change folder name"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/sort_button"
+            style="@style/DialogButton"
+            android:text="Sort by name"
+            android:layout_width="match_parent" />
+
+        <TextView
+            android:id="@+id/reorder_button"
+            style="@style/DialogButton"
+            android:text="Reorder"
+            android:layout_width="match_parent"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</LinearLayout>

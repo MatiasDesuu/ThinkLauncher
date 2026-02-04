@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="180dp"
+    android:layout_height="wrap_content"
+    android:minHeight="40dp">
+
+    <TextView
+        style="@style/PlusMinusButton"
+        android:id="@+id/btn_minus"
+        android:text="-"
+        android:textSize="20sp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true" />
+
+    <TextView
+        android:id="@+id/value_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="OFF"
+        android:textColor="?attr/text_color"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_toRightOf="@id/btn_minus"
+        android:layout_toLeftOf="@+id/btn_plus"
+        android:layout_centerVertical="true"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp" />
+
+    <TextView
+        style="@style/PlusMinusButton"
+        android:id="@+id/btn_plus"
+        android:text="+"
+        android:textSize="20sp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true" />
+
+</RelativeLayout>

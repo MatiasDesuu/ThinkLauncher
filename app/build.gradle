@@ -1,0 +1,65 @@
+plugins {
+    id 'com.android.application' version '8.9.2'
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace = 'org.matiasdesu.thinklauncherv2'
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId "org.matiasdesu.thinklauncherv2"
+        minSdk = 21
+        targetSdk = 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        if (keystoreProperties['KEYSTORE_PATH']) {
+            release {
+                storeFile rootProject.file(keystoreProperties['KEYSTORE_PATH'])
+                storePassword keystoreProperties['KEYSTORE_PASSWORD']
+                keyAlias keystoreProperties['KEY_ALIAS']
+                keyPassword keystoreProperties['KEY_PASSWORD']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (keystoreProperties['KEYSTORE_PATH']) {
+                signingConfig = signingConfigs.release
+            }
+            minifyEnabled = true
+            shrinkResources = true
+            debuggable = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Xlint:deprecation'
+    }
+
+    lintOptions {
+        abortOnError = false
+        checkReleaseBuilds = false
+        disable 'all'
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+}
