@@ -37,7 +37,6 @@ public class IconSettingsActivity extends AppCompatActivity {
     private boolean monochromeIcons;
     private boolean dynamicIcons;
     private boolean dynamicColors;
-    private boolean invertIconColors;
     private boolean iconBackground;
     private int iconShape;
     private int iconSize;
@@ -99,7 +98,6 @@ public class IconSettingsActivity extends AppCompatActivity {
         monochromeIcons = prefs.getBoolean("monochrome_icons", false);
         dynamicIcons = prefs.getBoolean("dynamic_icons", false);
         dynamicColors = prefs.getBoolean("dynamic_colors", false);
-        invertIconColors = prefs.getBoolean("invert_icon_colors", false);
         iconBackground = prefs.getBoolean("icon_background", true);
         iconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
         iconSize = prefs.getInt("icon_size", 32);
@@ -153,13 +151,7 @@ public class IconSettingsActivity extends AppCompatActivity {
         dynamicColorsValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(dynamicColorsValueTv, new String[] { "ON", "OFF" }));
         dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-        LinearLayout invertIconColorsLayout = findViewById(R.id.invert_icon_colors_layout);
-        View invertIconColorsContainer = findViewById(R.id.invert_icon_colors_container);
-        TextView invertIconColorsValueTv = invertIconColorsContainer.findViewById(R.id.value_text);
-        invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
-        invertIconColorsValueTv
-                .setMinWidth(TextWidthHelper.getMaxTextWidthPx(invertIconColorsValueTv, new String[] { "ON", "OFF" }));
-        invertIconColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
+
         LinearLayout iconBackgroundLayout = findViewById(R.id.icon_background_layout);
         View iconBackgroundContainer = findViewById(R.id.icon_background_container);
         TextView iconBackgroundValueTv = iconBackgroundContainer.findViewById(R.id.value_text);
@@ -204,8 +196,6 @@ public class IconSettingsActivity extends AppCompatActivity {
         TextView plusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_plus);
         TextView minusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_minus);
         TextView plusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_plus);
-        TextView minusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_minus);
-        TextView plusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_plus);
         TextView minusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_minus);
         TextView plusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_plus);
         TextView minusIconShapeBtn = iconShapeContainer.findViewById(R.id.btn_minus);
@@ -301,7 +291,6 @@ public class IconSettingsActivity extends AppCompatActivity {
             dynamicIcons = !dynamicIcons;
             dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
             dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-            invertIconColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             iconShapeLayout.setVisibility((dynamicIcons && iconBackground) ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
@@ -313,7 +302,6 @@ public class IconSettingsActivity extends AppCompatActivity {
             dynamicIcons = !dynamicIcons;
             dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
             dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-            invertIconColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             iconShapeLayout.setVisibility((dynamicIcons && iconBackground) ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
@@ -331,18 +319,6 @@ public class IconSettingsActivity extends AppCompatActivity {
             dynamicColors = !dynamicColors;
             dynamicColorsValueTv.setText(dynamicColors ? "ON" : "OFF");
             prefs.edit().putBoolean("dynamic_colors", dynamicColors).apply();
-        });
-
-        minusInvertIconColorsBtn.setOnClickListener(v -> {
-            invertIconColors = !invertIconColors;
-            invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
-            prefs.edit().putBoolean("invert_icon_colors", invertIconColors).apply();
-        });
-
-        plusInvertIconColorsBtn.setOnClickListener(v -> {
-            invertIconColors = !invertIconColors;
-            invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
-            prefs.edit().putBoolean("invert_icon_colors", invertIconColors).apply();
         });
 
         minusIconBackgroundBtn.setOnClickListener(v -> {
@@ -435,9 +411,6 @@ public class IconSettingsActivity extends AppCompatActivity {
 
         LinearLayout dynamicColorsLayout = findViewById(R.id.dynamic_colors_layout);
         dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-
-        LinearLayout invertIconColorsLayout = findViewById(R.id.invert_icon_colors_layout);
-        invertIconColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
 
         LinearLayout iconBackgroundLayout = findViewById(R.id.icon_background_layout);
         iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);

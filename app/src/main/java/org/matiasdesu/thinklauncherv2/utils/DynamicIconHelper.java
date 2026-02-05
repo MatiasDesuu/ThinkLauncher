@@ -94,40 +94,9 @@ public class DynamicIconHelper {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     Drawable monochromeDrawable = adaptiveIcon.getMonochrome();
                     if (monochromeDrawable != null) {
-                        int iconColor;
-                        int backgroundColor;
-
-                        if (dynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            int[] dynamicColorPair = getDynamicColors(context, theme, iconBackground, invertIconColors);
-                            iconColor = dynamicColorPair[0];
-                            backgroundColor = dynamicColorPair[1];
-                        } else {
-                            boolean isDark = ThemeUtils.isDarkTheme(theme, context);
-                            int customBg = ThemeUtils.getBgColor(theme, context);
-                            int customTx = ThemeUtils.getTextColor(theme, context);
-
-                            if (theme == ThemeUtils.THEME_CUSTOM) {
-                                if (iconBackground) {
-                                    iconColor = customBg;
-                                    backgroundColor = customTx;
-                                } else {
-                                    iconColor = customTx;
-                                    backgroundColor = customBg;
-                                }
-                            } else if (iconBackground) {
-                                iconColor = isDark ? Color.BLACK : Color.WHITE;
-                                backgroundColor = isDark ? Color.WHITE : Color.BLACK;
-                            } else {
-                                iconColor = isDark ? Color.WHITE : Color.BLACK;
-                                backgroundColor = ThemeUtils.getBgColor(theme, context);
-                            }
-
-                            if (invertIconColors) {
-                                int temp = iconColor;
-                                iconColor = backgroundColor;
-                                backgroundColor = temp;
-                            }
-                        }
+                        int[] colors = getDynamicColors(context, theme, iconBackground, invertIconColors, dynamicColors);
+                        int iconColor = colors[0];
+                        int backgroundColor = colors[1];
 
                         Drawable tintedMonochrome;
                         if (monochromeDrawable.getConstantState() != null) {
@@ -218,7 +187,7 @@ public class DynamicIconHelper {
      * @param invertIconColors Whether to invert icon and background colors
      * @return int array where [0] is icon color and [1] is background color
      */
-    public static int[] getDynamicColors(Context context, int theme, boolean iconBackground, boolean invertIconColors) {
+    public static int[] getDynamicColors(Context context, int theme, boolean iconBackground, boolean invertIconColors, boolean useMaterialYou) {
         int iconColor;
         int backgroundColor;
         boolean isDark = ThemeUtils.isDarkTheme(theme, context);
@@ -243,7 +212,7 @@ public class DynamicIconHelper {
             return new int[] { iconColor, backgroundColor };
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             try {
                 if (!isDark) {
                     if (iconBackground) {
@@ -296,6 +265,10 @@ public class DynamicIconHelper {
         }
 
         return new int[] { iconColor, backgroundColor };
+    }
+
+    public static int[] getDynamicColors(Context context, int theme, boolean iconBackground, boolean invertIconColors) {
+        return getDynamicColors(context, theme, iconBackground, invertIconColors, true);
     }
 
     private static int getThemedIconColor(Context context) {
@@ -386,40 +359,9 @@ public class DynamicIconHelper {
             boolean dynamicColors, boolean invertIconColors, int iconShape) {
         Drawable iconDrawable = context.getResources().getDrawable(drawableResId, context.getTheme()).mutate();
 
-        int iconColor;
-        int backgroundColor;
-
-        if (dynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            int[] colors = getDynamicColors(context, theme, iconBackground, invertIconColors);
-            iconColor = colors[0];
-            backgroundColor = colors[1];
-        } else {
-            boolean isDark = ThemeUtils.isDarkTheme(theme, context);
-            int customBg = ThemeUtils.getBgColor(theme, context);
-            int customTx = ThemeUtils.getTextColor(theme, context);
-
-            if (theme == ThemeUtils.THEME_CUSTOM) {
-                if (iconBackground) {
-                    iconColor = customBg;
-                    backgroundColor = customTx;
-                } else {
-                    iconColor = customTx;
-                    backgroundColor = customBg;
-                }
-            } else if (iconBackground) {
-                iconColor = isDark ? Color.BLACK : Color.WHITE;
-                backgroundColor = isDark ? Color.WHITE : Color.BLACK;
-            } else {
-                iconColor = isDark ? Color.WHITE : Color.BLACK;
-                backgroundColor = ThemeUtils.getBgColor(theme, context);
-            }
-
-            if (invertIconColors) {
-                int temp = iconColor;
-                iconColor = backgroundColor;
-                backgroundColor = temp;
-            }
-        }
+        int[] colors = getDynamicColors(context, theme, iconBackground, invertIconColors, dynamicColors);
+        int iconColor = colors[0];
+        int backgroundColor = colors[1];
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             iconDrawable.setColorFilter(new BlendModeColorFilter(iconColor, BlendMode.SRC_IN));

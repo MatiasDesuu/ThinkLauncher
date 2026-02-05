@@ -69,6 +69,7 @@ public class MainActivity extends Activity {
     private boolean dynamicIcons;
     private boolean dynamicColors;
     private boolean invertIconColors;
+    private boolean invertHomeColors;
     private boolean iconBackground;
     private int iconShape;
     private int homeAlignment;
@@ -195,39 +196,62 @@ public class MainActivity extends Activity {
     private int getTimeEffectColorValue() {
         android.content.SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         if (theme == ThemeUtils.THEME_CUSTOM) {
+            if (invertHomeColors) {
+                return this.textColor;
+            }
             return ThemeUtils.getBgColor(theme, this);
         }
+        int color;
         switch (timeEffectColor) {
             case 0:
-                return android.graphics.Color.BLACK;
+                color = android.graphics.Color.BLACK;
+                break;
             case 1:
-                return android.graphics.Color.WHITE;
+                color = android.graphics.Color.WHITE;
+                break;
             case 2:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                break;
             case 3:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                break;
             default:
-                return android.graphics.Color.BLACK;
+                color = android.graphics.Color.BLACK;
+                break;
         }
+        if (invertHomeColors && timeEffectColor == 4) { // 4 is assumed to be "Follow Theme" if we ever add it, but for now let's just use it
+            // This is tricky because effects don't always "follow theme" in the same way.
+        }
+        return color;
     }
 
     private int getDateEffectColorValue() {
         android.content.SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         if (theme == ThemeUtils.THEME_CUSTOM) {
+            if (invertHomeColors) {
+                return this.textColor;
+            }
             return ThemeUtils.getBgColor(theme, this);
         }
+        int color;
         switch (dateEffectColor) {
             case 0:
-                return android.graphics.Color.BLACK;
+                color = android.graphics.Color.BLACK;
+                break;
             case 1:
-                return android.graphics.Color.WHITE;
+                color = android.graphics.Color.WHITE;
+                break;
             case 2:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                break;
             case 3:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                break;
             default:
-                return android.graphics.Color.BLACK;
+                color = android.graphics.Color.BLACK;
+                break;
         }
+        return color;
     }
 
     private int getIconEffectColorValue() {
@@ -250,24 +274,35 @@ public class MainActivity extends Activity {
     }
 
     private int getTimeColorValue() {
+        int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
-            return this.textColor;
+            color = this.textColor;
+        } else if (timeColor == 0) { // Follow Theme
+            color = this.textColor;
+        } else {
+            switch (timeColor) {
+                case 1: // DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
+                    break;
+                case 2: // WHITE
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
+                    break;
+                case 3: // DYNAMIC DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
+                    break;
+                case 4: // DYNAMIC LIGHT
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
+                    break;
+                default:
+                    color = this.textColor;
+                    break;
+            }
         }
-        if (timeColor == 0) { // Follow Theme
-            return this.textColor;
+        
+        if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || timeColor == 0)) {
+            return ThemeUtils.getBgColor(theme, this);
         }
-        switch (timeColor) {
-            case 1: // DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
-            case 2: // WHITE
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
-            case 3: // DYNAMIC DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
-            case 4: // DYNAMIC LIGHT
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
-            default:
-                return this.textColor;
-        }
+        return color;
     }
 
     private int getAppTextColorValue() {
@@ -292,50 +327,75 @@ public class MainActivity extends Activity {
     }
 
     private int getDateColorValue() {
+        int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
-            return this.textColor;
+            color = this.textColor;
+        } else if (dateColor == 0) { // Follow Theme
+            color = this.textColor;
+        } else {
+            switch (dateColor) {
+                case 1: // DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
+                    break;
+                case 2: // WHITE
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
+                    break;
+                case 3: // DYNAMIC DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
+                    break;
+                case 4: // DYNAMIC LIGHT
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
+                    break;
+                default:
+                    color = this.textColor;
+                    break;
+            }
         }
-        if (dateColor == 0) { // Follow Theme
-            return this.textColor;
+        
+        if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || dateColor == 0)) {
+            return ThemeUtils.getBgColor(theme, this);
         }
-        switch (dateColor) {
-            case 1: // DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
-            case 2: // WHITE
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
-            case 3: // DYNAMIC DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
-            case 4: // DYNAMIC LIGHT
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
-            default:
-                return this.textColor;
-        }
+        return color;
     }
 
     private int getSettingsButtonColorValue() {
+        int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
-            return this.textColor;
+            color = this.textColor;
+        } else if (settingsButtonColor == 0) { // Follow Theme
+            color = this.textColor;
+        } else {
+            switch (settingsButtonColor) {
+                case 1: // DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
+                    break;
+                case 2: // WHITE
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
+                    break;
+                case 3: // DYNAMIC DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
+                    break;
+                case 4: // DYNAMIC LIGHT
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
+                    break;
+                default:
+                    color = this.textColor;
+                    break;
+            }
         }
-        if (settingsButtonColor == 0) { // Follow Theme
-            return this.textColor;
+        
+        if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || settingsButtonColor == 0)) {
+            return ThemeUtils.getBgColor(theme, this);
         }
-        switch (settingsButtonColor) {
-            case 1: // DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
-            case 2: // WHITE
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
-            case 3: // DYNAMIC DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
-            case 4: // DYNAMIC LIGHT
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
-            default:
-                return this.textColor;
-        }
+        return color;
     }
 
     private int getSettingsButtonEffectColorValue() {
         android.content.SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         if (theme == ThemeUtils.THEME_CUSTOM) {
+            if (invertHomeColors) {
+                return this.textColor;
+            }
             return ThemeUtils.getBgColor(theme, this);
         }
         switch (settingsButtonEffectColor) {
@@ -353,29 +413,43 @@ public class MainActivity extends Activity {
     }
 
     private int getSearchButtonColorValue() {
+        int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
-            return this.textColor;
+            color = this.textColor;
+        } else if (searchButtonColor == 0) { // Follow Theme
+            color = this.textColor;
+        } else {
+            switch (searchButtonColor) {
+                case 1: // DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
+                    break;
+                case 2: // WHITE
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
+                    break;
+                case 3: // DYNAMIC DARK
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
+                    break;
+                case 4: // DYNAMIC LIGHT
+                    color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
+                    break;
+                default:
+                    color = this.textColor;
+                    break;
+            }
         }
-        if (searchButtonColor == 0) { // Follow Theme
-            return this.textColor;
+        
+        if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || searchButtonColor == 0)) {
+            return ThemeUtils.getBgColor(theme, this);
         }
-        switch (searchButtonColor) {
-            case 1: // DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
-            case 2: // WHITE
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
-            case 3: // DYNAMIC DARK
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
-            case 4: // DYNAMIC LIGHT
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
-            default:
-                return this.textColor;
-        }
+        return color;
     }
 
     private int getSearchButtonEffectColorValue() {
         android.content.SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         if (theme == ThemeUtils.THEME_CUSTOM) {
+            if (invertHomeColors) {
+                return this.textColor;
+            }
             return ThemeUtils.getBgColor(theme, this);
         }
         switch (searchButtonEffectColor) {
@@ -390,6 +464,13 @@ public class MainActivity extends Activity {
             default:
                 return android.graphics.Color.BLACK;
         }
+    }
+
+    private int getPaginationColorValue() {
+        if (invertHomeColors) {
+            return ThemeUtils.getBgColor(theme, this);
+        }
+        return this.textColor;
     }
 
     private void applyTextEffect(TextView tv) {
@@ -887,6 +968,7 @@ public class MainActivity extends Activity {
         dynamicIcons = prefs.getBoolean("dynamic_icons", false);
         dynamicColors = prefs.getBoolean("dynamic_colors", false);
         invertIconColors = prefs.getBoolean("invert_icon_colors", false);
+        invertHomeColors = prefs.getBoolean("invert_home_colors", false);
         iconBackground = prefs.getBoolean("icon_background", true);
         iconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
         homeAlignment = prefs.getInt("home_alignment", 1);
@@ -952,7 +1034,7 @@ public class MainActivity extends Activity {
         loadWallpaper();
 
         TextView pageIndicator = findViewById(R.id.page_indicator);
-        ThemeUtils.applyTextColor(pageIndicator, theme, this);
+        pageIndicator.setTextColor(getPaginationColorValue());
         homePagesManager.setPageIndicator(pageIndicator);
         homePagesManager.updatePageIndicator();
         pageIndicator.setVisibility((homePages > 1 && !hidePagination) ? View.VISIBLE : View.GONE);
@@ -962,7 +1044,7 @@ public class MainActivity extends Activity {
         updateGravity();
 
         ImageView prevButton = findViewById(R.id.prev_page_button);
-        prevButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        prevButton.setColorFilter(getPaginationColorValue());
         prevButton.setOnClickListener(v -> {
             int currentPage = homePagesManager.getCurrentPage();
             int newPage = currentPage > 0 ? currentPage - 1 : homePages - 1;
@@ -971,7 +1053,7 @@ public class MainActivity extends Activity {
         });
 
         ImageView nextButton = findViewById(R.id.next_page_button);
-        nextButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        nextButton.setColorFilter(getPaginationColorValue());
         nextButton.setOnClickListener(v -> {
             int currentPage = homePagesManager.getCurrentPage();
             int newPage = currentPage < homePages - 1 ? currentPage + 1 : 0;
@@ -1063,6 +1145,7 @@ public class MainActivity extends Activity {
         boolean newDynamicIcons = prefs.getBoolean("dynamic_icons", false);
         boolean newDynamicColors = prefs.getBoolean("dynamic_colors", false);
         boolean newInvertIconColors = prefs.getBoolean("invert_icon_colors", false);
+        boolean newInvertHomeColors = prefs.getBoolean("invert_home_colors", false);
         boolean newIconBackground = prefs.getBoolean("icon_background", true);
         int newIconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
         int bgColor = ThemeUtils.getBgColor(newTheme, this);
@@ -1091,13 +1174,16 @@ public class MainActivity extends Activity {
                 || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
                 || newShowIcons != showIcons || newShowAppNames != showAppNames || newTimeColor != timeColor
                 || newDateColor != dateColor
+                || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
                 || newAppNamePosition != appNamePosition
                 || newTextEffect != textEffect || newEffectColor != effectColor || newIconEffect != iconEffect
                 || newIconEffectColor != iconEffectColor || newMonochromeIcons != monochromeIcons
                 || newDynamicIcons != dynamicIcons || newDynamicColors != dynamicColors
-                || newInvertIconColors != invertIconColors || newIconBackground != iconBackground
+                || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors || newIconBackground != iconBackground
                 || newIconShape != iconShape || newHidePagination != hidePagination
-                || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg) || wallpaperChanged;
+                || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg) 
+                || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
+                || wallpaperChanged;
         boolean onlyAlignmentChanged = (newHomeAlignment != homeAlignment
                 || newHomeVerticalAlignment != homeVerticalAlignment)
                 && !(newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
@@ -1105,11 +1191,13 @@ public class MainActivity extends Activity {
                         || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
                         || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
                         || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
+                        || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
                         || newShowIcons != showIcons || newShowAppNames != showAppNames
                         || newAppNamePosition != appNamePosition || newTextEffect != textEffect
                         || newEffectColor != effectColor || newIconEffect != iconEffect
                         || newIconEffectColor != iconEffectColor || !newClockAppPkg.equals(clockAppPkg)
-                        || !newDateAppPkg.equals(dateAppPkg) || wallpaperChanged);
+                        || !newDateAppPkg.equals(dateAppPkg) || wallpaperChanged
+                        || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors);
         boolean visibilityChanged = newShowAppNames != showAppNames || newTextEffect != textEffect
                 || newEffectColor != effectColor || newIconEffect != iconEffect
                 || newIconEffectColor != iconEffectColor;
@@ -1174,6 +1262,7 @@ public class MainActivity extends Activity {
             dynamicIcons = newDynamicIcons;
             dynamicColors = newDynamicColors;
             invertIconColors = newInvertIconColors;
+            invertHomeColors = newInvertHomeColors;
             iconBackground = newIconBackground;
             iconShape = newIconShape;
 
@@ -1316,7 +1405,7 @@ public class MainActivity extends Activity {
                             iconView.setImageDrawable(specialIcon);
                             iconView.clearColorFilter();
                         } else {
-                            iconView.setColorFilter(textColor);
+                            iconView.setColorFilter(getSpecialIconColor());
                         }
                     } else {
                         // Reload the icon with the new theme/colors
@@ -1352,17 +1441,17 @@ public class MainActivity extends Activity {
         // Update page navigation buttons
         ImageView prevButton = findViewById(R.id.prev_page_button);
         if (prevButton != null) {
-            prevButton.setColorFilter(textColor);
+            prevButton.setColorFilter(getPaginationColorValue());
         }
         ImageView nextButton = findViewById(R.id.next_page_button);
         if (nextButton != null) {
-            nextButton.setColorFilter(textColor);
+            nextButton.setColorFilter(getPaginationColorValue());
         }
 
         // Update page indicator
         TextView pageIndicator = findViewById(R.id.page_indicator);
         if (pageIndicator != null) {
-            ThemeUtils.applyTextColor(pageIndicator, theme, this);
+            pageIndicator.setTextColor(getPaginationColorValue());
         }
     }
 
@@ -1515,7 +1604,7 @@ public class MainActivity extends Activity {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         homePagesManager = new HomePagesManager(this, prefs, homePages, homeColumns, maxApps);
         TextView pageIndicator = findViewById(R.id.page_indicator);
-        ThemeUtils.applyTextColor(pageIndicator, theme, this);
+        pageIndicator.setTextColor(getPaginationColorValue());
         homePagesManager.setPageIndicator(pageIndicator);
         homePagesManager.updatePageIndicator();
         homePagesManager.loadAppsForCurrentPage();
@@ -2582,14 +2671,8 @@ public class MainActivity extends Activity {
      * Uses dynamic colors when dynamicIcons and dynamicColors are enabled
      */
     private int getSpecialIconColor() {
-        if (theme == ThemeUtils.THEME_CUSTOM) {
-            return textColor;
-        }
-        if (dynamicIcons && dynamicColors) {
-            int[] dynamicColorPair = DynamicIconHelper.getDynamicColors(this, theme, iconBackground);
-            return dynamicColorPair[0];
-        }
-        return textColor;
+        int[] dynamicColorPair = DynamicIconHelper.getDynamicColors(this, theme, iconBackground, invertIconColors, dynamicColors);
+        return dynamicColorPair[0];
     }
 
     private TextView getSlotTextView(LinearLayout slot) {

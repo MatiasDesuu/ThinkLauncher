@@ -32,6 +32,8 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private int theme;
     private int customBgColor;
     private int customAccentColor;
+    private boolean invertIconColors;
+    private boolean invertHomeColors;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
 
@@ -56,6 +58,8 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         theme = prefs.getInt("theme", 0);
         customBgColor = prefs.getInt("custom_bg_color", Color.WHITE);
         customAccentColor = prefs.getInt("custom_accent_color", Color.BLACK);
+        invertIconColors = prefs.getBoolean("invert_icon_colors", false);
+        invertHomeColors = prefs.getBoolean("invert_home_colors", false);
         
         if (ThemeUtils.isDarkTheme(theme, this)) {
             setTheme(R.style.AppTheme_Dark);
@@ -122,6 +126,46 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         customAccentColorText.setText(String.format("#%06X", (0xFFFFFF & customAccentColor)));
         customAccentColorText.setOnClickListener(v -> showColorPickerDialog("custom_accent_color", customAccentColor));
 
+        View invertIconColorsContainer = findViewById(R.id.invert_icon_colors_container);
+        TextView invertIconColorsValueTv = invertIconColorsContainer.findViewById(R.id.value_text);
+        invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
+        invertIconColorsValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(invertIconColorsValueTv, new String[] { "ON", "OFF" }));
+
+        TextView minusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_minus);
+        TextView plusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_plus);
+
+        minusInvertIconColorsBtn.setOnClickListener(v -> {
+            invertIconColors = !invertIconColors;
+            invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
+            prefs.edit().putBoolean("invert_icon_colors", invertIconColors).apply();
+        });
+
+        plusInvertIconColorsBtn.setOnClickListener(v -> {
+            invertIconColors = !invertIconColors;
+            invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
+            prefs.edit().putBoolean("invert_icon_colors", invertIconColors).apply();
+        });
+
+        View invertHomeColorsContainer = findViewById(R.id.invert_home_colors_container);
+        TextView invertHomeColorsValueTv = invertHomeColorsContainer.findViewById(R.id.value_text);
+        invertHomeColorsValueTv.setText(invertHomeColors ? "ON" : "OFF");
+        invertHomeColorsValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(invertHomeColorsValueTv, new String[] { "ON", "OFF" }));
+
+        TextView minusInvertHomeColorsBtn = invertHomeColorsContainer.findViewById(R.id.btn_minus);
+        TextView plusInvertHomeColorsBtn = invertHomeColorsContainer.findViewById(R.id.btn_plus);
+
+        minusInvertHomeColorsBtn.setOnClickListener(v -> {
+            invertHomeColors = !invertHomeColors;
+            invertHomeColorsValueTv.setText(invertHomeColors ? "ON" : "OFF");
+            prefs.edit().putBoolean("invert_home_colors", invertHomeColors).apply();
+        });
+
+        plusInvertHomeColorsBtn.setOnClickListener(v -> {
+            invertHomeColors = !invertHomeColors;
+            invertHomeColorsValueTv.setText(invertHomeColors ? "ON" : "OFF");
+            prefs.edit().putBoolean("invert_home_colors", invertHomeColors).apply();
+        });
+
         updateCustomColorVisibility();
 
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
@@ -139,6 +183,9 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private void updateCustomColorVisibility() {
         LinearLayout customBgColorLayout = findViewById(R.id.custom_bg_color_layout);
         LinearLayout customAccentColorLayout = findViewById(R.id.custom_accent_color_layout);
+        LinearLayout invertIconColorsLayout = findViewById(R.id.invert_icon_colors_layout);
+        LinearLayout invertHomeColorsLayout = findViewById(R.id.invert_home_colors_layout);
+        
         if (theme != ThemeUtils.THEME_CUSTOM) {
             customBgColorLayout.setVisibility(View.GONE);
             customAccentColorLayout.setVisibility(View.GONE);
@@ -146,6 +193,10 @@ public class ThemeSettingsActivity extends AppCompatActivity {
             customBgColorLayout.setVisibility(View.VISIBLE);
             customAccentColorLayout.setVisibility(View.VISIBLE);
         }
+        
+        // These are useful for all themes
+        invertIconColorsLayout.setVisibility(View.VISIBLE);
+        invertHomeColorsLayout.setVisibility(View.VISIBLE);
     }
 
     private void showColorPickerDialog(String key, int currentColor) {
