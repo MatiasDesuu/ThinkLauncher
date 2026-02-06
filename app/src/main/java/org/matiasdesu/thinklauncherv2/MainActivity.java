@@ -1394,7 +1394,7 @@ public class MainActivity extends Activity {
                     iconView.setTag(isSpecial ? "special" : "app");
 
                     if (isSpecial) {
-                        if (dynamicIcons) {
+                        if (dynamicIcons || iconBackground) {
                             int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
                                     : "app_launcher".equals(pkg) ? R.drawable.search
                                             : "notification_panel".equals(pkg) ? R.drawable.notifications
@@ -1810,7 +1810,7 @@ public class MainActivity extends Activity {
                     return;
                 }
                 if ("launcher_settings".equals(appPackages.get(position))) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.settings, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1820,7 +1820,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if ("app_launcher".equals(appPackages.get(position))) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.search, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1830,7 +1830,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if ("notification_panel".equals(appPackages.get(position))) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.notifications,
                                 theme, iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1840,7 +1840,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("folder_")) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1850,7 +1850,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("webapp_")) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.webapps, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1899,7 +1899,7 @@ public class MainActivity extends Activity {
                 iconView.setVisibility(View.VISIBLE);
 
                 if ("launcher_settings".equals(appPackages.get(position))) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.settings, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1909,7 +1909,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if ("app_launcher".equals(appPackages.get(position))) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.search, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1919,7 +1919,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if ("notification_panel".equals(appPackages.get(position))) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.notifications,
                                 theme, iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1929,7 +1929,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("folder_")) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -1939,7 +1939,7 @@ public class MainActivity extends Activity {
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("webapp_")) {
-                    if (dynamicIcons) {
+                    if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.webapps, theme,
                                 iconBackground, dynamicColors, invertIconColors, iconShape);
                         iconView.setImageDrawable(specialIcon);
@@ -2477,7 +2477,7 @@ public class MainActivity extends Activity {
                 iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
                 slotLayout.addView(iconView);
             } else if ("launcher_settings".equals(appPackages.get(index))) {
-                if (dynamicIcons) {
+                if (dynamicIcons || iconBackground) {
                     Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.settings, theme,
                             iconBackground, dynamicColors, invertIconColors, iconShape);
                     iconView.setImageDrawable(specialIcon);
@@ -2490,7 +2490,7 @@ public class MainActivity extends Activity {
                 iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
                 slotLayout.addView(iconView);
             } else if ("app_launcher".equals(appPackages.get(index))) {
-                if (dynamicIcons) {
+                if (dynamicIcons || iconBackground) {
                     Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.search, theme,
                             iconBackground, dynamicColors, invertIconColors, iconShape);
                     iconView.setImageDrawable(specialIcon);
@@ -2503,7 +2503,7 @@ public class MainActivity extends Activity {
                 iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
                 slotLayout.addView(iconView);
             } else if ("notification_panel".equals(appPackages.get(index))) {
-                if (dynamicIcons) {
+                if (dynamicIcons || iconBackground) {
                     Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.notifications, theme,
                             iconBackground, dynamicColors, invertIconColors, iconShape);
                     iconView.setImageDrawable(specialIcon);
@@ -2516,7 +2516,7 @@ public class MainActivity extends Activity {
                 iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
                 slotLayout.addView(iconView);
             } else if (appPackages.get(index).startsWith("folder_")) {
-                if (dynamicIcons) {
+                if (dynamicIcons || iconBackground) {
                     Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
                             iconBackground, dynamicColors, invertIconColors, iconShape);
                     iconView.setImageDrawable(specialIcon);
@@ -2529,7 +2529,7 @@ public class MainActivity extends Activity {
                 iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
                 slotLayout.addView(iconView);
             } else if (appPackages.get(index).startsWith("webapp_")) {
-                if (dynamicIcons) {
+                if (dynamicIcons || iconBackground) {
                     Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.webapps, theme,
                             iconBackground, dynamicColors, invertIconColors, iconShape);
                     iconView.setImageDrawable(specialIcon);

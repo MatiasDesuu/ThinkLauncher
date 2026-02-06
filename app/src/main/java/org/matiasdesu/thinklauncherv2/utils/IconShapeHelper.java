@@ -305,6 +305,67 @@ public class IconShapeHelper {
     }
 
     /**
+     * Create a shaped icon with foreground and background drawables from an AdaptiveIcon
+     * @param context Application context
+     * @param foreground The foreground drawable
+     * @param background The background drawable
+     * @param shape The shape to apply
+     * @param size The output size
+     * @return A new drawable with the shape applied
+     */
+    public static Drawable createShapedIcon(Context context, Drawable foreground, Drawable background, int shape, int size) {
+        if (foreground == null || size <= 0) {
+            return null;
+        }
+
+        if (shape == SHAPE_SYSTEM) {
+            return null;
+        }
+
+        // 1. Create a bitmap combining background and foreground (scaled)
+        // We use an intermediate bitmap to draw the unmasked layers together
+        Bitmap combinedBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas combinedCanvas = new Canvas(combinedBitmap);
+
+        // Standard AdaptiveIcon scale factor
+        // Layers are 108dp, Viewport is 72dp. Ratio = 1.5
+        float scale = 1.5f; 
+        int scaledSize = (int) (size * scale);
+        int offset = (size - scaledSize) / 2;
+
+        if (background != null) {
+            background.setBounds(offset, offset, offset + scaledSize, offset + scaledSize);
+            background.draw(combinedCanvas);
+        }
+
+        if (foreground != null) {
+            foreground.setBounds(offset, offset, offset + scaledSize, offset + scaledSize);
+            foreground.draw(combinedCanvas);
+        }
+
+        // 2. Create the final output bitmap with the shape mask applied using PorterDuff
+        // This ensures proper anti-aliasing of the edges, unlike canvas.clipPath()
+        Bitmap outputBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas outputCanvas = new Canvas(outputBitmap);
+
+        // Draw the shape mask first
+        Path shapePath = createShapePath(shape, size);
+        Paint maskPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        maskPaint.setStyle(Paint.Style.FILL);
+        maskPaint.setColor(0xFF000000); // Any opaque color
+        outputCanvas.drawPath(shapePath, maskPaint);
+
+        // Apply SRC_IN to keep only pixels where the mask is drawn
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        outputCanvas.drawBitmap(combinedBitmap, 0, 0, paint);
+
+        combinedBitmap.recycle();
+
+        return new BitmapDrawable(context.getResources(), outputBitmap);
+    }
+
+    /**
      * Convert a drawable to a bitmap
      */
     private static Bitmap drawableToBitmap(Drawable drawable, int size) {

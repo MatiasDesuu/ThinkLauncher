@@ -150,15 +150,32 @@ public class DynamicIconHelper {
             }
         }
 
-        return icon;
+        return applyShapeIfNeeded(context, icon, iconShape, iconBackground);
     }
 
     private static Drawable applyShapeIfNeeded(Context context, Drawable drawable, int iconShape,
             boolean iconBackground) {
         if (iconShape != IconShapeHelper.SHAPE_SYSTEM && iconBackground) {
-            int size = Math.max(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-            if (size <= 0)
-                size = 108;
+            
+            // Use 108 to match the size used for Dynamic Icons
+            int size = 108;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable instanceof AdaptiveIconDrawable) {
+                AdaptiveIconDrawable adaptiveIcon = (AdaptiveIconDrawable) drawable;
+                Drawable bg = adaptiveIcon.getBackground();
+                Drawable fg = adaptiveIcon.getForeground();
+                
+                if (bg != null && fg != null) {
+                    // Try to use the layers directly to avoid system mask
+                    try {
+                        Drawable shaped = IconShapeHelper.createShapedIcon(context, fg.mutate(), bg.mutate(), iconShape, size);
+                        if (shaped != null) return shaped;
+                    } catch (Exception e) {
+                        // Fallback to standard masking if something goes wrong
+                    }
+                }
+            }
+
             return IconShapeHelper.applyShapeMask(context, drawable, iconShape, size);
         }
         return drawable;

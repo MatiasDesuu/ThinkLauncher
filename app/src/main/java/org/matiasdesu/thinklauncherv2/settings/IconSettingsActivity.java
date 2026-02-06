@@ -158,14 +158,14 @@ public class IconSettingsActivity extends AppCompatActivity {
         iconBackgroundValueTv.setText(iconBackground ? "ON" : "OFF");
         iconBackgroundValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(iconBackgroundValueTv, new String[] { "ON", "OFF" }));
-        iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
+        iconBackgroundLayout.setVisibility(View.VISIBLE);
 
         LinearLayout iconShapeLayout = findViewById(R.id.icon_shape_layout);
         View iconShapeContainer = findViewById(R.id.icon_shape_container);
         TextView iconShapeValueTv = iconShapeContainer.findViewById(R.id.value_text);
         iconShapeValueTv.setText(IconShapeHelper.getShapeName(iconShape));
         iconShapeValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(iconShapeValueTv, IconShapeHelper.SHAPE_NAMES));
-        iconShapeLayout.setVisibility((dynamicIcons && iconBackground) ? View.VISIBLE : View.GONE);
+        iconShapeLayout.setVisibility(iconBackground ? View.VISIBLE : View.GONE);
 
         View iconEffectContainer = findViewById(R.id.icon_effect_container);
         TextView iconEffectValueTv = iconEffectContainer.findViewById(R.id.value_text);
@@ -291,8 +291,8 @@ public class IconSettingsActivity extends AppCompatActivity {
             dynamicIcons = !dynamicIcons;
             dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
             dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-            iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-            iconShapeLayout.setVisibility((dynamicIcons && iconBackground) ? View.VISIBLE : View.GONE);
+            // iconBackgroundLayout is always visible now
+            // iconShapeLayout visibility depends only on iconBackground
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
             if (paginationHelper != null)
                 paginationHelper.updateVisibleItemsList();
@@ -302,8 +302,8 @@ public class IconSettingsActivity extends AppCompatActivity {
             dynamicIcons = !dynamicIcons;
             dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
             dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-            iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
-            iconShapeLayout.setVisibility((dynamicIcons && iconBackground) ? View.VISIBLE : View.GONE);
+             // iconBackgroundLayout is always visible now
+            // iconShapeLayout visibility depends only on iconBackground
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
             if (paginationHelper != null)
                 paginationHelper.updateVisibleItemsList();
@@ -413,10 +413,10 @@ public class IconSettingsActivity extends AppCompatActivity {
         dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
 
         LinearLayout iconBackgroundLayout = findViewById(R.id.icon_background_layout);
-        iconBackgroundLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
+        iconBackgroundLayout.setVisibility(View.VISIBLE);
 
         LinearLayout iconShapeLayout = findViewById(R.id.icon_shape_layout);
-        iconShapeLayout.setVisibility((dynamicIcons && iconBackground) ? View.VISIBLE : View.GONE);
+        iconShapeLayout.setVisibility(iconBackground ? View.VISIBLE : View.GONE);
     }
 
     @Override
