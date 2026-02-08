@@ -48,7 +48,7 @@
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.  
+This project is licensed under the **GPL-3.0 License**.  
 You are free to use, modify, and distribute it, including for commercial purposes, as long as proper credit is given.
 
 [View full license](./LICENSE)
