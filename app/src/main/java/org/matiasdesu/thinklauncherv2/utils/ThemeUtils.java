@@ -43,8 +43,8 @@ public class ThemeUtils {
         drawable.setColor(getBgColor(theme, context));
         drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density), getTextColor(theme, context));
         int padding = (int) (4 * context.getResources().getDisplayMetrics().density);
-        drawable.setPadding(padding, padding, padding, padding);
         button.setBackground(drawable);
+        button.setPadding(padding, padding, padding, padding);
         button.setTextColor(getTextColor(theme, context));
     }
 

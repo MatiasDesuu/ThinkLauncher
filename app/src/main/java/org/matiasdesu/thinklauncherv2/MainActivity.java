@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import androidx.core.view.WindowCompat;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -921,13 +922,13 @@ public class MainActivity extends Activity {
 
         // Enable edge-to-edge mode when wallpaper is active
         if (this.hasWallpaper) {
-            getWindow().setDecorFitsSystemWindows(false);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
                 getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
             }
         } else {
-            getWindow().setDecorFitsSystemWindows(true);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(bgColor);
                 getWindow().setNavigationBarColor(bgColor);
@@ -1333,14 +1334,14 @@ public class MainActivity extends Activity {
 
         if (hasWallpaper) {
             rootLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-            getWindow().setDecorFitsSystemWindows(false);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
                 getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
             }
         } else {
             rootLayout.setBackgroundColor(bgColor);
-            getWindow().setDecorFitsSystemWindows(true);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
             mainLayout.setPadding(0, 0, 0, 0);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(bgColor);
@@ -2161,7 +2162,6 @@ public class MainActivity extends Activity {
     }
 
     private void recreateHome() {
-        // Clear current layout
         mainLayout.removeAllViews();
         appLabels.clear();
         appPackages.clear();
@@ -2169,7 +2169,6 @@ public class MainActivity extends Activity {
         appLabels.addAll(homePagesManager.getAppLabels());
         appPackages.addAll(homePagesManager.getAppPackages());
 
-        // Recreate the home layout
         createHomeLayout();
         EinkRefreshHelper.refreshEink(getWindow(), getSharedPreferences("prefs", MODE_PRIVATE),
                 getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));
@@ -2186,18 +2185,15 @@ public class MainActivity extends Activity {
             if (wallpaper != null) {
                 wallpaperView.setImageBitmap(wallpaper);
                 wallpaperView.setVisibility(View.VISIBLE);
-                // Make main layout background transparent so wallpaper shows through
                 mainLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                 rootLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
-                // Enable edge-to-edge mode
-                getWindow().setDecorFitsSystemWindows(false);
+                WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
                     getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
                 }
 
-                // Apply window insets to add padding for system bars
                 rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
                     int statusBarHeight = 0;
                     int navBarHeight = 0;
@@ -2211,7 +2207,6 @@ public class MainActivity extends Activity {
                     statusBarInset = statusBarHeight;
                     navBarInset = navBarHeight;
 
-                    // Apply window insets and padding
                     applyWindowInsetsToUI(statusBarHeight, navBarHeight);
 
                     return insets;
@@ -2226,22 +2221,18 @@ public class MainActivity extends Activity {
             navBarInset = 0;
             updateGravity();
 
-            // Disable edge-to-edge mode
-            getWindow().setDecorFitsSystemWindows(true);
-            // Restore system bar colors to theme color
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(bgColor);
                 getWindow().setNavigationBarColor(bgColor);
             }
 
-            // Remove insets listener and reset top margins
             rootLayout.setOnApplyWindowInsetsListener(null);
             applyWindowInsetsToUI(0, 0);
         }
     }
 
     private void applyWindowInsetsToUI(int topInset, int bottomInset) {
-        // Apply margin to dateView
         if (dateView != null && dateView.getParent() == rootLayout) {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) dateView.getLayoutParams();
             boolean isTimeVisible = (timePosition == 1 && timeView != null && timeView.getParent() == rootLayout);
