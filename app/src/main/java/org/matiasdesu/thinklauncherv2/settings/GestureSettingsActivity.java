@@ -51,6 +51,9 @@ public class GestureSettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            currentGestureDirection = savedInstanceState.getString("currentGestureDirection");
+        }
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         int bgColor = ThemeUtils.getBgColor(theme, this);
@@ -173,9 +176,19 @@ public class GestureSettingsActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("currentGestureDirection", currentGestureDirection);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1000 && resultCode == RESULT_OK && data != null) {
+            if (currentGestureDirection == null) {
+                // Try to recover from intent extras if possible, or just ignore
+                return;
+            }
             String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
             

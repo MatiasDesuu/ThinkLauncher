@@ -78,7 +78,7 @@ public class AppOptionsDialog extends Dialog {
         TextView uninstallButton = findViewById(R.id.uninstall_button);
         ThemeUtils.applyButtonTheme(uninstallButton, theme, getContext());
         
-        if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_") || packageName.equals("launcher_settings") || packageName.equals("app_launcher") || packageName.equals("notification_panel"))) {
+        if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_") || packageName.equals("launcher_settings") || packageName.equals("app_launcher") || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
             uninstallButton.setVisibility(View.GONE);
         }
 

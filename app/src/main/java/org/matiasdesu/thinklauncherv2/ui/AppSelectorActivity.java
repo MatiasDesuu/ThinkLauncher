@@ -234,10 +234,17 @@ public class AppSelectorActivity extends AppCompatActivity {
                 installedAppPackages.add(specialIndex + 2, "app_launcher");
             }
 
+            // Add KOReader history option (not for folders)
+            if (position != -2) {
+                installedAppLabels.add(specialIndex + 3, "KOReader History");
+                installedAppPackages.add(specialIndex + 3, "koreader_history");
+            }
+
             // Add next home page option (only for gestures)
             if (position == -1) {
-                installedAppLabels.add(specialIndex + 3, "Next Home Page");
-                installedAppPackages.add(specialIndex + 3, "next_home_page");
+                int nextPageIndex = specialIndex + 4;
+                installedAppLabels.add(nextPageIndex, "Next Home Page");
+                installedAppPackages.add(nextPageIndex, "next_home_page");
             }
 
             // Add previous home page option (only for gestures)

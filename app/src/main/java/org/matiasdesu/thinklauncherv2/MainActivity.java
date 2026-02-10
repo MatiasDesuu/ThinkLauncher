@@ -220,7 +220,8 @@ public class MainActivity extends Activity {
                 color = android.graphics.Color.BLACK;
                 break;
         }
-        if (invertHomeColors && timeEffectColor == 4) { // 4 is assumed to be "Follow Theme" if we ever add it, but for now let's just use it
+        if (invertHomeColors && timeEffectColor == 4) { // 4 is assumed to be "Follow Theme" if we ever add it, but for
+                                                        // now let's just use it
             // This is tricky because effects don't always "follow theme" in the same way.
         }
         return color;
@@ -299,7 +300,7 @@ public class MainActivity extends Activity {
                     break;
             }
         }
-        
+
         if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || timeColor == 0)) {
             return ThemeUtils.getBgColor(theme, this);
         }
@@ -352,7 +353,7 @@ public class MainActivity extends Activity {
                     break;
             }
         }
-        
+
         if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || dateColor == 0)) {
             return ThemeUtils.getBgColor(theme, this);
         }
@@ -384,7 +385,7 @@ public class MainActivity extends Activity {
                     break;
             }
         }
-        
+
         if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || settingsButtonColor == 0)) {
             return ThemeUtils.getBgColor(theme, this);
         }
@@ -438,7 +439,7 @@ public class MainActivity extends Activity {
                     break;
             }
         }
-        
+
         if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || searchButtonColor == 0)) {
             return ThemeUtils.getBgColor(theme, this);
         }
@@ -544,7 +545,8 @@ public class MainActivity extends Activity {
                 original = ((ShadowOutlineDrawable) original).getInnerDrawable();
             }
 
-            // Apply size logic for top standalone buttons to match system icons logic (15% inset)
+            // Apply size logic for top standalone buttons to match system icons logic (15%
+            // inset)
             if (iv == settingsButton || iv == searchButton) {
                 if (original != null && !(original instanceof InsetDrawable)) {
                     original = new InsetDrawable(original, 0.15f);
@@ -555,8 +557,10 @@ public class MainActivity extends Activity {
                     android.util.TypedValue.COMPLEX_UNIT_DIP, 1.5f, getResources().getDisplayMetrics());
 
             float adjustedOffset = offset * 1.5f;
-            // Use smaller offset for special icons (folders, settings, etc.) when background is OFF
-            // Top buttons (settings/search) never have a background, so they always use smaller offset
+            // Use smaller offset for special icons (folders, settings, etc.) when
+            // background is OFF
+            // Top buttons (settings/search) never have a background, so they always use
+            // smaller offset
             if ("special".equals(iv.getTag()) && (iv == settingsButton || iv == searchButton || !iconBackground)) {
                 adjustedOffset = offset;
             }
@@ -1152,8 +1156,9 @@ public class MainActivity extends Activity {
         int bgColor = ThemeUtils.getBgColor(newTheme, this);
         int textColor = ThemeUtils.getTextColor(newTheme, this);
         boolean newHasWallpaper = WallpaperHelper.hasWallpaper(this);
-        boolean themeChanged = newTheme != theme || 
-                (newTheme == ThemeUtils.THEME_CUSTOM && (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor));
+        boolean themeChanged = newTheme != theme ||
+                (newTheme == ThemeUtils.THEME_CUSTOM
+                        && (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor));
         boolean textChanged = newTextSize != textSize || newBoldText != boldText || newAppTextColor != appTextColor
                 || newTimeFontSize != timeFontSize
                 || newDateFontSize != dateFontSize || newIconSize != iconSize
@@ -1180,9 +1185,10 @@ public class MainActivity extends Activity {
                 || newTextEffect != textEffect || newEffectColor != effectColor || newIconEffect != iconEffect
                 || newIconEffectColor != iconEffectColor || newMonochromeIcons != monochromeIcons
                 || newDynamicIcons != dynamicIcons || newDynamicColors != dynamicColors
-                || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors || newIconBackground != iconBackground
+                || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors
+                || newIconBackground != iconBackground
                 || newIconShape != iconShape || newHidePagination != hidePagination
-                || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg) 
+                || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg)
                 || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
                 || wallpaperChanged;
         boolean onlyAlignmentChanged = (newHomeAlignment != homeAlignment
@@ -1390,7 +1396,8 @@ public class MainActivity extends Activity {
                 if (iconView != null) {
                     String pkg = appPackages.get(i);
                     boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
-                            || "notification_panel".equals(pkg) || (pkg != null && pkg.startsWith("folder_"))
+                            || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
+                            || (pkg != null && pkg.startsWith("folder_"))
                             || (pkg != null && pkg.startsWith("webapp_"));
                     iconView.setTag(isSpecial ? "special" : "app");
 
@@ -1399,8 +1406,10 @@ public class MainActivity extends Activity {
                             int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
                                     : "app_launcher".equals(pkg) ? R.drawable.search
                                             : "notification_panel".equals(pkg) ? R.drawable.notifications
-                                                    : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                            : R.drawable.folder;
+                                                    : "koreader_history".equals(pkg) ? R.drawable.koreader
+                                                            : (pkg != null && pkg.startsWith("webapp_"))
+                                                                    ? R.drawable.webapps
+                                                                    : R.drawable.folder;
                             Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                                     iconBackground, dynamicColors, invertIconColors, iconShape);
                             iconView.setImageDrawable(specialIcon);
@@ -1671,6 +1680,11 @@ public class MainActivity extends Activity {
             Intent intent = new Intent(MainActivity.this, AppLauncherActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent);
+        } else if ("koreader_history".equals(packageName)) {
+            Intent intent = new Intent(MainActivity.this,
+                    org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
         } else if ("launcher_settings".equals(packageName)) {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
@@ -1840,6 +1854,16 @@ public class MainActivity extends Activity {
                         iconView.setImageResource(R.drawable.notifications);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
+                } else if ("koreader_history".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.koreader,
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.koreader);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
                 } else if (appPackages.get(position).startsWith("folder_")) {
                     if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
@@ -1927,6 +1951,16 @@ public class MainActivity extends Activity {
                         iconView.clearColorFilter();
                     } else {
                         iconView.setImageResource(R.drawable.notifications);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
+                } else if ("koreader_history".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.koreader,
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.koreader);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("folder_")) {
@@ -2441,7 +2475,8 @@ public class MainActivity extends Activity {
             ImageView iconView = new ImageView(this);
             String pkg = appPackages.get(index);
             boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
-                    || "notification_panel".equals(pkg) || (pkg != null && pkg.startsWith("folder_"))
+                    || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
+                    || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             iconView.setTag(isSpecial ? "special" : "app");
 
@@ -2488,6 +2523,19 @@ public class MainActivity extends Activity {
                     iconView.clearColorFilter();
                 } else {
                     iconView.setImageResource(R.drawable.search);
+                    iconView.setColorFilter(getSpecialIconColor());
+                }
+                iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
+                slotLayout.addView(iconView);
+            } else if ("koreader_history".equals(appPackages.get(index))) {
+                if (dynamicIcons || iconBackground) {
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.koreader, theme,
+                            iconBackground, dynamicColors, invertIconColors, iconShape);
+                    iconView.setImageDrawable(specialIcon);
+                    iconView.clearColorFilter();
+                } else {
+                    iconView.setImageResource(R.drawable.koreader);
                     iconView.setColorFilter(getSpecialIconColor());
                 }
                 iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -2662,7 +2710,8 @@ public class MainActivity extends Activity {
      * Uses dynamic colors when dynamicIcons and dynamicColors are enabled
      */
     private int getSpecialIconColor() {
-        int[] dynamicColorPair = DynamicIconHelper.getDynamicColors(this, theme, iconBackground, invertIconColors, dynamicColors);
+        int[] dynamicColorPair = DynamicIconHelper.getDynamicColors(this, theme, iconBackground, invertIconColors,
+                dynamicColors);
         return dynamicColorPair[0];
     }
 

@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -97,6 +101,9 @@
             android:exported="false" />
         <activity
             android:name=".ui.AppSelectorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.KOReaderHistoryActivity"
             android:exported="false" />
         <activity
             android:name=".ui.FolderActivity"

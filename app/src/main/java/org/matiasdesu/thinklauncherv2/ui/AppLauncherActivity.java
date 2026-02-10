@@ -287,6 +287,12 @@ public class AppLauncherActivity extends AppCompatActivity {
             } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
             }
+        } else if ("koreader_history".equals(packageName)) {
+            Intent intent = new Intent(this, KOReaderHistoryActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+            return;
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
@@ -352,6 +358,9 @@ public class AppLauncherActivity extends AppCompatActivity {
         // Add settings
         labels.add(0, "Launcher Settings");
         packages.add(0, "launcher_settings");
+        // Add KOReader History
+        labels.add(1, "KOReader History");
+        packages.add(1, "koreader_history");
         loadApps(labels, packages);
         currentPage = 0;
         launcherAdapter.notifyDataSetChanged();
