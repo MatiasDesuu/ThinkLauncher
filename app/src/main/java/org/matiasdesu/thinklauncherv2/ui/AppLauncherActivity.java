@@ -206,10 +206,9 @@ public class AppLauncherActivity extends AppCompatActivity {
             installedAppPackages.add(ri.activityInfo.packageName);
         }
 
-        // Add settings option at the top
         installedAppLabels.add(0, "Launcher Settings");
         installedAppPackages.add(0, "launcher_settings");
-        // Add KOReader History
+
         installedAppLabels.add(1, "KOReader History");
         installedAppPackages.add(1, "koreader_history");
 
@@ -345,14 +344,52 @@ public class AppLauncherActivity extends AppCompatActivity {
         originalApps = new ArrayList<>();
         for (int i = 0; i < labels.size(); i++) {
             String pkg = packages.get(i);
-            originalApps.add(new AppSearchHelper.AppItem(labels.get(i), pkg));
+            String customLabel = prefs.getString("custom_label_" + pkg, "");
+            String label = customLabel.isEmpty() ? labels.get(i) : customLabel;
+
+            if (!customLabel.isEmpty()) {
+                labels.set(i, customLabel);
+            }
+
+            originalApps.add(new AppSearchHelper.AppItem(label, pkg));
         }
         originalApps.removeIf(app -> hiddenApps.contains(app.packageName));
         filteredApps = new ArrayList<>(originalApps);
     }
 
+    private void renameApp(int position) {
+        int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+        if (globalPosition >= 0 && globalPosition < filteredApps.size()) {
+            AppSearchHelper.AppItem app = filteredApps.get(globalPosition);
+            new RenameDialog(this, app.label, newName -> {
+                app.label = newName;
+                prefs.edit().putString("custom_label_" + app.packageName, newName).apply();
+
+                if (originalApps != null) {
+                    for (AppSearchHelper.AppItem originalApp : originalApps) {
+                        if (originalApp.packageName.equals(app.packageName)) {
+                            originalApp.label = newName;
+                            break;
+                        }
+                    }
+                }
+
+                if (installedAppLabels != null && installedAppPackages != null) {
+                    for (int i = 0; i < installedAppLabels.size(); i++) {
+                        if (installedAppPackages.get(i).equals(app.packageName)) {
+                            installedAppLabels.set(i, newName);
+                            break;
+                        }
+                    }
+                }
+
+                launcherAdapter.notifyDataSetChanged();
+            }).show();
+        }
+    }
+
     public void refreshApps() {
-        // Reload installed apps
+
         List<String> labels = new ArrayList<>();
         List<String> packages = new ArrayList<>();
         PackageManager pm = getPackageManager();
@@ -364,10 +401,10 @@ public class AppLauncherActivity extends AppCompatActivity {
             labels.add(ri.loadLabel(pm).toString());
             packages.add(ri.activityInfo.packageName);
         }
-        // Add settings
+
         labels.add(0, "Launcher Settings");
         packages.add(0, "launcher_settings");
-        // Add KOReader History
+
         labels.add(1, "KOReader History");
         packages.add(1, "koreader_history");
         loadApps(labels, packages);
@@ -462,7 +499,9 @@ public class AppLauncherActivity extends AppCompatActivity {
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
             holder.itemView.setOnClickListener(v -> activity.launchApp(app.label, app.packageName));
             holder.itemView.setOnLongClickListener(v -> {
-                new AppOptionsDialog(activity, app.packageName).show();
+                new AppOptionsDialog(activity, app.packageName, null, null, () -> {
+                    activity.renameApp(position);
+                }).show();
                 return true;
             });
         }
