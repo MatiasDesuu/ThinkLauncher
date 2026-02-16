@@ -16,6 +16,14 @@
         android:gravity="center">
 
         <TextView
+            android:id="@+id/rename_button"
+            style="@style/DialogButton"
+            android:text="Rename"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/more_info_button"
             style="@style/DialogButton"
             android:text="More info"

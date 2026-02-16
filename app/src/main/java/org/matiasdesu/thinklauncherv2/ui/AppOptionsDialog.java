@@ -25,15 +25,21 @@ public class AppOptionsDialog extends Dialog {
         void onMoreInfo();
     }
 
+    public interface OnRenameCallback {
+        void onRename();
+    }
+
     private String packageName;
     private OnRemoveCallback removeCallback;
     private OnMoreInfoCallback moreInfoCallback;
+    private OnRenameCallback renameCallback;
 
     public AppOptionsDialog(Context context, String packageName) {
         super(context, R.style.NoAnimationDialog);
         this.packageName = packageName;
         this.removeCallback = null;
         this.moreInfoCallback = null;
+        this.renameCallback = null;
         init();
     }
 
@@ -42,14 +48,27 @@ public class AppOptionsDialog extends Dialog {
         this.packageName = packageName;
         this.removeCallback = removeCallback;
         this.moreInfoCallback = null;
+        this.renameCallback = null;
         init();
     }
 
-    public AppOptionsDialog(Context context, String packageName, OnRemoveCallback removeCallback, OnMoreInfoCallback moreInfoCallback) {
+    public AppOptionsDialog(Context context, String packageName, OnRemoveCallback removeCallback,
+            OnMoreInfoCallback moreInfoCallback) {
         super(context, R.style.NoAnimationDialog);
         this.packageName = packageName;
         this.removeCallback = removeCallback;
         this.moreInfoCallback = moreInfoCallback;
+        this.renameCallback = null;
+        init();
+    }
+
+    public AppOptionsDialog(Context context, String packageName, OnRemoveCallback removeCallback,
+            OnMoreInfoCallback moreInfoCallback, OnRenameCallback renameCallback) {
+        super(context, R.style.NoAnimationDialog);
+        this.packageName = packageName;
+        this.removeCallback = removeCallback;
+        this.moreInfoCallback = moreInfoCallback;
+        this.renameCallback = renameCallback;
         init();
     }
 
@@ -58,14 +77,16 @@ public class AppOptionsDialog extends Dialog {
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_app_options);
         getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        getWindow()
+                .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
 
         // Aplicar colores
         View root = findViewById(android.R.id.content);
         if (root != null) {
             ThemeUtils.applyDialogBackground(root, theme, getContext());
             GradientDrawable drawable = (GradientDrawable) root.getBackground();
-            drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
+            drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density),
+                    ThemeUtils.getTextColor(theme, getContext()));
         }
 
         TextView moreInfoButton = findViewById(R.id.more_info_button);
@@ -77,15 +98,19 @@ public class AppOptionsDialog extends Dialog {
 
         TextView uninstallButton = findViewById(R.id.uninstall_button);
         ThemeUtils.applyButtonTheme(uninstallButton, theme, getContext());
-        
-        if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_") || packageName.equals("launcher_settings") || packageName.equals("app_launcher") || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
+
+        if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_")
+                || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
+                || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
             uninstallButton.setVisibility(View.GONE);
         }
 
         TextView removeButton = findViewById(R.id.remove_button);
 
         // Adjust margin for uninstall button based on remove button visibility
-        int marginBottom = (removeCallback != null) ? (int)(8 * getContext().getResources().getDisplayMetrics().density) : 0;
+        int marginBottom = (removeCallback != null)
+                ? (int) (8 * getContext().getResources().getDisplayMetrics().density)
+                : 0;
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) uninstallButton.getLayoutParams();
         if (params != null) {
             params.bottomMargin = marginBottom;
@@ -104,7 +129,23 @@ public class AppOptionsDialog extends Dialog {
             }
         } else {
             // Normal context
-            if (removeButton != null) removeButton.setVisibility(View.GONE);
+            if (removeButton != null)
+                removeButton.setVisibility(View.GONE);
+        }
+
+        TextView renameButton = findViewById(R.id.rename_button);
+        if (renameCallback != null) {
+            if (renameButton != null) {
+                renameButton.setVisibility(View.VISIBLE);
+                ThemeUtils.applyButtonTheme(renameButton, theme, getContext());
+                renameButton.setOnClickListener(v -> {
+                    renameCallback.onRename();
+                    dismiss();
+                });
+            }
+        } else {
+            if (renameButton != null)
+                renameButton.setVisibility(View.GONE);
         }
 
         moreInfoButton.setOnClickListener(v -> {

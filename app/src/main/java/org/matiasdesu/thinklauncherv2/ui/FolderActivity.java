@@ -455,6 +455,18 @@ public class FolderActivity extends AppCompatActivity {
         }
     }
 
+    private void renameApp(int position) {
+        if (position >= 0 && position < folderApps.size()) {
+            AppSearchHelper.AppItem app = folderApps.get(position);
+            new RenameDialog(this, app.label, newName -> {
+                app.label = newName;
+                saveFolderApps();
+                sortFolderApps();
+                folderAdapter.notifyDataSetChanged();
+            }).show();
+        }
+    }
+
     private void enterReorderMode() {
         isReordering = true;
         originalAppsBeforeReorder = new ArrayList<>(folderApps);
@@ -648,7 +660,9 @@ public class FolderActivity extends AppCompatActivity {
                     }
                     new AppOptionsDialog(activity, app.packageName, () -> {
                         activity.removeAppFromFolder(globalPosition);
-                    }, moreInfo).show();
+                    }, moreInfo, () -> {
+                        activity.renameApp(globalPosition);
+                    }).show();
                     return true;
                 });
             }
