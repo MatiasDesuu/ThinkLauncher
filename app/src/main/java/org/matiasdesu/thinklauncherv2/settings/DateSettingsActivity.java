@@ -45,7 +45,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             if ("android.intent.action.CLOSE_SYSTEM_DIALOGS".equals(intent.getAction())) {
                 String reason = intent.getStringExtra("reason");
                 if ("homekey".equals(reason)) {
-                    // Bring MainActivity to front
+
                     Intent mainIntent = new Intent(DateSettingsActivity.this, MainActivity.class);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                     startActivity(mainIntent);
@@ -317,7 +317,6 @@ public class DateSettingsActivity extends AppCompatActivity {
                 dateEffectColorLayout.setVisibility(View.VISIBLE);
             }
 
-            // Vertical position only matters if Time is also ON
             if (timePosition == 1) {
                 verticalLayout.setVisibility(View.VISIBLE);
             } else {
@@ -398,7 +397,6 @@ public class DateSettingsActivity extends AppCompatActivity {
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
 
-        // Refresh timePosition in case it was changed in TimeSettingsActivity
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         timePosition = prefs.getInt("time_position", 0);
         refreshVisibility();

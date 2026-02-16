@@ -126,7 +126,8 @@ public class FolderActivity extends AppCompatActivity {
             rootLayout.setBackgroundColor(bgColor);
         }
 
-        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"), Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
+                Context.RECEIVER_NOT_EXPORTED);
         IntentFilter packageFilter = new IntentFilter(Intent.ACTION_PACKAGE_REMOVED);
         packageFilter.addDataScheme("package");
         registerReceiver(packageRemovedReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED);
@@ -147,29 +148,28 @@ public class FolderActivity extends AppCompatActivity {
         folderNameText.setText(folderName);
         ThemeUtils.applyTextColor(folderNameText, theme, this);
         folderNameText.setOnLongClickListener(v -> {
-            new FolderOptionsDialog(this, sortMode, 
-                // On change folder name
-                () -> {
-                    new RenameDialog(this, folderName, newName -> {
-                        folderName = newName;
-                        folderNameText.setText(folderName);
-                        saveFolderName(folderId, folderName);
+            new FolderOptionsDialog(this, sortMode,
+                    // On change folder name
+                    () -> {
+                        new RenameDialog(this, folderName, newName -> {
+                            folderName = newName;
+                            folderNameText.setText(folderName);
+                            saveFolderName(folderId, folderName);
+                        }).show();
+                    },
+                    // On toggle sort
+                    () -> {
+                        sortMode = (sortMode + 1) % 3;
+                        prefs.edit().putInt(folderId + "_sort_mode", sortMode).apply();
+                        sortFolderApps();
+                        currentPage = 0;
+                        folderAdapter.notifyDataSetChanged();
+                        updatePageIndicator();
+                    },
+                    // On reorder
+                    () -> {
+                        enterReorderMode();
                     }).show();
-                },
-                // On toggle sort
-                () -> {
-                    sortMode = (sortMode + 1) % 3;
-                    prefs.edit().putInt(folderId + "_sort_mode", sortMode).apply();
-                    sortFolderApps();
-                    currentPage = 0;
-                    folderAdapter.notifyDataSetChanged();
-                    updatePageIndicator();
-                },
-                // On reorder
-                () -> {
-                    enterReorderMode();
-                }
-            ).show();
             return true;
         });
 
@@ -222,25 +222,25 @@ public class FolderActivity extends AppCompatActivity {
 
         if (!scrollAppList) {
             pageNavigator = new SwipePageNavigator(this, recyclerView, container,
-                new SwipePageNavigator.PageChangeCallback() {
-                    @Override
-                    public void onPageChanged(int newPage) {
-                        currentPage = newPage;
-                        recyclerView.getAdapter().notifyDataSetChanged();
-                        updatePageIndicator();
-                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                    }
+                    new SwipePageNavigator.PageChangeCallback() {
+                        @Override
+                        public void onPageChanged(int newPage) {
+                            currentPage = newPage;
+                            recyclerView.getAdapter().notifyDataSetChanged();
+                            updatePageIndicator();
+                            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                        }
 
-                    @Override
-                    public int getTotalPages() {
-                        return (int) Math.ceil((double) folderApps.size() / itemsPerPage);
-                    }
+                        @Override
+                        public int getTotalPages() {
+                            return (int) Math.ceil((double) folderApps.size() / itemsPerPage);
+                        }
 
-                    @Override
-                    public void updatePageIndicator() {
-                        FolderActivity.this.updatePageIndicator();
-                    }
-                }, theme);
+                        @Override
+                        public void updatePageIndicator() {
+                            FolderActivity.this.updatePageIndicator();
+                        }
+                    }, theme);
         }
 
         loadFolderApps();
@@ -261,7 +261,7 @@ public class FolderActivity extends AppCompatActivity {
         folderApps = new ArrayList<>();
         String key = (sortMode == 2) ? folderId + "_apps_custom" : folderId + "_apps_ordered";
         String appsData = prefs.getString(key, "");
-        
+
         if (appsData.isEmpty() && sortMode == 2) {
             // If custom is empty, fallback to added order
             appsData = prefs.getString(folderId + "_apps_ordered", "");
@@ -292,7 +292,7 @@ public class FolderActivity extends AppCompatActivity {
         }
         sortFolderApps();
     }
-    
+
     private void sortFolderApps() {
         if (sortMode == 1) { // Alphabetical
             folderApps.sort((a, b) -> a.label.compareToIgnoreCase(b.label));
@@ -338,13 +338,8 @@ public class FolderActivity extends AppCompatActivity {
         }
         String key = (isReordering || sortMode == 2) ? folderId + "_apps_custom" : folderId + "_apps_ordered";
         prefs.edit().putString(key, sb.toString()).apply();
-        
-        // If we are adding/removing apps and NOT in custom mode, we should probably update custom too?
-        // Actually, if we add an app in "Added order", it should be added to the end of custom order too.
+
         if (sortMode != 2 && !isReordering) {
-            // Also update custom order if it exists, appending the new item if it's an add
-            // For simplicity, let's just keep them in sync for additions/removals if custom order doesn't exist yet
-            // Or just always update both for add/remove?
         }
     }
 
@@ -355,7 +350,8 @@ public class FolderActivity extends AppCompatActivity {
     public void launchApp(String label, String packageName) {
         if ("notification_panel".equals(packageName)) {
             try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar"));
+                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
+                        .invoke(getSystemService("statusbar"));
             } catch (Exception e) {
                 // Log or ignore
             }
@@ -373,6 +369,12 @@ public class FolderActivity extends AppCompatActivity {
             }
         } else if ("app_launcher".equals(packageName)) {
             Intent intent = new Intent(this, AppLauncherActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+            return;
+        } else if ("koreader_history".equals(packageName)) {
+            Intent intent = new Intent(this, KOReaderHistoryActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
@@ -417,7 +419,8 @@ public class FolderActivity extends AppCompatActivity {
         bottomDivider.setVisibility(View.VISIBLE);
         bottomBar.setVisibility(View.VISIBLE);
         int totalPages = (int) Math.ceil((double) folderApps.size() / itemsPerPage);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0)
+            totalPages = 1;
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
     }
@@ -455,26 +458,26 @@ public class FolderActivity extends AppCompatActivity {
     private void enterReorderMode() {
         isReordering = true;
         originalAppsBeforeReorder = new ArrayList<>(folderApps);
-        
+
         ImageView addButton = findViewById(R.id.add_button);
         addButton.setImageResource(R.drawable.check);
-        
+
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setImageResource(R.drawable.cancel);
-        
+
         updatePageIndicator();
         folderAdapter.notifyDataSetChanged();
     }
 
     private void exitReorderMode() {
         isReordering = false;
-        
+
         ImageView addButton = findViewById(R.id.add_button);
         addButton.setImageResource(R.drawable.add);
-        
+
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setImageResource(R.drawable.back_arrow);
-        
+
         saveFolderApps();
         updatePageIndicator();
         folderAdapter.notifyDataSetChanged();
@@ -482,19 +485,19 @@ public class FolderActivity extends AppCompatActivity {
 
     private void cancelReorderMode() {
         isReordering = false;
-        
+
         if (originalAppsBeforeReorder != null) {
             folderApps.clear();
             folderApps.addAll(originalAppsBeforeReorder);
             originalAppsBeforeReorder = null;
         }
-        
+
         ImageView addButton = findViewById(R.id.add_button);
         addButton.setImageResource(R.drawable.add);
-        
+
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setImageResource(R.drawable.back_arrow);
-        
+
         updatePageIndicator();
         folderAdapter.notifyDataSetChanged();
     }
@@ -521,7 +524,7 @@ public class FolderActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ADD_APP && resultCode == RESULT_OK && data != null) {
             String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
-            
+
             if (label != null && pkg != null && !pkg.isEmpty() && !pkg.equals("")) {
                 // Check if app is already in folder
                 boolean exists = false;
@@ -531,7 +534,7 @@ public class FolderActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                
+
                 if (!exists) {
                     folderApps.add(new AppSearchHelper.AppItem(label, pkg));
                     saveFolderApps();
@@ -584,7 +587,7 @@ public class FolderActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         }
     }
-    
+
     private void returnResult() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_FOLDER_ID, folderId);
@@ -612,24 +615,26 @@ public class FolderActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            int globalPosition = (activity.scrollAppList || isReordering) ? position : currentPage * itemsPerPage + position;
-            if (globalPosition >= apps.size()) return;
-            
+            int globalPosition = (activity.scrollAppList || isReordering) ? position
+                    : currentPage * itemsPerPage + position;
+            if (globalPosition >= apps.size())
+                return;
+
             AppSearchHelper.AppItem app = apps.get(globalPosition);
             holder.textView.setText(app.label);
             holder.textView.setTextSize(activity.textSize);
             holder.textView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
             ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
-            
+
             if (isReordering) {
                 holder.reorderButtons.setVisibility(View.VISIBLE);
                 holder.itemView.setOnClickListener(null);
                 holder.itemView.setOnLongClickListener(null);
-                
+
                 holder.moveUpButton.setColorFilter(ThemeUtils.getTextColor(theme, activity));
                 holder.moveDownButton.setColorFilter(ThemeUtils.getTextColor(theme, activity));
-                
+
                 // Swapped as per user report that they were reversed
                 holder.moveUpButton.setOnClickListener(v -> activity.moveAppDown(globalPosition));
                 holder.moveDownButton.setOnClickListener(v -> activity.moveAppUp(globalPosition));

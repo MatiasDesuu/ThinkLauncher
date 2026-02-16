@@ -31,14 +31,14 @@ public class GestureHandler {
                 float xDiff = e2.getX() - e1.getX();
                 float yDiff = e2.getY() - e1.getY();
                 if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 100 && Math.abs(velocityX) > 100) {
-                    // Horizontal swipe
+
                     if (xDiff > 0) {
                         launchApp(rightApp);
                     } else {
                         launchApp(leftApp);
                     }
                 } else if (Math.abs(yDiff) > Math.abs(xDiff) && Math.abs(yDiff) > 100 && Math.abs(velocityY) > 100) {
-                    // Vertical swipe
+
                     if (yDiff > 0) {
                         launchApp(downApp);
                     } else {
@@ -58,7 +58,7 @@ public class GestureHandler {
 
             @Override
             public void onLongPress(MotionEvent e) {
-                // Open settings
+
                 try {
                     Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                     Intent intent = new Intent(activity, clazz);
@@ -87,9 +87,10 @@ public class GestureHandler {
     private void launchApp(String packageName) {
         if ("notification_panel".equals(packageName)) {
             try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(activity.getSystemService("statusbar"));
+                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
+                        .invoke(activity.getSystemService("statusbar"));
             } catch (Exception e) {
-                // Log or ignore
+
             }
         } else if ("app_launcher".equals(packageName)) {
             Intent intent = new Intent(activity, AppLauncherActivity.class);

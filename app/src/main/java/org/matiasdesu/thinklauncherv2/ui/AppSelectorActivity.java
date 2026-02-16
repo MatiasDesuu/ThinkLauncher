@@ -104,10 +104,11 @@ public class AppSelectorActivity extends AppCompatActivity {
             rootLayout.setBackgroundColor(bgColor);
         }
 
-        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"), Context.RECEIVER_NOT_EXPORTED);
-        
+        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
+                Context.RECEIVER_NOT_EXPORTED);
+
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        
+
         View divider = findViewById(R.id.divider);
         divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
         View bottomDivider = findViewById(R.id.bottom_divider);
@@ -154,28 +155,28 @@ public class AppSelectorActivity extends AppCompatActivity {
 
         View container = findViewById(R.id.app_list_container);
         SwipePageNavigator pageNavigator = null;
-        
+
         if (!scrollAppList) {
             pageNavigator = new SwipePageNavigator(this, recyclerView, container,
-                new SwipePageNavigator.PageChangeCallback() {
-                    @Override
-                    public void onPageChanged(int newPage) {
-                        currentPage = newPage;
-                        recyclerView.getAdapter().notifyDataSetChanged();
-                        updatePageIndicator();
-                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                    }
+                    new SwipePageNavigator.PageChangeCallback() {
+                        @Override
+                        public void onPageChanged(int newPage) {
+                            currentPage = newPage;
+                            recyclerView.getAdapter().notifyDataSetChanged();
+                            updatePageIndicator();
+                            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                        }
 
-                    @Override
-                    public int getTotalPages() {
-                        return (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
-                    }
+                        @Override
+                        public int getTotalPages() {
+                            return (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
+                        }
 
-                    @Override
-                    public void updatePageIndicator() {
-                        AppSelectorActivity.this.updatePageIndicator();
-                    }
-                }, theme);
+                        @Override
+                        public void updatePageIndicator() {
+                            AppSelectorActivity.this.updatePageIndicator();
+                        }
+                    }, theme);
         }
 
         List<String> installedAppLabels = new ArrayList<>();
@@ -191,70 +192,58 @@ public class AppSelectorActivity extends AppCompatActivity {
             installedAppPackages.add(ri.activityInfo.packageName);
         }
 
-        // Add None option at the top
         installedAppLabels.add(0, "None");
         installedAppPackages.add(0, "");
 
-        // Add Blank option (only for home slots, not gestures or folders)
         if (position >= 0) {
             installedAppLabels.add(1, "Blank");
             installedAppPackages.add(1, "blank");
         }
 
-        // Add Folder option (only for home slots, not gestures or folders)
         if (position >= 0) {
             int folderIndex = 2;
             installedAppLabels.add(folderIndex, "Folder");
             installedAppPackages.add(folderIndex, "folder");
         }
 
-        // Add Web Apps option (for home slots and folders)
         if (position >= 0 || position == -2) {
             int webAppIndex = position >= 0 ? 3 : 1;
             installedAppLabels.add(webAppIndex, "Web App");
             installedAppPackages.add(webAppIndex, "web_apps");
         }
 
-        // Add settings option
-        // position >= 0 means home slot, -1 means gesture, -2 means folder, -3 means clock/date
         if (position != -3) {
             int specialIndex = position >= 0 ? 4 : (position == -2 ? 2 : 1);
             installedAppLabels.add(specialIndex, "Launcher Settings");
             installedAppPackages.add(specialIndex, "launcher_settings");
 
-            // Add notification panel option (not for folders)
             if (position != -2) {
                 installedAppLabels.add(specialIndex + 1, "Notification Panel");
                 installedAppPackages.add(specialIndex + 1, "notification_panel");
             }
 
-            // Add app launcher option (not for folders)
             if (position != -2) {
                 installedAppLabels.add(specialIndex + 2, "App Launcher");
                 installedAppPackages.add(specialIndex + 2, "app_launcher");
             }
 
-            // Add KOReader history option (not for folders)
             if (position != -2) {
                 installedAppLabels.add(specialIndex + 3, "KOReader History");
                 installedAppPackages.add(specialIndex + 3, "koreader_history");
             }
 
-            // Add next home page option (only for gestures)
             if (position == -1) {
                 int nextPageIndex = specialIndex + 4;
                 installedAppLabels.add(nextPageIndex, "Next Home Page");
                 installedAppPackages.add(nextPageIndex, "next_home_page");
             }
 
-            // Add previous home page option (only for gestures)
             if (position == -1) {
                 installedAppLabels.add(specialIndex + 4, "Previous Home Page");
                 installedAppPackages.add(specialIndex + 4, "previous_home_page");
             }
         }
 
-        // Add System Default option (only for clock/date gestures)
         if (position == -3) {
             installedAppLabels.add(1, "System Default");
             installedAppPackages.add(1, "system_default");
@@ -284,7 +273,8 @@ public class AppSelectorActivity extends AppCompatActivity {
         et.setCursorVisible(false);
         et.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -293,7 +283,8 @@ public class AppSelectorActivity extends AppCompatActivity {
                 if (query.isEmpty()) {
                     filteredApps.addAll(originalApps);
                 } else {
-                    List<AppSearchHelper.AppItem> filtered = AppSearchHelper.filterApps(installedAppLabels, installedAppPackages, query);
+                    List<AppSearchHelper.AppItem> filtered = AppSearchHelper.filterApps(installedAppLabels,
+                            installedAppPackages, query);
                     filteredApps.addAll(filtered);
                 }
                 currentPage = 0;
@@ -302,15 +293,16 @@ public class AppSelectorActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
     private void selectApp(String label, String pkg) {
         if (position >= 0) {
-            // For home screen slots
+
             if (pkg.equals("")) {
-                // For "None" option, set to Empty
+
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(EXTRA_LABEL, "Empty");
                 resultIntent.putExtra(EXTRA_PACKAGE, "");
@@ -319,7 +311,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                 finish();
                 overridePendingTransition(0, 0);
             } else if (pkg.equals("blank")) {
-                // For "Blank" option, set to blank with empty label
+
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(EXTRA_LABEL, "");
                 resultIntent.putExtra(EXTRA_PACKAGE, "blank");
@@ -328,10 +320,10 @@ public class AppSelectorActivity extends AppCompatActivity {
                 finish();
                 overridePendingTransition(0, 0);
             } else if (pkg.equals("folder")) {
-                // For "Folder" option, show rename dialog to set folder name
+
                 new RenameDialog(this, "New Folder", newLabel -> {
                     String folderName = newLabel.isEmpty() ? "New Folder" : newLabel;
-                    // Generate a unique folder ID
+
                     String folderId = "folder_" + System.currentTimeMillis();
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(EXTRA_LABEL, folderName);
@@ -342,11 +334,11 @@ public class AppSelectorActivity extends AppCompatActivity {
                     overridePendingTransition(0, 0);
                 }).show();
             } else if (pkg.equals("web_apps")) {
-                // For "Web Apps" option, show web app dialog to set name and URL
+
                 new WebAppDialog(this, "New Web App", "", (name, url) -> {
-                    // Generate a unique web app ID with the URL embedded
+
                     String webAppId = "webapp_" + System.currentTimeMillis();
-                    // Store URL in SharedPreferences
+
                     prefs.edit().putString(webAppId + "_url", url).apply();
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(EXTRA_LABEL, name);
@@ -357,7 +349,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                     overridePendingTransition(0, 0);
                 }).show();
             } else {
-                // Show rename dialog for other apps
+
                 new RenameDialog(this, label, newLabel -> {
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(EXTRA_LABEL, newLabel.isEmpty() ? label : newLabel);
@@ -369,13 +361,13 @@ public class AppSelectorActivity extends AppCompatActivity {
                 }).show();
             }
         } else if (position == -2) {
-            // Direct selection for folder apps (no rename), except for web apps
+
             if (pkg.equals("web_apps")) {
-                // For "Web Apps" option, show web app dialog to set name and URL
+
                 new WebAppDialog(this, "New Web App", "", (name, url) -> {
-                    // Generate a unique web app ID with the URL embedded
+
                     String webAppId = "webapp_" + System.currentTimeMillis();
-                    // Store URL in SharedPreferences
+
                     prefs.edit().putString(webAppId + "_url", url).apply();
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(EXTRA_LABEL, name);
@@ -395,7 +387,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                 overridePendingTransition(0, 0);
             }
         } else {
-            // Direct selection for gestures
+
             Intent resultIntent = new Intent();
             resultIntent.putExtra(EXTRA_LABEL, label);
             resultIntent.putExtra(EXTRA_PACKAGE, pkg);
@@ -420,7 +412,8 @@ public class AppSelectorActivity extends AppCompatActivity {
         bottomDivider.setVisibility(View.VISIBLE);
         bottomBar.setVisibility(View.VISIBLE);
         int totalPages = (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0)
+            totalPages = 1;
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
     }

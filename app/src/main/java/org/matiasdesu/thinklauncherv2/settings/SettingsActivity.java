@@ -166,32 +166,39 @@ public class SettingsActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
-        // Initialize pagination
+        LinearLayout githubRepoButton = findViewById(R.id.github_repo_button);
+        githubRepoButton.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://github.com/MatiasDesuu/ThinkLauncher"));
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+        });
+
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
         ScrollView scrollView = findViewById(R.id.settings_scroll_view);
         FrameLayout container = findViewById(R.id.settings_container);
-        
-        paginationHelper = new SettingsPaginationHelper(this, theme, 
-            settingsItemsContainer, scrollView, container);
+
+        paginationHelper = new SettingsPaginationHelper(this, theme,
+                settingsItemsContainer, scrollView, container);
         paginationHelper.initialize(null);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"), Context.RECEIVER_NOT_EXPORTED);
-        
+        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
+                Context.RECEIVER_NOT_EXPORTED);
+
         int newTheme = prefs.getInt("theme", 0);
         int newCustomBgColor = prefs.getInt("custom_bg_color", android.graphics.Color.WHITE);
         int newCustomAccentColor = prefs.getInt("custom_accent_color", android.graphics.Color.BLACK);
 
-        if (newTheme != theme || (newTheme == ThemeUtils.THEME_CUSTOM && 
-            (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor))) {
+        if (newTheme != theme || (newTheme == ThemeUtils.THEME_CUSTOM &&
+                (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor))) {
             restartActivity();
             return;
         }
 
-        // Check if scroll_app_list setting has changed
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }

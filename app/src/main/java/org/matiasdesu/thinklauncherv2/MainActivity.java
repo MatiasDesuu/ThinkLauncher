@@ -140,7 +140,6 @@ public class MainActivity extends Activity {
             if ("android.intent.action.CLOSE_SYSTEM_DIALOGS".equals(intent.getAction())) {
                 String reason = intent.getStringExtra("reason");
                 if ("homekey".equals(reason)) {
-                    // Bring MainActivity to front
                     Intent mainIntent = new Intent(MainActivity.this, MainActivity.class);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                     startActivity(mainIntent);
@@ -158,14 +157,12 @@ public class MainActivity extends Activity {
         float xDiff = e2.getX() - e1.getX();
         float yDiff = e2.getY() - e1.getY();
         if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 100 && Math.abs(velocityX) > 100) {
-            // Horizontal swipe
             if (xDiff > 0) {
                 launchApp(rightApp);
             } else {
                 launchApp(leftApp);
             }
         } else if (Math.abs(yDiff) > Math.abs(xDiff) && Math.abs(yDiff) > 100 && Math.abs(velocityY) > 100) {
-            // Vertical swipe
             if (yDiff > 0) {
                 launchApp(downApp);
             } else {
@@ -186,9 +183,9 @@ public class MainActivity extends Activity {
             case 1:
                 return android.graphics.Color.WHITE;
             case 2:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
             case 3:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
             default:
                 return android.graphics.Color.BLACK;
         }
@@ -211,18 +208,17 @@ public class MainActivity extends Activity {
                 color = android.graphics.Color.WHITE;
                 break;
             case 2:
-                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
                 break;
             case 3:
-                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
                 break;
             default:
                 color = android.graphics.Color.BLACK;
                 break;
         }
-        if (invertHomeColors && timeEffectColor == 4) { // 4 is assumed to be "Follow Theme" if we ever add it, but for
-                                                        // now let's just use it
-            // This is tricky because effects don't always "follow theme" in the same way.
+        if (invertHomeColors && timeEffectColor == 4) {
+
         }
         return color;
     }
@@ -244,10 +240,10 @@ public class MainActivity extends Activity {
                 color = android.graphics.Color.WHITE;
                 break;
             case 2:
-                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
                 break;
             case 3:
-                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
                 break;
             default:
                 color = android.graphics.Color.BLACK;
@@ -267,9 +263,9 @@ public class MainActivity extends Activity {
             case 1:
                 return android.graphics.Color.WHITE;
             case 2:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
             case 3:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
             default:
                 return android.graphics.Color.BLACK;
         }
@@ -279,20 +275,20 @@ public class MainActivity extends Activity {
         int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
             color = this.textColor;
-        } else if (timeColor == 0) { // Follow Theme
+        } else if (timeColor == 0) {
             color = this.textColor;
         } else {
             switch (timeColor) {
-                case 1: // DARK
+                case 1:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
                     break;
-                case 2: // WHITE
+                case 2:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
                     break;
-                case 3: // DYNAMIC DARK
+                case 3:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
                     break;
-                case 4: // DYNAMIC LIGHT
+                case 4:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
                     break;
                 default:
@@ -311,17 +307,17 @@ public class MainActivity extends Activity {
         if (theme == ThemeUtils.THEME_CUSTOM) {
             return this.textColor;
         }
-        if (appTextColor == 0) { // Follow Theme
+        if (appTextColor == 0) {
             return this.textColor;
         }
         switch (appTextColor) {
-            case 1: // DARK
+            case 1:
                 return ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
-            case 2: // WHITE
+            case 2:
                 return ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
-            case 3: // DYNAMIC DARK
+            case 3:
                 return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
-            case 4: // DYNAMIC LIGHT
+            case 4:
                 return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
             default:
                 return this.textColor;
@@ -332,20 +328,20 @@ public class MainActivity extends Activity {
         int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
             color = this.textColor;
-        } else if (dateColor == 0) { // Follow Theme
+        } else if (dateColor == 0) {
             color = this.textColor;
         } else {
             switch (dateColor) {
-                case 1: // DARK
+                case 1:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
                     break;
-                case 2: // WHITE
+                case 2:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
                     break;
-                case 3: // DYNAMIC DARK
+                case 3:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
                     break;
-                case 4: // DYNAMIC LIGHT
+                case 4:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
                     break;
                 default:
@@ -364,20 +360,20 @@ public class MainActivity extends Activity {
         int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
             color = this.textColor;
-        } else if (settingsButtonColor == 0) { // Follow Theme
+        } else if (settingsButtonColor == 0) {
             color = this.textColor;
         } else {
             switch (settingsButtonColor) {
-                case 1: // DARK
+                case 1:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
                     break;
-                case 2: // WHITE
+                case 2:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
                     break;
-                case 3: // DYNAMIC DARK
+                case 3:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
                     break;
-                case 4: // DYNAMIC LIGHT
+                case 4:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
                     break;
                 default:
@@ -406,9 +402,9 @@ public class MainActivity extends Activity {
             case 1:
                 return android.graphics.Color.WHITE;
             case 2:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
             case 3:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
             default:
                 return android.graphics.Color.BLACK;
         }
@@ -418,20 +414,20 @@ public class MainActivity extends Activity {
         int color;
         if (theme == ThemeUtils.THEME_CUSTOM) {
             color = this.textColor;
-        } else if (searchButtonColor == 0) { // Follow Theme
+        } else if (searchButtonColor == 0) {
             color = this.textColor;
         } else {
             switch (searchButtonColor) {
-                case 1: // DARK
+                case 1:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_LIGHT, this);
                     break;
-                case 2: // WHITE
+                case 2:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DARK, this);
                     break;
-                case 3: // DYNAMIC DARK
+                case 3:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
                     break;
-                case 4: // DYNAMIC LIGHT
+                case 4:
                     color = ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
                     break;
                 default:
@@ -460,9 +456,9 @@ public class MainActivity extends Activity {
             case 1:
                 return android.graphics.Color.WHITE;
             case 2:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this); // Dynamic Dark
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
             case 3:
-                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this); // Dynamic White
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
             default:
                 return android.graphics.Color.BLACK;
         }
@@ -488,12 +484,12 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (effect == 1) { // Shadow
+        if (effect == 1) {
             if (tv instanceof StrokeTextView) {
                 ((StrokeTextView) tv).setStroke(0, 0);
             }
             tv.setShadowLayer(4.0f, 2.0f, 2.0f, colorValue);
-        } else if (effect == 2) { // Outline
+        } else if (effect == 2) {
             tv.setShadowLayer(0, 0, 0, 0);
             if (tv instanceof StrokeTextView) {
                 float width = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 4f,
@@ -513,7 +509,6 @@ public class MainActivity extends Activity {
         if (iv == null)
             return;
 
-        // Reset padding before any calculation to prevent accumulation
         int iconPaddingLeft = 0, iconPaddingRight = 0, iconPaddingTop = 0, iconPaddingBottom = 0;
         if (showAppNames) {
             if (appNamePosition == AppNamePositionHelper.POSITION_RIGHT) {
@@ -545,8 +540,6 @@ public class MainActivity extends Activity {
                 original = ((ShadowOutlineDrawable) original).getInnerDrawable();
             }
 
-            // Apply size logic for top standalone buttons to match system icons logic (15%
-            // inset)
             if (iv == settingsButton || iv == searchButton) {
                 if (original != null && !(original instanceof InsetDrawable)) {
                     original = new InsetDrawable(original, 0.15f);
@@ -557,17 +550,13 @@ public class MainActivity extends Activity {
                     android.util.TypedValue.COMPLEX_UNIT_DIP, 1.5f, getResources().getDisplayMetrics());
 
             float adjustedOffset = offset * 1.5f;
-            // Use smaller offset for special icons (folders, settings, etc.) when
-            // background is OFF
-            // Top buttons (settings/search) never have a background, so they always use
-            // smaller offset
+
             if ("special".equals(iv.getTag()) && (iv == settingsButton || iv == searchButton || !iconBackground)) {
                 adjustedOffset = offset;
             }
 
             int p = (int) (adjustedOffset * 1.5f);
 
-            // Add the extra padding required for the effect
             iv.setPadding(iv.getPaddingLeft() + p, iv.getPaddingTop() + p,
                     iv.getPaddingRight() + p, iv.getPaddingBottom() + p);
 
@@ -586,7 +575,7 @@ public class MainActivity extends Activity {
         int timeDateBgColor = hasWallpaper ? android.graphics.Color.TRANSPARENT : bgColor;
 
         if (showDate && dateVerticalPosition == 0) {
-            // Add date first at top
+
             String format = fullMonthName == 1 ? "dd MMMM yyyy" : "dd MMM yyyy";
             dateSdf = new SimpleDateFormat(format);
             dateView = new StrokeTextView(this);
@@ -637,7 +626,7 @@ public class MainActivity extends Activity {
                         android.util.TypedValue.COMPLEX_UNIT_DIP, maxBtnSize, getResources().getDisplayMetrics());
                 dateParams.rightMargin = buttonSizePx + 16;
             }
-            rootLayout.addView(dateView, dateParams); // Then time below date
+            rootLayout.addView(dateView, dateParams);
             if (showTime) {
                 timeSdf = new SimpleDateFormat("HH:mm");
                 timeView = new StrokeTextView(this);
@@ -690,7 +679,7 @@ public class MainActivity extends Activity {
                 rootLayout.addView(timeView, timeParams);
             }
         } else {
-            // Add time first if showTime
+
             if (showTime) {
                 timeSdf = new SimpleDateFormat("HH:mm");
                 timeView = new StrokeTextView(this);
@@ -747,7 +736,6 @@ public class MainActivity extends Activity {
                 rootLayout.addView(timeView, timeParams);
             }
 
-            // Then date
             if (showDate)
 
             {
@@ -924,7 +912,6 @@ public class MainActivity extends Activity {
         this.textColor = ThemeUtils.getTextColor(theme, this);
         this.hasWallpaper = WallpaperHelper.hasWallpaper(this);
 
-        // Enable edge-to-edge mode when wallpaper is active
         if (this.hasWallpaper) {
             WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -1034,7 +1021,6 @@ public class MainActivity extends Activity {
         mainLayout.setClipChildren(false);
         mainLayout.setClipToPadding(false);
 
-        // Load and display custom wallpaper if set
         wallpaperView = findViewById(R.id.wallpaper_view);
         loadWallpaper();
 
@@ -1066,7 +1052,6 @@ public class MainActivity extends Activity {
             recreateHome();
         });
 
-        // Add time container if time or date is enabled
         if (timePosition == 1 || datePosition != 0) {
             createTimeViews(bgColor, textColor);
         }
@@ -1078,9 +1063,6 @@ public class MainActivity extends Activity {
 
         createHomeLayout();
 
-        // Set up long click listener for background (settings)
-        // Moved to GestureHandler
-
         gestureHandler = new GestureHandler();
         findViewById(R.id.root_layout).setOnTouchListener((v, event) -> gestureHandler.onTouch(event));
     }
@@ -1091,8 +1073,7 @@ public class MainActivity extends Activity {
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
         gestureHandler.loadApps();
-        // RelativeLayout rootLayout = findViewById(R.id.root_layout);
-        // LinearLayout mainLayout = findViewById(R.id.main_layout);
+
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         int newMaxApps = prefs.getInt("max_apps", 4);
         int newTextSize = prefs.getInt("text_size", 32);
@@ -1286,12 +1267,10 @@ public class MainActivity extends Activity {
             }
         }
 
-        // Update page indicator visibility
         TextView pageIndicator = findViewById(R.id.page_indicator);
         pageIndicator.setVisibility((homePages > 1 && !hidePagination) ? View.VISIBLE : View.GONE);
         homePagesManager.updatePageIndicator();
 
-        // Update bottom bar visibility
         LinearLayout bottomBar = findViewById(R.id.bottom_bar);
         bottomBar.setVisibility((homePages > 1 && !hidePagination) ? View.VISIBLE : View.GONE);
         updateGravity();
@@ -1312,10 +1291,8 @@ public class MainActivity extends Activity {
 
         updateGravity();
 
-        // Reload wallpaper (in case it was changed in settings)
         loadWallpaper();
 
-        // Update time and date
         if (timeView != null && timeSdf != null) {
             timeView.setText(timeSdf.format(new Date()));
         }
@@ -1418,7 +1395,7 @@ public class MainActivity extends Activity {
                             iconView.setColorFilter(getSpecialIconColor());
                         }
                     } else {
-                        // Reload the icon with the new theme/colors
+
                         try {
                             Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, dynamicIcons, theme,
                                     iconBackground, dynamicColors, invertIconColors, iconShape);
@@ -1427,7 +1404,6 @@ public class MainActivity extends Activity {
                             // Keep current icon if error
                         }
 
-                        // Apply filters based on settings
                         if (monochromeIcons && !dynamicIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                         } else {
@@ -1448,7 +1424,6 @@ public class MainActivity extends Activity {
             applyIconEffect(searchButton, searchButtonEffect, getSearchButtonEffectColorValue());
         }
 
-        // Update page navigation buttons
         ImageView prevButton = findViewById(R.id.prev_page_button);
         if (prevButton != null) {
             prevButton.setColorFilter(getPaginationColorValue());
@@ -1458,7 +1433,6 @@ public class MainActivity extends Activity {
             nextButton.setColorFilter(getPaginationColorValue());
         }
 
-        // Update page indicator
         TextView pageIndicator = findViewById(R.id.page_indicator);
         if (pageIndicator != null) {
             pageIndicator.setTextColor(getPaginationColorValue());
@@ -1503,7 +1477,7 @@ public class MainActivity extends Activity {
             params.width = sizePx;
             params.height = sizePx;
             settingsButton.setLayoutParams(params);
-            // Update margins for time/date if RIGHT
+
             if (timeView != null && timeHorizontalPosition == 2) {
                 int maxBtnSize = Math.max(settingsButtonSize, showSearchButton == 1 ? searchButtonSize : 0);
                 int buttonSizePx = (int) android.util.TypedValue.applyDimension(
@@ -1522,7 +1496,7 @@ public class MainActivity extends Activity {
             params.width = sizePx;
             params.height = sizePx;
             settingsButton.setLayoutParams(params);
-            // Update margins for time/date if RIGHT
+
             if (timeView != null && timeHorizontalPosition == 2) {
                 int maxBtnSize = Math.max(settingsButtonSize, showSearchButton == 1 ? searchButtonSize : 0);
                 int marginSizePx = (int) android.util.TypedValue.applyDimension(
@@ -1548,7 +1522,7 @@ public class MainActivity extends Activity {
             params.height = sizePx;
             searchButton.setLayoutParams(params);
             if (showSettingsButton == 0) {
-                // Update margins for time/date if RIGHT, since search is at top right
+
                 if (timeView != null && timeHorizontalPosition == 2) {
                     RelativeLayout.LayoutParams timeParams = (RelativeLayout.LayoutParams) timeView.getLayoutParams();
                     timeParams.rightMargin = sizePx + 16;
@@ -1574,7 +1548,7 @@ public class MainActivity extends Activity {
                     slot.setGravity(Gravity.CENTER_VERTICAL);
                 } else {
                     int topBottom = homeColumns == 1 ? 20 : 16;
-                    // Use symmetric padding when centered to ensure icons align correctly
+
                     if (homeAlignment == 1) {
                         int symmetricPadding = homeColumns == 1 ? 20 : 12;
                         slot.setPadding(symmetricPadding, topBottom, symmetricPadding, topBottom);
@@ -1707,7 +1681,7 @@ public class MainActivity extends Activity {
         } else if ("blank".equals(packageName)) {
             // Do nothing for blank
         } else if (packageName != null && packageName.startsWith("webapp_")) {
-            // Launch web app in default browser
+
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String url = prefs.getString(packageName + "_url", "");
             if (!url.isEmpty()) {
@@ -1720,14 +1694,14 @@ public class MainActivity extends Activity {
                 }
             }
         } else if (packageName != null && packageName.startsWith("folder_")) {
-            // Launch folder
+
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String folderName = prefs.getString(packageName + "_name", "Folder");
             Intent intent = new Intent(MainActivity.this, org.matiasdesu.thinklauncherv2.ui.FolderActivity.class);
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_ID, packageName);
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_NAME, folderName);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            startActivityForResult(intent, 9999); // Special request code for folders
+            startActivityForResult(intent, 9999);
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
@@ -1755,7 +1729,6 @@ public class MainActivity extends Activity {
             tv.setVisibility(appPackages.get(position).equals("blank") ? View.GONE : View.VISIBLE);
         }
 
-        // Sync slot layout properties
         slot.setClipChildren(false);
         slot.setClipToPadding(false);
         if (showAppNames && (appNamePosition == AppNamePositionHelper.POSITION_TOP
@@ -1779,7 +1752,7 @@ public class MainActivity extends Activity {
         }
         int vPadding = homeColumns == 1 ? 20 : 16;
         if (showAppNames) {
-            slot.setPadding(0, 0, 0, 0); // Reset padding
+            slot.setPadding(0, 0, 0, 0);
             int leftOuterPadding = homeColumns == 1 ? (showIcons ? 16 : 32) : (showIcons ? 8 : 16);
             if (appNamePosition == AppNamePositionHelper.POSITION_TOP
                     || appNamePosition == AppNamePositionHelper.POSITION_BOTTOM) {
@@ -1789,7 +1762,7 @@ public class MainActivity extends Activity {
                 tv.setPadding(leftOuterPadding, vPadding, 32, vPadding);
             }
         } else {
-            // Use symmetric padding when centered to ensure icons align correctly
+
             if (homeAlignment == 1) {
                 int symmetricPadding = homeColumns == 1 ? 20 : 12;
                 slot.setPadding(symmetricPadding, vPadding, symmetricPadding, vPadding);
@@ -1806,12 +1779,11 @@ public class MainActivity extends Activity {
 
         if (shouldHaveIcon) {
             if (!hasIcon) {
-                // Add icon
+
                 ImageView iconView = new ImageView(this);
                 int iconSizePx = (int) (iconSize * getResources().getDisplayMetrics().scaledDensity);
                 iconView.setLayoutParams(new LinearLayout.LayoutParams(iconSizePx, iconSizePx));
 
-                // For blank items, create invisible icon to maintain spacing
                 if (isBlankOrEmpty) {
                     iconView.setVisibility(View.INVISIBLE);
                     iconView.setImageDrawable(
@@ -1895,7 +1867,7 @@ public class MainActivity extends Activity {
                             iconView.clearColorFilter();
                         }
                     } catch (Exception e) {
-                        // Icon not found, skip
+
                         return;
                     }
                 }
@@ -1904,10 +1876,9 @@ public class MainActivity extends Activity {
                 slot.addView(iconView, Math.min(addIndex, slot.getChildCount()));
                 applyIconEffect(iconView);
             } else {
-                // Update existing icon
+
                 ImageView iconView = existingIcon;
 
-                // For blank items, make icon invisible to maintain spacing
                 if (isBlankOrEmpty) {
                     iconView.setVisibility(View.INVISIBLE);
                     iconView.setImageDrawable(
@@ -1920,7 +1891,6 @@ public class MainActivity extends Activity {
                     return;
                 }
 
-                // Make sure icon is visible for non-blank items
                 iconView.setVisibility(View.VISIBLE);
 
                 if ("launcher_settings".equals(appPackages.get(position))) {
@@ -1991,7 +1961,7 @@ public class MainActivity extends Activity {
                         if (monochromeIcons && !dynamicIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                         } else {
-                            iconView.clearColorFilter(); // Remove tint for app icons
+                            iconView.clearColorFilter();
                         }
                     } catch (Exception e) {
                         // Icon not found, skip
@@ -2001,7 +1971,7 @@ public class MainActivity extends Activity {
                 applyIconEffect(iconView);
             }
         } else if (!shouldHaveIcon && hasIcon) {
-            // Remove icon
+
             slot.removeView(existingIcon);
         }
 
@@ -2053,14 +2023,14 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
-            // Handle folder name update (requestCode 9999)
+
             if (requestCode == 9999) {
                 String folderId = data.getStringExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_ID);
                 String updatedName = data
                         .getStringExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_UPDATED_FOLDER_NAME);
 
                 if (folderId != null && updatedName != null) {
-                    // Find the position of this folder in appPackages
+
                     for (int i = 0; i < appPackages.size(); i++) {
                         if (folderId.equals(appPackages.get(i))) {
                             appLabels.set(i, updatedName);
@@ -2073,13 +2043,12 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            // Handle app selection from AppSelectorActivity
             String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
             int position = data.getIntExtra(AppSelectorActivity.EXTRA_POSITION, -1);
 
             if (position >= 0 && position < appLabels.size()) {
-                // If it's a folder, save the folder name first
+
                 if (pkg != null && pkg.startsWith("folder_")) {
                     SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
                     prefs.edit().putString(pkg + "_name", label).apply();
@@ -2126,7 +2095,7 @@ public class MainActivity extends Activity {
                     if (doubleTapLock == 1) {
                         if (LockAccessibilityService.lockScreen()) {
                             doubleTapDone = true;
-                            // Cancel the delayed long press if any
+
                             if (openSettingsRunnable != null) {
                                 handler.removeCallbacks(openSettingsRunnable);
                                 openSettingsRunnable = null;
@@ -2149,7 +2118,7 @@ public class MainActivity extends Activity {
                         doubleTapDone = false;
                         return;
                     }
-                    // Open settings
+
                     try {
                         Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                         Intent intent = new Intent(MainActivity.this, clazz);
@@ -2270,12 +2239,12 @@ public class MainActivity extends Activity {
         if (dateView != null && dateView.getParent() == rootLayout) {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) dateView.getLayoutParams();
             boolean isTimeVisible = (timePosition == 1 && timeView != null && timeView.getParent() == rootLayout);
-            if (dateVerticalPosition == 0 || !isTimeVisible) { // Top or Time hidden
+            if (dateVerticalPosition == 0 || !isTimeVisible) {
                 params.topMargin = topInset + homePaddingTopPx;
             }
-            if (dateHorizontalPosition == 0) { // Left
+            if (dateHorizontalPosition == 0) {
                 params.leftMargin = homePaddingLeftPx;
-            } else if (dateHorizontalPosition == 2) { // Right
+            } else if (dateHorizontalPosition == 2) {
                 int rightMargin = homePaddingRightPx;
                 if (showSettingsButton == 1 || showSearchButton == 1) {
                     int maxBtnSize = Math.max(showSettingsButton == 1 ? settingsButtonSize : 0,
@@ -2289,17 +2258,15 @@ public class MainActivity extends Activity {
             dateView.setLayoutParams(params);
         }
 
-        // Apply margin to timeView
         if (timeView != null && timeView.getParent() == rootLayout) {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) timeView.getLayoutParams();
-            // Only add top margin if timeView is NOT below dateView (i.e. it is the top
-            // element)
+
             if (dateView == null || dateVerticalPosition != 0) {
                 params.topMargin = topInset + homePaddingTopPx;
             }
-            if (timeHorizontalPosition == 0) { // Left
+            if (timeHorizontalPosition == 0) {
                 params.leftMargin = homePaddingLeftPx;
-            } else if (timeHorizontalPosition == 2) { // Right
+            } else if (timeHorizontalPosition == 2) {
                 int rightMargin = homePaddingRightPx;
                 if (showSettingsButton == 1 || showSearchButton == 1) {
                     int maxBtnSize = Math.max(showSettingsButton == 1 ? settingsButtonSize : 0,
@@ -2313,7 +2280,6 @@ public class MainActivity extends Activity {
             timeView.setLayoutParams(params);
         }
 
-        // Apply margin to settings button
         if (settingsButton != null && settingsButton.getParent() == rootLayout) {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) settingsButton.getLayoutParams();
             params.topMargin = topInset + homePaddingTopPx + 5;
@@ -2321,28 +2287,25 @@ public class MainActivity extends Activity {
             settingsButton.setLayoutParams(params);
         }
 
-        // Apply margin to search button
         if (searchButton != null && searchButton.getParent() == rootLayout && showSettingsButton != 1) {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) searchButton.getLayoutParams();
             params.topMargin = topInset + homePaddingTopPx + 5;
             params.rightMargin = homePaddingRightPx + 16;
             searchButton.setLayoutParams(params);
         } else if (searchButton != null && searchButton.getParent() == rootLayout) {
-            // Just update right margin if it's below settings
+
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) searchButton.getLayoutParams();
             params.rightMargin = homePaddingRightPx + 16;
             searchButton.setLayoutParams(params);
         }
 
-        // Apply padding to mainLayout
         if (mainLayout != null) {
             boolean hasTopAnchor = (timePosition == 1 && timeView != null) ||
                     (datePosition != 0 && dateView != null) ||
                     (showSettingsButton == 1 && settingsButton != null) ||
                     (showSearchButton == 1 && searchButton != null);
 
-            // Determine effective top padding
-            int effectiveTopPx = 0; // If anchored, padding is handled by the anchor's margin
+            int effectiveTopPx = 0;
             if (!hasTopAnchor) {
                 effectiveTopPx = homePaddingTopPx;
                 if (homeVerticalAlignment == 0 && topInset > 0) {
@@ -2350,7 +2313,6 @@ public class MainActivity extends Activity {
                 }
             }
 
-            // Determine effective bottom padding
             LinearLayout bottomBar = findViewById(R.id.bottom_bar);
             int bottomBarHeight = (bottomBar.getVisibility() == View.VISIBLE && homeVerticalAlignment == 2)
                     ? (int) android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 48,
@@ -2358,7 +2320,6 @@ public class MainActivity extends Activity {
                     : 0;
             int effectiveBottomPx = homePaddingBottomPx + bottomBarHeight + bottomInset;
 
-            // Apply padding only if changed
             if (mainLayout.getPaddingLeft() != homePaddingLeftPx ||
                     mainLayout.getPaddingTop() != effectiveTopPx ||
                     mainLayout.getPaddingRight() != homePaddingRightPx ||
@@ -2369,7 +2330,7 @@ public class MainActivity extends Activity {
     }
 
     private void createHomeLayout() {
-        // This is the code to create the app slots, extracted from onCreate
+
         if (mainLayout != null) {
             mainLayout.setClipChildren(false);
             mainLayout.setClipToPadding(false);
@@ -2418,7 +2379,6 @@ public class MainActivity extends Activity {
             slotLayout.setGravity(Gravity.CENTER_VERTICAL);
         }
 
-        // For LEFT position, use MATCH_PARENT width so the text can be constrained
         if (appNamePosition == AppNamePositionHelper.POSITION_LEFT && showIcons && showAppNames) {
             slotLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -2435,8 +2395,6 @@ public class MainActivity extends Activity {
         applyTextEffect(tv);
         tv.setBackgroundColor(0);
 
-        // For LEFT position, use weight=1 so text fills available space and truncates
-        // properly
         if (appNamePosition == AppNamePositionHelper.POSITION_LEFT && showIcons && showAppNames) {
             LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(0,
                     LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -2660,7 +2618,7 @@ public class MainActivity extends Activity {
             List<String> newPackages = new ArrayList<>();
 
             for (int col = 0; col < homeColumns; col++) {
-                // Load existing slots for this column
+
                 List<String> colLabels = new ArrayList<>();
                 List<String> colPackages = new ArrayList<>();
                 for (int i = 0; i < oldMaxApps; i++) {
@@ -2671,16 +2629,15 @@ public class MainActivity extends Activity {
                     colPackages.add(pkg);
                 }
 
-                // Adjust the column
                 if (newMaxApps > oldMaxApps) {
-                    // Add empty slots at the end
+
                     int diff = newMaxApps - oldMaxApps;
                     for (int i = 0; i < diff; i++) {
                         colLabels.add("Empty");
                         colPackages.add("");
                     }
                 } else if (newMaxApps < oldMaxApps) {
-                    // Remove slots from the end
+
                     int diff = oldMaxApps - newMaxApps;
                     for (int i = 0; i < diff; i++) {
                         colLabels.remove(colLabels.size() - 1);
@@ -2688,12 +2645,10 @@ public class MainActivity extends Activity {
                     }
                 }
 
-                // Add to new lists
                 newLabels.addAll(colLabels);
                 newPackages.addAll(colPackages);
             }
 
-            // Save the new slots for this page
             int totalApps = homeColumns * newMaxApps;
             for (int i = 0; i < totalApps; i++) {
                 editor.putString("slot_label_page_" + page + "_" + i, newLabels.get(i));
@@ -2704,11 +2659,6 @@ public class MainActivity extends Activity {
         editor.apply();
     }
 
-    /**
-     * Get the color for special icons (launcher_settings, app_launcher,
-     * notification_panel)
-     * Uses dynamic colors when dynamicIcons and dynamicColors are enabled
-     */
     private int getSpecialIconColor() {
         int[] dynamicColorPair = DynamicIconHelper.getDynamicColors(this, theme, iconBackground, invertIconColors,
                 dynamicColors);

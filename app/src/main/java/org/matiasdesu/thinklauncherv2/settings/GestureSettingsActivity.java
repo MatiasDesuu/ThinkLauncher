@@ -40,7 +40,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
             if ("android.intent.action.CLOSE_SYSTEM_DIALOGS".equals(intent.getAction())) {
                 String reason = intent.getStringExtra("reason");
                 if ("homekey".equals(reason)) {
-                    // Bring MainActivity to front
+
                     Intent mainIntent = new Intent(GestureSettingsActivity.this, MainActivity.class);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                     startActivity(mainIntent);
@@ -101,18 +101,20 @@ public class GestureSettingsActivity extends AppCompatActivity {
         String clockLabel = prefs.getString("clock_app_label", "System Default");
         String dateLabel = prefs.getString("date_app_label", "System Default");
 
-        // Set default apps if not set
         if (!prefs.contains("swipe_down_app")) {
-            prefs.edit().putString("swipe_down_app", "notification_panel").putString("swipe_down_label", "Notification Panel").apply();
+            prefs.edit().putString("swipe_down_app", "notification_panel")
+                    .putString("swipe_down_label", "Notification Panel").apply();
         }
         if (!prefs.contains("swipe_up_app")) {
             prefs.edit().putString("swipe_up_app", "app_launcher").putString("swipe_up_label", "App Launcher").apply();
         }
         if (!prefs.contains("clock_app_pkg")) {
-            prefs.edit().putString("clock_app_pkg", "system_default").putString("clock_app_label", "System Default").apply();
+            prefs.edit().putString("clock_app_pkg", "system_default").putString("clock_app_label", "System Default")
+                    .apply();
         }
         if (!prefs.contains("date_app_pkg")) {
-            prefs.edit().putString("date_app_pkg", "system_default").putString("date_app_label", "System Default").apply();
+            prefs.edit().putString("date_app_pkg", "system_default").putString("date_app_label", "System Default")
+                    .apply();
         }
 
         doubleTapLock = prefs.getInt("double_tap_lock", 0);
@@ -134,7 +136,8 @@ public class GestureSettingsActivity extends AppCompatActivity {
         View doubleTapLockContainer = findViewById(R.id.double_tap_lock_container);
         TextView doubleTapLockValueTv = doubleTapLockContainer.findViewById(R.id.value_text);
         doubleTapLockValueTv.setText(getDoubleTapLockText(doubleTapLock));
-        doubleTapLockValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(doubleTapLockValueTv, new String[]{"OFF", "ON"}));
+        doubleTapLockValueTv
+                .setMinWidth(TextWidthHelper.getMaxTextWidthPx(doubleTapLockValueTv, new String[] { "OFF", "ON" }));
 
         TextView minusDoubleTapBtn = doubleTapLockContainer.findViewById(R.id.btn_minus);
         TextView plusDoubleTapBtn = doubleTapLockContainer.findViewById(R.id.btn_plus);
@@ -144,7 +147,8 @@ public class GestureSettingsActivity extends AppCompatActivity {
             doubleTapLockValueTv.setText(getDoubleTapLockText(doubleTapLock));
             prefs.edit().putInt("double_tap_lock", doubleTapLock).apply();
             if (doubleTapLock == 1 && !LockAccessibilityService.isServiceRunning()) {
-                Toast.makeText(this, "Please enable accessibility to use double tap to lock", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enable accessibility to use double tap to lock", Toast.LENGTH_SHORT)
+                        .show();
             }
         });
 
@@ -153,14 +157,15 @@ public class GestureSettingsActivity extends AppCompatActivity {
             doubleTapLockValueTv.setText(getDoubleTapLockText(doubleTapLock));
             prefs.edit().putInt("double_tap_lock", doubleTapLock).apply();
             if (doubleTapLock == 1 && !LockAccessibilityService.isServiceRunning()) {
-                Toast.makeText(this, "Please enable accessibility to use double tap to lock", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please enable accessibility to use double tap to lock", Toast.LENGTH_SHORT)
+                        .show();
             }
         });
 
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
         ScrollView scrollView = findViewById(R.id.settings_scroll_view);
         FrameLayout container = findViewById(R.id.settings_container);
-        
+
         paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
         paginationHelper.initialize(null);
     }
@@ -170,7 +175,8 @@ public class GestureSettingsActivity extends AppCompatActivity {
     private void selectAppForGesture(String direction) {
         currentGestureDirection = direction;
         Intent intent = new Intent(this, AppSelectorActivity.class);
-        intent.putExtra(AppSelectorActivity.EXTRA_POSITION, direction.equals("clock") || direction.equals("date") ? -3 : -1);
+        intent.putExtra(AppSelectorActivity.EXTRA_POSITION,
+                direction.equals("clock") || direction.equals("date") ? -3 : -1);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivityForResult(intent, 1000);
     }
@@ -186,12 +192,12 @@ public class GestureSettingsActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1000 && resultCode == RESULT_OK && data != null) {
             if (currentGestureDirection == null) {
-                // Try to recover from intent extras if possible, or just ignore
+
                 return;
             }
             String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
-            
+
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             TextView tv;
             int resId;
@@ -248,16 +254,20 @@ public class GestureSettingsActivity extends AppCompatActivity {
 
     private String getDoubleTapLockText(int pos) {
         switch (pos) {
-            case 0: return "OFF";
-            case 1: return "ON";
-            default: return "OFF";
+            case 0:
+                return "OFF";
+            case 1:
+                return "ON";
+            default:
+                return "OFF";
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"), Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
+                Context.RECEIVER_NOT_EXPORTED);
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }

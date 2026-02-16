@@ -117,13 +117,14 @@ public class AppLauncherActivity extends AppCompatActivity {
             rootLayout.setBackgroundColor(bgColor);
         }
 
-        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"), Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
+                Context.RECEIVER_NOT_EXPORTED);
         IntentFilter packageFilter = new IntentFilter(Intent.ACTION_PACKAGE_REMOVED);
         packageFilter.addDataScheme("package");
         registerReceiver(packageRemovedReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED);
-        
+
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        
+
         View divider = findViewById(R.id.divider);
         divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
         View bottomDivider = findViewById(R.id.bottom_divider);
@@ -168,28 +169,28 @@ public class AppLauncherActivity extends AppCompatActivity {
 
         View container = findViewById(R.id.app_list_container);
         SwipePageNavigator pageNavigator = null;
-        
+
         if (!scrollAppList) {
             pageNavigator = new SwipePageNavigator(this, recyclerView, container,
-                new SwipePageNavigator.PageChangeCallback() {
-                    @Override
-                    public void onPageChanged(int newPage) {
-                        currentPage = newPage;
-                        recyclerView.getAdapter().notifyDataSetChanged();
-                        updatePageIndicator();
-                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                    }
+                    new SwipePageNavigator.PageChangeCallback() {
+                        @Override
+                        public void onPageChanged(int newPage) {
+                            currentPage = newPage;
+                            recyclerView.getAdapter().notifyDataSetChanged();
+                            updatePageIndicator();
+                            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                        }
 
-                    @Override
-                    public int getTotalPages() {
-                        return (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
-                    }
+                        @Override
+                        public int getTotalPages() {
+                            return (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
+                        }
 
-                    @Override
-                    public void updatePageIndicator() {
-                        AppLauncherActivity.this.updatePageIndicator();
-                    }
-                }, theme);
+                        @Override
+                        public void updatePageIndicator() {
+                            AppLauncherActivity.this.updatePageIndicator();
+                        }
+                    }, theme);
         }
 
         List<String> installedAppLabels = new ArrayList<>();
@@ -208,6 +209,9 @@ public class AppLauncherActivity extends AppCompatActivity {
         // Add settings option at the top
         installedAppLabels.add(0, "Launcher Settings");
         installedAppPackages.add(0, "launcher_settings");
+        // Add KOReader History
+        installedAppLabels.add(1, "KOReader History");
+        installedAppPackages.add(1, "koreader_history");
 
         loadApps(installedAppLabels, installedAppPackages);
 
@@ -227,10 +231,11 @@ public class AppLauncherActivity extends AppCompatActivity {
         et.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         et.setSingleLine(true);
         et.setCursorVisible(false);
-        
+
         et.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -239,7 +244,8 @@ public class AppLauncherActivity extends AppCompatActivity {
                 if (query.isEmpty()) {
                     filteredApps.addAll(originalApps);
                 } else {
-                    List<AppSearchHelper.AppItem> filtered = AppSearchHelper.filterApps(installedAppLabels, installedAppPackages, query);
+                    List<AppSearchHelper.AppItem> filtered = AppSearchHelper.filterApps(installedAppLabels,
+                            installedAppPackages, query);
                     filteredApps.addAll(filtered);
                 }
                 currentPage = 0;
@@ -253,7 +259,8 @@ public class AppLauncherActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         searchEditText.setOnEditorActionListener((v, actionId, event) -> {
@@ -271,7 +278,8 @@ public class AppLauncherActivity extends AppCompatActivity {
     public void launchApp(String label, String packageName) {
         if ("notification_panel".equals(packageName)) {
             try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar"));
+                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
+                        .invoke(getSystemService("statusbar"));
             } catch (Exception e) {
                 // Log or ignore
             }
@@ -318,7 +326,8 @@ public class AppLauncherActivity extends AppCompatActivity {
         bottomDivider.setVisibility(View.VISIBLE);
         bottomBar.setVisibility(View.VISIBLE);
         int totalPages = (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0)
+            totalPages = 1;
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
     }
@@ -378,7 +387,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         if (hasFocus) {
             SharedPreferences prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE);
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-            
+
             if (!keyboardShown && prefs.getBoolean("auto_focus_search", true)) {
                 keyboardShown = true;
                 EditText et = findViewById(R.id.search_edit_text);

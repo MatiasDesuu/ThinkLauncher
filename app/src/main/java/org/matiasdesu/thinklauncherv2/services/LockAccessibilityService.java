@@ -23,13 +23,12 @@ public class LockAccessibilityService extends AccessibilityService {
 
     public static boolean lockScreen() {
         if (instance != null) {
-            // Try Device Admin first if available
             DevicePolicyManager dpm = (DevicePolicyManager) instance.getSystemService(Context.DEVICE_POLICY_SERVICE);
             ComponentName adminComponent = new ComponentName(instance, LockDeviceAdminReceiver.class);
             if (dpm != null && dpm.isAdminActive(adminComponent)) {
                 dpm.lockNow();
             } else {
-                // Fallback to Accessibility
+
                 instance.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN);
             }
             return true;

@@ -40,7 +40,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             if ("android.intent.action.CLOSE_SYSTEM_DIALOGS".equals(intent.getAction())) {
                 String reason = intent.getStringExtra("reason");
                 if ("homekey".equals(reason)) {
-                    // Bring MainActivity to front
+
                     Intent mainIntent = new Intent(DisplaySettingsActivity.this, MainActivity.class);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                     startActivity(mainIntent);
