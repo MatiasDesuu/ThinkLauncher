@@ -130,6 +130,24 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
+        ImageView openKOReaderButton = findViewById(R.id.open_koreader_button);
+        openKOReaderButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        openKOReaderButton.setOnClickListener(v -> {
+            String pkg = "org.koreader.launcher";
+            Intent intent = getPackageManager().getLaunchIntentForPackage(pkg);
+            if (intent == null) {
+                pkg = "org.koreader.launcher.fdroid";
+                intent = getPackageManager().getLaunchIntentForPackage(pkg);
+            }
+
+            if (intent != null) {
+                startActivity(intent);
+                new Handler(Looper.getMainLooper()).postDelayed(this::finish, 500);
+            } else {
+                Toast.makeText(this, "KOReader not found", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         RecyclerView recyclerView = findViewById(R.id.history_list);
         ThemeUtils.applyBackgroundColor(recyclerView, theme, this);
 

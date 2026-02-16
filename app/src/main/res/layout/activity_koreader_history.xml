@@ -33,9 +33,13 @@
             android:clickable="true"
             android:focusable="true" />
 
-        <View
+        <ImageView
+            android:id="@+id/open_koreader_button"
             android:layout_width="48dp"
-            android:layout_height="48dp" />
+            android:layout_height="48dp"
+            android:src="@drawable/arrow_outward"
+            android:padding="12dp"
+            android:tint="?attr/text_color" />
 
     </LinearLayout>
 
