@@ -80,7 +80,6 @@ public class AppOptionsDialog extends Dialog {
         getWindow()
                 .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
 
-        // Aplicar colores
         View root = findViewById(android.R.id.content);
         if (root != null) {
             ThemeUtils.applyDialogBackground(root, theme, getContext());
@@ -89,85 +88,90 @@ public class AppOptionsDialog extends Dialog {
                     ThemeUtils.getTextColor(theme, getContext()));
         }
 
+        TextView renameButton = findViewById(R.id.rename_button);
         TextView moreInfoButton = findViewById(R.id.more_info_button);
-        ThemeUtils.applyButtonTheme(moreInfoButton, theme, getContext());
+        TextView uninstallButton = findViewById(R.id.uninstall_button);
+        TextView removeButton = findViewById(R.id.remove_button);
 
+        if (renameCallback != null) {
+            renameButton.setVisibility(View.VISIBLE);
+            ThemeUtils.applyButtonTheme(renameButton, theme, getContext());
+            renameButton.setOnClickListener(v -> {
+                renameCallback.onRename();
+                dismiss();
+            });
+        } else {
+            renameButton.setVisibility(View.GONE);
+        }
+
+        ThemeUtils.applyButtonTheme(moreInfoButton, theme, getContext());
         if (packageName != null && packageName.startsWith("webapp_")) {
             moreInfoButton.setText("Edit Web App");
         }
+        if (packageName != null && (packageName.startsWith("folder_")
+                || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
+                || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
+            moreInfoButton.setVisibility(View.GONE);
+        } else {
+            moreInfoButton.setVisibility(View.VISIBLE);
+            moreInfoButton.setOnClickListener(v -> {
+                if (moreInfoCallback != null) {
+                    moreInfoCallback.onMoreInfo();
+                } else {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(Uri.parse("package:" + packageName));
+                    try {
+                        getContext().startActivity(intent);
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                }
+                dismiss();
+            });
+        }
 
-        TextView uninstallButton = findViewById(R.id.uninstall_button);
         ThemeUtils.applyButtonTheme(uninstallButton, theme, getContext());
-
         if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_")
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
                 || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
             uninstallButton.setVisibility(View.GONE);
-        }
-
-        TextView removeButton = findViewById(R.id.remove_button);
-
-        // Adjust margin for uninstall button based on remove button visibility
-        int marginBottom = (removeCallback != null)
-                ? (int) (8 * getContext().getResources().getDisplayMetrics().density)
-                : 0;
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) uninstallButton.getLayoutParams();
-        if (params != null) {
-            params.bottomMargin = marginBottom;
-            uninstallButton.setLayoutParams(params);
+        } else {
+            uninstallButton.setVisibility(View.VISIBLE);
+            uninstallButton.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE);
+                intent.setData(Uri.parse("package:" + packageName));
+                getContext().startActivity(intent);
+                dismiss();
+            });
         }
 
         if (removeCallback != null) {
-            // In folder context - show remove button
-            if (removeButton != null) {
-                removeButton.setVisibility(View.VISIBLE);
-                ThemeUtils.applyButtonTheme(removeButton, theme, getContext());
-                removeButton.setOnClickListener(v -> {
-                    removeCallback.onRemove();
-                    dismiss();
-                });
-            }
+            removeButton.setVisibility(View.VISIBLE);
+            ThemeUtils.applyButtonTheme(removeButton, theme, getContext());
+            removeButton.setOnClickListener(v -> {
+                removeCallback.onRemove();
+                dismiss();
+            });
         } else {
-            // Normal context
-            if (removeButton != null)
-                removeButton.setVisibility(View.GONE);
+            removeButton.setVisibility(View.GONE);
         }
 
-        TextView renameButton = findViewById(R.id.rename_button);
-        if (renameCallback != null) {
-            if (renameButton != null) {
-                renameButton.setVisibility(View.VISIBLE);
-                ThemeUtils.applyButtonTheme(renameButton, theme, getContext());
-                renameButton.setOnClickListener(v -> {
-                    renameCallback.onRename();
-                    dismiss();
-                });
+        TextView[] allButtons = {renameButton, moreInfoButton, uninstallButton, removeButton};
+        View lastVisible = null;
+        for (int i = allButtons.length - 1; i >= 0; i--) {
+            if (allButtons[i].getVisibility() == View.VISIBLE) {
+                lastVisible = allButtons[i];
+                break;
             }
-        } else {
-            if (renameButton != null)
-                renameButton.setVisibility(View.GONE);
         }
 
-        moreInfoButton.setOnClickListener(v -> {
-            if (moreInfoCallback != null) {
-                moreInfoCallback.onMoreInfo();
-            } else {
-                Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                intent.setData(Uri.parse("package:" + packageName));
-                try {
-                    getContext().startActivity(intent);
-                } catch (Exception e) {
-                    // Ignore
-                }
+        int eightDp = (int) (8 * getContext().getResources().getDisplayMetrics().density);
+        for (TextView btn : allButtons) {
+            LinearLayout.LayoutParams p = (LinearLayout.LayoutParams) btn.getLayoutParams();
+            if (p != null) {
+                p.bottomMargin = (btn == lastVisible) ? 0 : eightDp;
+                btn.setLayoutParams(p);
             }
-            dismiss();
-        });
-
-        uninstallButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE);
-            intent.setData(Uri.parse("package:" + packageName));
-            getContext().startActivity(intent);
-            dismiss();
-        });
+        }
     }
 }
