@@ -35,6 +35,8 @@ public class DateSettingsActivity extends AppCompatActivity {
     private int dateColor;
     private int dateEffect;
     private int dateEffectColor;
+    private int batteryInfo;
+    private int batteryPosition;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
@@ -92,6 +94,8 @@ public class DateSettingsActivity extends AppCompatActivity {
         dateColor = prefs.getInt("date_color", 0);
         dateEffect = prefs.getInt("date_effect", 0);
         dateEffectColor = prefs.getInt("date_effect_color", 0);
+        batteryInfo = prefs.getInt("battery_info", 0);
+        batteryPosition = prefs.getInt("battery_position", 1); // Default to Right
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
@@ -162,6 +166,22 @@ public class DateSettingsActivity extends AppCompatActivity {
 
         TextView minusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_minus);
         TextView plusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_plus);
+
+        View batteryInfoContainer = findViewById(R.id.battery_info_container);
+        TextView batteryInfoValueTv = batteryInfoContainer.findViewById(R.id.value_text);
+        batteryInfoValueTv.setText(getOnOffText(batteryInfo));
+        batteryInfoValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(batteryInfoValueTv, new String[]{"OFF", "ON"}));
+
+        TextView minusBatteryInfoBtn = batteryInfoContainer.findViewById(R.id.btn_minus);
+        TextView plusBatteryInfoBtn = batteryInfoContainer.findViewById(R.id.btn_plus);
+
+        View batteryPositionContainer = findViewById(R.id.battery_position_container);
+        TextView batteryPositionValueTv = batteryPositionContainer.findViewById(R.id.value_text);
+        batteryPositionValueTv.setText(getLeftRightText(batteryPosition));
+        batteryPositionValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(batteryPositionValueTv, new String[]{"LEFT", "RIGHT"}));
+
+        TextView minusBatteryPositionBtn = batteryPositionContainer.findViewById(R.id.btn_minus);
+        TextView plusBatteryPositionBtn = batteryPositionContainer.findViewById(R.id.btn_plus);
 
         minusDateBtn.setOnClickListener(v -> {
             datePosition = (datePosition - 1 + 2) % 2;
@@ -279,6 +299,38 @@ public class DateSettingsActivity extends AppCompatActivity {
             prefs.edit().putInt("date_effect_color", dateEffectColor).apply();
         });
 
+        minusBatteryInfoBtn.setOnClickListener(v -> {
+            batteryInfo = (batteryInfo - 1 + 2) % 2;
+            batteryInfoValueTv.setText(getOnOffText(batteryInfo));
+            prefs.edit().putInt("battery_info", batteryInfo).apply();
+            refreshVisibility();
+            if (paginationHelper != null) {
+                paginationHelper.updateVisibleItemsList();
+            }
+        });
+
+        plusBatteryInfoBtn.setOnClickListener(v -> {
+            batteryInfo = (batteryInfo + 1) % 2;
+            batteryInfoValueTv.setText(getOnOffText(batteryInfo));
+            prefs.edit().putInt("battery_info", batteryInfo).apply();
+            refreshVisibility();
+            if (paginationHelper != null) {
+                paginationHelper.updateVisibleItemsList();
+            }
+        });
+
+        minusBatteryPositionBtn.setOnClickListener(v -> {
+            batteryPosition = (batteryPosition - 1 + 2) % 2;
+            batteryPositionValueTv.setText(getLeftRightText(batteryPosition));
+            prefs.edit().putInt("battery_position", batteryPosition).apply();
+        });
+
+        plusBatteryPositionBtn.setOnClickListener(v -> {
+            batteryPosition = (batteryPosition + 1) % 2;
+            batteryPositionValueTv.setText(getLeftRightText(batteryPosition));
+            prefs.edit().putInt("battery_position", batteryPosition).apply();
+        });
+
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
         ScrollView scrollView = findViewById(R.id.settings_scroll_view);
         FrameLayout container = findViewById(R.id.settings_container);
@@ -295,6 +347,8 @@ public class DateSettingsActivity extends AppCompatActivity {
         LinearLayout dateColorLayout = findViewById(R.id.date_color_layout);
         LinearLayout dateEffectLayout = findViewById(R.id.date_effect_layout);
         LinearLayout dateEffectColorLayout = findViewById(R.id.date_effect_color_layout);
+        LinearLayout batteryInfoLayout = findViewById(R.id.battery_info_layout);
+        LinearLayout batteryPositionLayout = findViewById(R.id.battery_position_layout);
 
         if (datePosition == 0) {
             fontSizeLayout.setVisibility(View.GONE);
@@ -304,12 +358,21 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateColorLayout.setVisibility(View.GONE);
             dateEffectLayout.setVisibility(View.GONE);
             dateEffectColorLayout.setVisibility(View.GONE);
+            batteryInfoLayout.setVisibility(View.GONE);
+            batteryPositionLayout.setVisibility(View.GONE);
         } else {
             fontSizeLayout.setVisibility(View.VISIBLE);
             horizontalLayout.setVisibility(View.VISIBLE);
             fullMonthLayout.setVisibility(View.VISIBLE);
             dateColorLayout.setVisibility(View.VISIBLE);
             dateEffectLayout.setVisibility(View.VISIBLE);
+            batteryInfoLayout.setVisibility(View.VISIBLE);
+
+            if (batteryInfo == 1) {
+                batteryPositionLayout.setVisibility(View.VISIBLE);
+            } else {
+                batteryPositionLayout.setVisibility(View.GONE);
+            }
 
             if (dateEffect == 0) {
                 dateEffectColorLayout.setVisibility(View.GONE);
@@ -344,6 +407,10 @@ public class DateSettingsActivity extends AppCompatActivity {
 
     private String getVerticalPositionText(int pos) {
         return pos == 1 ? "BOTTOM" : "TOP";
+    }
+
+    private String getLeftRightText(int pos) {
+        return pos == 1 ? "RIGHT" : "LEFT";
     }
 
     private String getDateColorText(int color) {

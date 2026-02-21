@@ -97,35 +97,27 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
-        // Choose Wallpaper button
         LinearLayout chooseWallpaperButton = findViewById(R.id.choose_wallpaper_button);
         chooseWallpaperButton.setOnClickListener(v -> openImagePicker());
-        
-        // Apply theme to Select button
+
         TextView selectButtonText = findViewById(R.id.select_button_text);
         ThemeUtils.applyButtonTheme(selectButtonText, theme, this);
 
-        // Remove Wallpaper button
         LinearLayout removeWallpaperButton = findViewById(R.id.remove_wallpaper_button);
         removeWallpaperButton.setOnClickListener(v -> removeWallpaper());
-        
-        // Apply theme to Remove button
+
         TextView removeButtonText = findViewById(R.id.remove_button_text);
         ThemeUtils.applyButtonTheme(removeButtonText, theme, this);
 
-        // Position selector container (must be initialized before updateWallpaperStatus)
         positionContainer = findViewById(R.id.position_container);
         wallpaperPositionView = findViewById(R.id.wallpaper_position_view);
-        
-        // Update status after positionContainer is initialized
+
         updateWallpaperStatus();
-        
-        // Load saved position
+
         float savedOffsetX = prefs.getFloat("wallpaper_offset_x", 0.5f);
         float savedOffsetY = prefs.getFloat("wallpaper_offset_y", 0.5f);
         wallpaperPositionView.setPosition(savedOffsetX, savedOffsetY);
-        
-        // Save position when changed
+
         wallpaperPositionView.setOnPositionChangedListener(new WallpaperPositionView.OnPositionChangedListener() {
             @Override
             public void onPositionChanged(float offsetX, float offsetY) {
@@ -135,16 +127,14 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
             @Override
             public void onPositionChangeFinished(float offsetX, float offsetY) {
                 prefs.edit()
-                    .putFloat("wallpaper_offset_x", offsetX)
-                    .putFloat("wallpaper_offset_y", offsetY)
-                    .apply();
+                        .putFloat("wallpaper_offset_x", offsetX)
+                        .putFloat("wallpaper_offset_y", offsetY)
+                        .apply();
             }
         });
 
-        // Load wallpaper preview if exists
         loadWallpaperPreview();
 
-        // Initialize pagination
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
         ScrollView scrollView = findViewById(R.id.settings_scroll_view);
         FrameLayout container = findViewById(R.id.settings_container);
@@ -155,36 +145,34 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
 
     private void setupActivityResultLaunchers() {
         imagePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri imageUri = result.getData().getData();
-                    if (imageUri != null) {
-                        saveWallpaper(imageUri);
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri imageUri = result.getData().getData();
+                        if (imageUri != null) {
+                            saveWallpaper(imageUri);
+                        }
                     }
-                }
-            }
-        );
+                });
 
         requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    launchImagePicker();
-                } else {
-                    Toast.makeText(this, "Permission required to select wallpaper", Toast.LENGTH_SHORT).show();
-                }
-            }
-        );
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        launchImagePicker();
+                    } else {
+                        Toast.makeText(this, "Permission required to select wallpaper", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void openImagePicker() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13+ uses photo picker, no permission needed
+
             launchImagePicker();
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 launchImagePicker();
             } else {
                 requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -195,50 +183,70 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
     }
 
     private void launchImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        imagePickerLauncher.launch(intent);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        try {
+            imagePickerLauncher.launch(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                Intent pickIntent = new Intent(Intent.ACTION_PICK);
+                pickIntent.setType("image/*");
+                imagePickerLauncher.launch(pickIntent);
+            } catch (Exception e2) {
+                e2.printStackTrace();
+                Toast.makeText(this, "No app found to select images. Please install a gallery or file manager.",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void saveWallpaper(Uri imageUri) {
-        try {
-            // Copy the image to internal storage
-            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-            if (inputStream != null) {
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
+        Toast.makeText(this, "Processing wallpaper...", Toast.LENGTH_SHORT).show();
 
-                if (bitmap != null) {
-                    WallpaperHelper.saveWallpaper(this, bitmap);
-                    
-                    // Update UI
-                    loadWallpaperPreview();
-                    updateWallpaperStatus();
-                    
-                    Toast.makeText(this, "Wallpaper set successfully", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            try {
+
+                InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                if (inputStream != null) {
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    inputStream.close();
+
+                    if (bitmap != null) {
+                        WallpaperHelper.saveWallpaper(this, bitmap);
+
+                        runOnUiThread(() -> {
+                            loadWallpaperPreview();
+                            updateWallpaperStatus();
+                            Toast.makeText(this, "Wallpaper set successfully", Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Failed to set wallpaper", Toast.LENGTH_SHORT).show();
+                });
             }
-        } catch (Exception e) {
-            Toast.makeText(this, "Failed to set wallpaper", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
+        }).start();
     }
 
     private void removeWallpaper() {
         WallpaperHelper.removeWallpaper(this);
-        
-        // Reset position
+
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         prefs.edit()
-            .putFloat("wallpaper_offset_x", 0.5f)
-            .putFloat("wallpaper_offset_y", 0.5f)
-            .apply();
+                .putFloat("wallpaper_offset_x", 0.5f)
+                .putFloat("wallpaper_offset_y", 0.5f)
+                .apply();
         wallpaperPositionView.setPosition(0.5f, 0.5f);
         wallpaperPositionView.setWallpaperBitmap(null);
-        
-        // Update UI
+
         updateWallpaperStatus();
-        
+
         Toast.makeText(this, "Wallpaper removed", Toast.LENGTH_SHORT).show();
     }
 
@@ -248,16 +256,21 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
     }
 
     private void loadWallpaperPreview() {
-        Bitmap wallpaper = WallpaperHelper.loadWallpaper(this);
-        if (wallpaper != null) {
-            wallpaperPositionView.setWallpaperBitmap(wallpaper);
-        }
+        new Thread(() -> {
+            Bitmap wallpaper = WallpaperHelper.loadWallpaper(this);
+            if (wallpaper != null) {
+                runOnUiThread(() -> {
+                    wallpaperPositionView.setWallpaperBitmap(wallpaper);
+                });
+            }
+        }).start();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"), Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
+                Context.RECEIVER_NOT_EXPORTED);
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }

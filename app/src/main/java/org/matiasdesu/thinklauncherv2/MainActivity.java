@@ -48,6 +48,7 @@ import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.BigmeShims;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
+import org.matiasdesu.thinklauncherv2.utils.BatteryUtils;
 import android.graphics.Bitmap;
 
 public class MainActivity extends Activity {
@@ -92,6 +93,8 @@ public class MainActivity extends Activity {
     private int dateEffect;
     private int dateEffectColor;
     private int fullMonthName;
+    private int batteryInfo;
+    private int batteryPosition;
     private int theme;
     private boolean hasWallpaper;
     private int textColor;
@@ -580,7 +583,7 @@ public class MainActivity extends Activity {
             dateSdf = new SimpleDateFormat(format);
             dateView = new StrokeTextView(this);
             dateView.setId(View.generateViewId());
-            dateView.setText(dateSdf.format(new Date()));
+            updateDateText();
             dateView.setTextColor(getDateColorValue());
             dateView.setTextSize(dateFontSize);
             dateView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
@@ -743,7 +746,7 @@ public class MainActivity extends Activity {
                 dateSdf = new SimpleDateFormat(format);
                 dateView = new StrokeTextView(this);
                 dateView.setId(View.generateViewId());
-                dateView.setText(dateSdf.format(new Date()));
+                updateDateText();
                 dateView.setTextColor(getDateColorValue());
                 dateView.setTextSize(dateFontSize);
                 dateView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
@@ -1014,6 +1017,7 @@ public class MainActivity extends Activity {
         appPackages.addAll(homePagesManager.getAppPackages());
 
         this.rootLayout = (RelativeLayout) findViewById(R.id.root_layout);
+        rootLayout.setVisibility(View.INVISIBLE);
         rootLayout.setBackgroundColor(bgColor);
         rootLayout.setClipChildren(false);
         rootLayout.setClipToPadding(false);
@@ -1115,6 +1119,8 @@ public class MainActivity extends Activity {
         int newHomePaddingLeft = prefs.getInt("home_padding_left", 0);
         int newHomePaddingRight = prefs.getInt("home_padding_right", 0);
         int newFullMonthName = prefs.getInt("full_month_name", 0);
+        int newBatteryInfo = prefs.getInt("battery_info", 0);
+        int newBatteryPosition = prefs.getInt("battery_position", 1);
         int newTheme = prefs.getInt("theme", 0);
         int newShowSettingsButton = prefs.getInt("show_settings_button", 0);
         int newShowSearchButton = prefs.getInt("show_search_button", 0);
@@ -1146,7 +1152,8 @@ public class MainActivity extends Activity {
                 || newSettingsButtonSize != settingsButtonSize || newSearchButtonSize != searchButtonSize
                 || newTextEffect != textEffect || newEffectColor != effectColor
                 || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
-                || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor;
+                || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
+                || newBatteryInfo != batteryInfo || newBatteryPosition != batteryPosition;
         boolean iconChanged = newIconEffect != iconEffect || newIconEffectColor != iconEffectColor;
         boolean wallpaperChanged = newHasWallpaper != hasWallpaper;
         boolean layoutChanged = newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
@@ -1190,7 +1197,8 @@ public class MainActivity extends Activity {
                 || newEffectColor != effectColor || newIconEffect != iconEffect
                 || newIconEffectColor != iconEffectColor;
 
-        if (themeChanged || textChanged || layoutChanged || iconChanged) {
+        if (themeChanged || textChanged || layoutChanged || iconChanged || wallpaperChanged) {
+            rootLayout.setVisibility(View.INVISIBLE);
             theme = newTheme;
             customBgColor = newCustomBgColor;
             customAccentColor = newCustomAccentColor;
@@ -1227,6 +1235,8 @@ public class MainActivity extends Activity {
             homePaddingRight = newHomePaddingRight;
             updatePaddingPx();
             fullMonthName = newFullMonthName;
+            batteryInfo = newBatteryInfo;
+            batteryPosition = newBatteryPosition;
             if (newMaxApps != maxApps || newHomeColumns != homeColumns) {
                 adjustSlotsForMaxAppsChange(maxApps, newMaxApps, newHomePages, newHomeColumns);
             }
@@ -1296,9 +1306,7 @@ public class MainActivity extends Activity {
         if (timeView != null && timeSdf != null) {
             timeView.setText(timeSdf.format(new Date()));
         }
-        if (dateView != null && dateSdf != null) {
-            dateView.setText(dateSdf.format(new Date()));
-        }
+        updateDateText();
     }
 
     @Override
@@ -1307,6 +1315,21 @@ public class MainActivity extends Activity {
         if (hasFocus) {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+        }
+    }
+
+    private void updateDateText() {
+        if (dateView != null && dateSdf != null) {
+            String dateStr = dateSdf.format(new Date());
+            if (batteryInfo == 1) {
+                String batteryStr = BatteryUtils.getBatteryPercentage(this) + "%";
+                if (batteryPosition == 0) {
+                    dateStr = batteryStr + " | " + dateStr;
+                } else {
+                    dateStr = dateStr + " | " + batteryStr;
+                }
+            }
+            dateView.setText(dateStr);
         }
     }
 
@@ -1401,7 +1424,7 @@ public class MainActivity extends Activity {
                                     iconBackground, dynamicColors, invertIconColors, iconShape);
                             iconView.setImageDrawable(drawable);
                         } catch (Exception e) {
-                            // Keep current icon if error
+
                         }
 
                         if (monochromeIcons && !dynamicIcons) {
@@ -2173,66 +2196,84 @@ public class MainActivity extends Activity {
         appPackages.addAll(homePagesManager.getAppPackages());
 
         createHomeLayout();
+
         EinkRefreshHelper.refreshEink(getWindow(), getSharedPreferences("prefs", MODE_PRIVATE),
                 getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));
     }
 
     private void loadWallpaper() {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        int theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
+        new Thread(() -> {
+            try {
+                SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                int theme = prefs.getInt("theme", 0);
+                int bgColor = ThemeUtils.getBgColor(theme, this);
+                Bitmap wallpaper = null;
 
-        if (WallpaperHelper.hasWallpaper(this)) {
-            int[] screenDimensions = WallpaperHelper.getScreenDimensions(this);
-            Bitmap wallpaper = WallpaperHelper.getWallpaperForScreen(this, screenDimensions[0], screenDimensions[1]);
-            if (wallpaper != null) {
-                wallpaperView.setImageBitmap(wallpaper);
-                wallpaperView.setVisibility(View.VISIBLE);
-                mainLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                rootLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-
-                WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
-                    getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+                if (WallpaperHelper.hasWallpaper(this)) {
+                    int[] screenDimensions = WallpaperHelper.getScreenDimensions(this);
+                    wallpaper = WallpaperHelper.getWallpaperForScreen(this, screenDimensions[0], screenDimensions[1]);
                 }
 
-                rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
-                    int statusBarHeight = 0;
-                    int navBarHeight = 0;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        statusBarHeight = insets.getInsets(WindowInsets.Type.statusBars()).top;
-                        navBarHeight = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+                final Bitmap finalWallpaper = wallpaper;
+                runOnUiThread(() -> {
+                    if (finalWallpaper != null) {
+                        wallpaperView.setImageBitmap(finalWallpaper);
+                        wallpaperView.setVisibility(View.VISIBLE);
+                        mainLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                        rootLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+                        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+                            getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+                        }
+
+                        rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
+                            int statusBarHeight = 0;
+                            int navBarHeight = 0;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                statusBarHeight = insets.getInsets(WindowInsets.Type.statusBars()).top;
+                                navBarHeight = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+                            } else {
+                                statusBarHeight = insets.getSystemWindowInsetTop();
+                                navBarHeight = insets.getSystemWindowInsetBottom();
+                            }
+                            statusBarInset = statusBarHeight;
+                            navBarInset = navBarHeight;
+
+                            applyWindowInsetsToUI(statusBarHeight, navBarHeight);
+
+                            return insets;
+                        });
+                        rootLayout.requestApplyInsets();
                     } else {
-                        statusBarHeight = insets.getSystemWindowInsetTop();
-                        navBarHeight = insets.getSystemWindowInsetBottom();
+                        wallpaperView.setVisibility(View.GONE);
+                        mainLayout.setBackgroundColor(bgColor);
+                        rootLayout.setBackgroundColor(bgColor);
+                        statusBarInset = 0;
+                        navBarInset = 0;
+                        updateGravity();
+
+                        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            getWindow().setStatusBarColor(bgColor);
+                            getWindow().setNavigationBarColor(bgColor);
+                        }
+
+                        rootLayout.setOnApplyWindowInsetsListener(null);
+                        applyWindowInsetsToUI(0, 0);
                     }
-                    statusBarInset = statusBarHeight;
-                    navBarInset = navBarHeight;
 
-                    applyWindowInsetsToUI(statusBarHeight, navBarHeight);
+                    rootLayout.setVisibility(View.VISIBLE);
 
-                    return insets;
+                    EinkRefreshHelper.refreshEink(getWindow(), getSharedPreferences("prefs", MODE_PRIVATE),
+                            getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));
                 });
-                rootLayout.requestApplyInsets();
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> rootLayout.setVisibility(View.VISIBLE));
             }
-        } else {
-            wallpaperView.setVisibility(View.GONE);
-            mainLayout.setBackgroundColor(bgColor);
-            rootLayout.setBackgroundColor(bgColor);
-            statusBarInset = 0;
-            navBarInset = 0;
-            updateGravity();
-
-            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(bgColor);
-                getWindow().setNavigationBarColor(bgColor);
-            }
-
-            rootLayout.setOnApplyWindowInsetsListener(null);
-            applyWindowInsetsToUI(0, 0);
-        }
+        }).start();
     }
 
     private void applyWindowInsetsToUI(int topInset, int bottomInset) {

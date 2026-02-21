@@ -24,8 +24,6 @@ public class BigmeShims {
 
         Log.d(ELAUNCHER_TAG, "device brand: " + android.os.Build.BRAND);
 
-        // check if the device vendor is bigme hibreak, exit otherwise
-        // Build.MODEL == "HiBreak"
         if (!"HiBreak".equals(android.os.Build.MODEL))
             return;
 
@@ -45,15 +43,30 @@ public class BigmeShims {
         }
     }
 
+    private static UnlockReceiver unlockReceiver;
+
     public static void registerUnlockReceiver(@NonNull Context context) {
-        // Register the UnlockReceiver to listen for ACTION_USER_PRESENT
         if (!"HiBreak".equals(android.os.Build.MODEL))
             return;
-        
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.intent.action.HIDE_BAKCLOGO");
-        filter.addAction("android.intent.action.SHOW_BACKLOGO");
-        UnlockReceiver unlockReceiver = new UnlockReceiver();
-        ContextCompat.registerReceiver(context, unlockReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+
+        if (unlockReceiver == null) {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("android.intent.action.HIDE_BAKCLOGO");
+            filter.addAction("android.intent.action.SHOW_BACKLOGO");
+            unlockReceiver = new UnlockReceiver();
+            ContextCompat.registerReceiver(context.getApplicationContext(), unlockReceiver, filter,
+                    ContextCompat.RECEIVER_NOT_EXPORTED);
+        }
+    }
+
+    public static void unregisterUnlockReceiver(@NonNull Context context) {
+        if (unlockReceiver != null) {
+            try {
+                context.getApplicationContext().unregisterReceiver(unlockReceiver);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            unlockReceiver = null;
+        }
     }
 }
