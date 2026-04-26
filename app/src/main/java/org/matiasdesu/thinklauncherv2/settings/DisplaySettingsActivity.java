@@ -227,6 +227,12 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             startActivity(intent);
             overridePendingTransition(0, 0);
         });
+
+        findViewById(R.id.opacity_blur_effects_button).setOnClickListener(v -> {
+            Intent intent = new Intent(this, OpacityBlurEffectsActivity.class);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+        });
     }
 
     private void refreshVisibility() {

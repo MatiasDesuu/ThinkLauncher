@@ -79,6 +79,9 @@
             android:name=".settings.SearchButtonSettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.OpacityBlurEffectsActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.HomeSettingsActivity"
             android:exported="false" />
         <activity

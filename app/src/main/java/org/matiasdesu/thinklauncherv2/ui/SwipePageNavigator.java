@@ -59,8 +59,6 @@ public class SwipePageNavigator {
     }
 
     private void setupGestureNavigation() {
-        // Apply theme to container
-        ThemeUtils.applyBackgroundColor(container, theme, context);
         container.setClickable(true);
 
         final GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {

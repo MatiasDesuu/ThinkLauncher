@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,7 +23,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,6 +34,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.util.ArrayList;
@@ -53,13 +52,15 @@ public class AppLauncherActivity extends AppCompatActivity {
     private int currentPage = 0;
     private int theme;
     private AppLauncherAdapter launcherAdapter;
-    private LinearLayout rootLayout;
     private boolean keyboardShown = false;
     private SharedPreferences prefs;
     private List<String> installedAppLabels;
     private List<String> installedAppPackages;
     private Set<String> hiddenApps;
     private boolean scrollAppList;
+    private boolean opacityEnabled;
+    private boolean showWallpaperBackdrop;
+    private int launcherSurfaceColor;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -91,31 +92,14 @@ public class AppLauncherActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         hiddenApps = new HashSet<>(prefs.getStringSet("hidden_apps", new HashSet<>()));
         theme = prefs.getInt("theme", 0);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
+        opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_app_selector);
 
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        if (rootLayout != null) {
-            rootLayout.setBackgroundColor(bgColor);
-        }
+        LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+        launcherSurfaceColor = backdrop.surfaceColor;
+        showWallpaperBackdrop = backdrop.showWallpaperBackdrop;
 
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
@@ -130,13 +114,13 @@ public class AppLauncherActivity extends AppCompatActivity {
         View bottomDivider = findViewById(R.id.bottom_divider);
         bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
-        View root = findViewById(android.R.id.content);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, this);
-        }
-
+        View topLayout = findViewById(R.id.top_layout);
         EditText searchEditText = findViewById(R.id.search_edit_text);
         ThemeUtils.applyEditTextTheme(searchEditText, theme, this);
+        RecyclerView rv = findViewById(R.id.app_selector_list);
+        View container = findViewById(R.id.app_list_container);
+        LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, launcherSurfaceColor,
+                topLayout, searchEditText, rv, container);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -144,9 +128,6 @@ public class AppLauncherActivity extends AppCompatActivity {
             finish();
             overridePendingTransition(0, 0);
         });
-
-        RecyclerView rv = findViewById(R.id.app_selector_list);
-        ThemeUtils.applyBackgroundColor(rv, theme, this);
 
         textSize = prefs.getInt("text_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
@@ -167,7 +148,6 @@ public class AppLauncherActivity extends AppCompatActivity {
             }
         });
 
-        View container = findViewById(R.id.app_list_container);
         SwipePageNavigator pageNavigator = null;
 
         if (!scrollAppList) {
@@ -495,7 +475,8 @@ public class AppLauncherActivity extends AppCompatActivity {
             holder.textView.setText(app.label);
             holder.textView.setTextSize(activity.textSize);
             holder.textView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
-            ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
+            LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop,
+                    activity.launcherSurfaceColor);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
             holder.itemView.setOnClickListener(v -> activity.launchApp(app.label, app.packageName));
             holder.itemView.setOnLongClickListener(v -> {

@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,7 +19,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,6 +30,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.util.ArrayList;
@@ -53,9 +52,11 @@ public class FolderActivity extends AppCompatActivity {
     private int currentPage = 0;
     private int theme;
     private FolderAppAdapter folderAdapter;
-    private LinearLayout rootLayout;
     private SharedPreferences prefs;
     private boolean scrollAppList;
+    private boolean opacityEnabled;
+    private boolean showWallpaperBackdrop;
+    private int folderSurfaceColor;
     private String folderId;
     private String folderName;
     private int sortMode = 0; // 0 = added order, 1 = name, 2 = custom
@@ -92,11 +93,8 @@ public class FolderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
+        opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folder);
 
@@ -108,23 +106,9 @@ public class FolderActivity extends AppCompatActivity {
             return;
         }
 
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        if (rootLayout != null) {
-            rootLayout.setBackgroundColor(bgColor);
-        }
+        LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+        folderSurfaceColor = backdrop.surfaceColor;
+        showWallpaperBackdrop = backdrop.showWallpaperBackdrop;
 
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
@@ -139,10 +123,11 @@ public class FolderActivity extends AppCompatActivity {
         View bottomDivider = findViewById(R.id.bottom_divider);
         bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
-        View root = findViewById(android.R.id.content);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, this);
-        }
+        View topLayout = findViewById(R.id.top_layout);
+        RecyclerView rv = findViewById(R.id.folder_app_list);
+        View container = findViewById(R.id.app_list_container);
+        LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, folderSurfaceColor,
+                topLayout, rv, container);
 
         folderNameText = findViewById(R.id.folder_name_text);
         folderNameText.setText(folderName);
@@ -204,9 +189,6 @@ public class FolderActivity extends AppCompatActivity {
             prefs.edit().remove(folderId + "_sort_by_name").apply();
         }
 
-        RecyclerView rv = findViewById(R.id.folder_app_list);
-        ThemeUtils.applyBackgroundColor(rv, theme, this);
-
         textSize = prefs.getInt("text_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
@@ -217,7 +199,6 @@ public class FolderActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
-        View container = findViewById(R.id.app_list_container);
         SwipePageNavigator pageNavigator = null;
 
         if (!scrollAppList) {
@@ -636,7 +617,8 @@ public class FolderActivity extends AppCompatActivity {
             holder.textView.setText(app.label);
             holder.textView.setTextSize(activity.textSize);
             holder.textView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
-            ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
+            LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop,
+                    activity.folderSurfaceColor);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
 
             if (isReordering) {
