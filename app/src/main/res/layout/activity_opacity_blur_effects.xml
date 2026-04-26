@@ -82,14 +82,14 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@drawable/style"
+                        android:src="@drawable/opacity"
                         android:tint="?attr/text_color" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="App Launcher Background Opacity:"
+                        android:text="Background Opacity:"
                         android:textColor="?attr/text_color"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -112,7 +112,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@drawable/style"
+                        android:src="@drawable/opacity_blur_adjust"
                         android:tint="?attr/text_color" />
 
                     <TextView
@@ -142,7 +142,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@drawable/style"
+                        android:src="@drawable/blur"
                         android:tint="?attr/text_color" />
 
                     <TextView
@@ -172,7 +172,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@drawable/style"
+                        android:src="@drawable/opacity_blur_adjust"
                         android:tint="?attr/text_color" />
 
                     <TextView
@@ -238,4 +238,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

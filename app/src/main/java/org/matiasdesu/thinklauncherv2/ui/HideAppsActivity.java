@@ -28,6 +28,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -55,7 +56,7 @@ public class HideAppsActivity extends AppCompatActivity {
     private int currentPage = 0;
     private int theme;
     private HideAppsAdapter hideAppsAdapter;
-    private LinearLayout rootLayout;
+    private FrameLayout rootLayout;
     private boolean keyboardShown = false;
     private SharedPreferences prefs;
     private List<String> installedAppLabels;
