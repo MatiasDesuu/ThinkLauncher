@@ -80,10 +80,12 @@ public class MainActivity extends Activity {
     private int homePages;
     private boolean hidePagination;
     private int timePosition;
+    private int timeFormat24h;
     private int dateVerticalPosition;
     private int datePosition;
     private int dateHorizontalPosition;
     private int timeHorizontalPosition;
+    private int dateFormat;
     private int timeFontSize;
     private int timeColor;
     private int timeEffect;
@@ -474,6 +476,27 @@ public class MainActivity extends Activity {
         return this.textColor;
     }
 
+    private String getTimePattern() {
+        return timeFormat24h == 1 ? "HH:mm" : "hh:mm a";
+    }
+
+    private String getDatePattern() {
+        switch (dateFormat) {
+            case 0:
+                return "dd MMM yyyy";
+            case 1:
+                return "dd MMMM yyyy";
+            case 2:
+                return "MMM dd, yyyy";
+            case 3:
+                return "MMMM dd, yyyy";
+            case 4:
+                return "yyyy-MM-dd";
+            default:
+                return "dd MMM yyyy";
+        }
+    }
+
     private void applyTextEffect(TextView tv) {
         applyTextEffect(tv, textEffect, getEffectColorValue());
     }
@@ -579,7 +602,7 @@ public class MainActivity extends Activity {
 
         if (showDate && dateVerticalPosition == 0) {
 
-            String format = fullMonthName == 1 ? "dd MMMM yyyy" : "dd MMM yyyy";
+            String format = getDatePattern();
             dateSdf = new SimpleDateFormat(format);
             dateView = new StrokeTextView(this);
             dateView.setId(View.generateViewId());
@@ -631,7 +654,7 @@ public class MainActivity extends Activity {
             }
             rootLayout.addView(dateView, dateParams);
             if (showTime) {
-                timeSdf = new SimpleDateFormat("HH:mm");
+                timeSdf = new SimpleDateFormat(getTimePattern());
                 timeView = new StrokeTextView(this);
                 timeView.setId(View.generateViewId());
                 timeView.setText(timeSdf.format(new Date()));
@@ -684,7 +707,7 @@ public class MainActivity extends Activity {
         } else {
 
             if (showTime) {
-                timeSdf = new SimpleDateFormat("HH:mm");
+                timeSdf = new SimpleDateFormat(getTimePattern());
                 timeView = new StrokeTextView(this);
                 timeView.setId(View.generateViewId());
                 timeView.setText(timeSdf.format(new Date()));
@@ -742,7 +765,7 @@ public class MainActivity extends Activity {
             if (showDate)
 
             {
-                String format = fullMonthName == 1 ? "dd MMMM yyyy" : "dd MMM yyyy";
+                String format = getDatePattern();
                 dateSdf = new SimpleDateFormat(format);
                 dateView = new StrokeTextView(this);
                 dateView.setId(View.generateViewId());
@@ -972,6 +995,9 @@ public class MainActivity extends Activity {
         homePages = prefs.getInt("home_pages", 1);
         hidePagination = prefs.getBoolean("hide_pagination", false);
         timePosition = prefs.getInt("time_position", 0);
+        timeFormat24h = prefs.getInt("time_format_24h", 1);
+        dateFormat = prefs.contains("date_format") ? prefs.getInt("date_format", 0)
+                : (prefs.getInt("full_month_name", 0) == 1 ? 1 : 0);
         dateVerticalPosition = prefs.getInt("date_vertical_position", 0);
         datePosition = prefs.getInt("date_position", 0);
         dateHorizontalPosition = prefs.getInt("date_horizontal_position", 0);
@@ -1094,6 +1120,7 @@ public class MainActivity extends Activity {
         int newHomePages = prefs.getInt("home_pages", 1);
         boolean newHidePagination = prefs.getBoolean("hide_pagination", false);
         int newTimePosition = prefs.getInt("time_position", 0);
+        int newTimeFormat24h = prefs.getInt("time_format_24h", 1);
         int newDateVerticalPosition = prefs.getInt("date_vertical_position", 0);
         int newDatePosition = prefs.getInt("date_position", 0);
         int newSettingsButtonSize = prefs.getInt("settings_button_size", 42);
@@ -1118,6 +1145,8 @@ public class MainActivity extends Activity {
         int newHomePaddingBottom = prefs.getInt("home_padding_bottom", 0);
         int newHomePaddingLeft = prefs.getInt("home_padding_left", 0);
         int newHomePaddingRight = prefs.getInt("home_padding_right", 0);
+        int newDateFormat = prefs.contains("date_format") ? prefs.getInt("date_format", 0)
+                : (prefs.getInt("full_month_name", 0) == 1 ? 1 : 0);
         int newFullMonthName = prefs.getInt("full_month_name", 0);
         int newBatteryInfo = prefs.getInt("battery_info", 0);
         int newBatteryPosition = prefs.getInt("battery_position", 1);
@@ -1148,7 +1177,8 @@ public class MainActivity extends Activity {
                         && (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor));
         boolean textChanged = newTextSize != textSize || newBoldText != boldText || newAppTextColor != appTextColor
                 || newTimeFontSize != timeFontSize
-                || newDateFontSize != dateFontSize || newIconSize != iconSize
+                || newTimeFormat24h != timeFormat24h
+                || newDateFontSize != dateFontSize || newDateFormat != dateFormat || newIconSize != iconSize
                 || newSettingsButtonSize != settingsButtonSize || newSearchButtonSize != searchButtonSize
                 || newTextEffect != textEffect || newEffectColor != effectColor
                 || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
@@ -1159,6 +1189,8 @@ public class MainActivity extends Activity {
         boolean layoutChanged = newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
                 || newHomeAlignment != homeAlignment || newHomeVerticalAlignment != homeVerticalAlignment
                 || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
+                || newTimeFormat24h != timeFormat24h
+                || newDateFormat != dateFormat
                 || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
                 || newHomePaddingTop != homePaddingTop || newHomePaddingBottom != homePaddingBottom
                 || newHomePaddingLeft != homePaddingLeft || newHomePaddingRight != homePaddingRight
@@ -1183,6 +1215,8 @@ public class MainActivity extends Activity {
                 || newHomeVerticalAlignment != homeVerticalAlignment)
                 && !(newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
                         || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
+                        || newTimeFormat24h != timeFormat24h
+                        || newDateFormat != dateFormat
                         || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
                         || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
                         || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
@@ -1217,6 +1251,8 @@ public class MainActivity extends Activity {
             homePages = newHomePages;
             hidePagination = newHidePagination;
             timePosition = newTimePosition;
+            timeFormat24h = newTimeFormat24h;
+            dateFormat = newDateFormat;
             timeEffect = newTimeEffect;
             timeEffectColor = newTimeEffectColor;
             dateEffect = newDateEffect;

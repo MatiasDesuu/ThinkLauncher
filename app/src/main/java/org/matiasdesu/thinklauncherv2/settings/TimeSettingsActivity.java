@@ -27,6 +27,7 @@ import android.os.Build;
 public class TimeSettingsActivity extends AppCompatActivity {
 
     private int timePosition;
+    private int timeFormat24h;
     private int timeHorizontalPosition;
     private int timeFontSize;
     private int timeColor;
@@ -81,6 +82,7 @@ public class TimeSettingsActivity extends AppCompatActivity {
         ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
 
         timePosition = prefs.getInt("time_position", 0);
+        timeFormat24h = prefs.getInt("time_format_24h", 1);
         timeHorizontalPosition = prefs.getInt("time_horizontal_position", 0);
         timeFontSize = prefs.getInt("time_font_size", 54);
         timeColor = prefs.getInt("time_color", 0);
@@ -109,12 +111,20 @@ public class TimeSettingsActivity extends AppCompatActivity {
         TextView timeFontSizeValueTv = timeFontSizeContainer.findViewById(R.id.value_text);
         timeFontSizeValueTv.setText(String.valueOf(timeFontSize));
 
+        View timeFormatContainer = findViewById(R.id.time_format_container);
+        TextView timeFormatValueTv = timeFormatContainer.findViewById(R.id.value_text);
+        timeFormatValueTv.setText(getTimeFormatText(timeFormat24h));
+        timeFormatValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(timeFormatValueTv, new String[] { "12H", "24H" }));
+
         TextView minusTimeBtn = timePositionContainer.findViewById(R.id.btn_minus);
         TextView plusTimeBtn = timePositionContainer.findViewById(R.id.btn_plus);
         TextView minusTimeHorizontalBtn = timeHorizontalContainer.findViewById(R.id.btn_minus);
         TextView plusTimeHorizontalBtn = timeHorizontalContainer.findViewById(R.id.btn_plus);
         TextView minusTimeFontSizeBtn = timeFontSizeContainer.findViewById(R.id.btn_minus);
         TextView plusTimeFontSizeBtn = timeFontSizeContainer.findViewById(R.id.btn_plus);
+        TextView minusTimeFormatBtn = timeFormatContainer.findViewById(R.id.btn_minus);
+        TextView plusTimeFormatBtn = timeFormatContainer.findViewById(R.id.btn_plus);
 
         View timeColorContainer = findViewById(R.id.time_color_container);
         TextView timeColorValueTv = timeColorContainer.findViewById(R.id.value_text);
@@ -191,6 +201,18 @@ public class TimeSettingsActivity extends AppCompatActivity {
             }
         }));
 
+        minusTimeFormatBtn.setOnClickListener(v -> {
+            timeFormat24h = (timeFormat24h - 1 + 2) % 2;
+            timeFormatValueTv.setText(getTimeFormatText(timeFormat24h));
+            prefs.edit().putInt("time_format_24h", timeFormat24h).apply();
+        });
+
+        plusTimeFormatBtn.setOnClickListener(v -> {
+            timeFormat24h = (timeFormat24h + 1) % 2;
+            timeFormatValueTv.setText(getTimeFormatText(timeFormat24h));
+            prefs.edit().putInt("time_format_24h", timeFormat24h).apply();
+        });
+
         minusTimeColorBtn.setOnClickListener(v -> {
             timeColor = (timeColor - 1 + 5) % 5;
             timeColorValueTv.setText(getTimeColorText(timeColor));
@@ -245,6 +267,7 @@ public class TimeSettingsActivity extends AppCompatActivity {
 
     private void refreshVisibility() {
         LinearLayout timeFontSizeLayout = findViewById(R.id.time_font_size_layout);
+        LinearLayout timeFormatLayout = findViewById(R.id.time_format_layout);
         LinearLayout timeHorizontalLayout = findViewById(R.id.time_horizontal_layout);
         LinearLayout timeColorLayout = findViewById(R.id.time_color_layout);
         LinearLayout timeEffectLayout = findViewById(R.id.time_effect_layout);
@@ -252,12 +275,14 @@ public class TimeSettingsActivity extends AppCompatActivity {
 
         if (timePosition == 0) {
             timeFontSizeLayout.setVisibility(View.GONE);
+            timeFormatLayout.setVisibility(View.GONE);
             timeHorizontalLayout.setVisibility(View.GONE);
             timeColorLayout.setVisibility(View.GONE);
             timeEffectLayout.setVisibility(View.GONE);
             timeEffectColorLayout.setVisibility(View.GONE);
         } else {
             timeFontSizeLayout.setVisibility(View.VISIBLE);
+            timeFormatLayout.setVisibility(View.VISIBLE);
             timeHorizontalLayout.setVisibility(View.VISIBLE);
             timeColorLayout.setVisibility(View.VISIBLE);
             timeEffectLayout.setVisibility(View.VISIBLE);
@@ -317,6 +342,10 @@ public class TimeSettingsActivity extends AppCompatActivity {
 
     private String getTimePositionText(int pos) {
         return pos == 1 ? "ON" : "OFF";
+    }
+
+    private String getTimeFormatText(int value) {
+        return value == 1 ? "24H" : "12H";
     }
 
     private String getTimeHorizontalPositionText(int pos) {

@@ -31,7 +31,7 @@ public class DateSettingsActivity extends AppCompatActivity {
     private int dateFontSize;
     private int dateHorizontalPosition;
     private int dateVerticalPosition;
-    private int fullMonthName;
+    private int dateFormat;
     private int dateColor;
     private int dateEffect;
     private int dateEffectColor;
@@ -90,7 +90,8 @@ public class DateSettingsActivity extends AppCompatActivity {
         dateFontSize = prefs.getInt("date_font_size", 22);
         dateHorizontalPosition = prefs.getInt("date_horizontal_position", 0);
         dateVerticalPosition = prefs.getInt("date_vertical_position", 0);
-        fullMonthName = prefs.getInt("full_month_name", 0);
+        dateFormat = prefs.contains("date_format") ? prefs.getInt("date_format", 0)
+                : (prefs.getInt("full_month_name", 0) == 1 ? 1 : 0);
         dateColor = prefs.getInt("date_color", 0);
         dateEffect = prefs.getInt("date_effect", 0);
         dateEffectColor = prefs.getInt("date_effect_color", 0);
@@ -124,11 +125,11 @@ public class DateSettingsActivity extends AppCompatActivity {
         dateVerticalValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(dateVerticalValueTv, new String[] { "TOP", "BOTTOM" }));
 
-        View fullMonthNameContainer = findViewById(R.id.full_month_name_container);
-        TextView fullMonthNameValueTv = fullMonthNameContainer.findViewById(R.id.value_text);
-        fullMonthNameValueTv.setText(getOnOffText(fullMonthName));
-        fullMonthNameValueTv
-                .setMinWidth(TextWidthHelper.getMaxTextWidthPx(fullMonthNameValueTv, new String[] { "OFF", "ON" }));
+        View dateFormatContainer = findViewById(R.id.date_format_container);
+        TextView dateFormatValueTv = dateFormatContainer.findViewById(R.id.value_text);
+        dateFormatValueTv.setText(getDateFormatText(dateFormat));
+        dateFormatValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(dateFormatValueTv,
+                new String[] { "DD MMM YYYY", "DD MMMM YYYY", "MMM DD, YYYY", "MMMM DD, YYYY", "YYYY-MM-DD" }));
 
         View dateColorContainer = findViewById(R.id.date_color_container);
         TextView dateColorValueTv = dateColorContainer.findViewById(R.id.value_text);
@@ -144,8 +145,8 @@ public class DateSettingsActivity extends AppCompatActivity {
         TextView plusDateHorizontalBtn = dateHorizontalContainer.findViewById(R.id.btn_plus);
         TextView minusDateVerticalBtn = dateVerticalContainer.findViewById(R.id.btn_minus);
         TextView plusDateVerticalBtn = dateVerticalContainer.findViewById(R.id.btn_plus);
-        TextView minusFullMonthBtn = fullMonthNameContainer.findViewById(R.id.btn_minus);
-        TextView plusFullMonthBtn = fullMonthNameContainer.findViewById(R.id.btn_plus);
+        TextView minusDateFormatBtn = dateFormatContainer.findViewById(R.id.btn_minus);
+        TextView plusDateFormatBtn = dateFormatContainer.findViewById(R.id.btn_plus);
         TextView minusDateColorBtn = dateColorContainer.findViewById(R.id.btn_minus);
         TextView plusDateColorBtn = dateColorContainer.findViewById(R.id.btn_plus);
 
@@ -243,16 +244,16 @@ public class DateSettingsActivity extends AppCompatActivity {
             prefs.edit().putInt("date_vertical_position", dateVerticalPosition).apply();
         });
 
-        minusFullMonthBtn.setOnClickListener(v -> {
-            fullMonthName = (fullMonthName - 1 + 2) % 2;
-            fullMonthNameValueTv.setText(getOnOffText(fullMonthName));
-            prefs.edit().putInt("full_month_name", fullMonthName).apply();
+        minusDateFormatBtn.setOnClickListener(v -> {
+            dateFormat = (dateFormat - 1 + 5) % 5;
+            dateFormatValueTv.setText(getDateFormatText(dateFormat));
+            prefs.edit().putInt("date_format", dateFormat).apply();
         });
 
-        plusFullMonthBtn.setOnClickListener(v -> {
-            fullMonthName = (fullMonthName + 1) % 2;
-            fullMonthNameValueTv.setText(getOnOffText(fullMonthName));
-            prefs.edit().putInt("full_month_name", fullMonthName).apply();
+        plusDateFormatBtn.setOnClickListener(v -> {
+            dateFormat = (dateFormat + 1) % 5;
+            dateFormatValueTv.setText(getDateFormatText(dateFormat));
+            prefs.edit().putInt("date_format", dateFormat).apply();
         });
 
         minusDateColorBtn.setOnClickListener(v -> {
@@ -343,7 +344,7 @@ public class DateSettingsActivity extends AppCompatActivity {
         LinearLayout fontSizeLayout = findViewById(R.id.date_font_size_layout);
         LinearLayout horizontalLayout = findViewById(R.id.date_horizontal_layout);
         LinearLayout verticalLayout = findViewById(R.id.date_vertical_layout);
-        LinearLayout fullMonthLayout = findViewById(R.id.full_month_name_layout);
+        LinearLayout dateFormatLayout = findViewById(R.id.date_format_layout);
         LinearLayout dateColorLayout = findViewById(R.id.date_color_layout);
         LinearLayout dateEffectLayout = findViewById(R.id.date_effect_layout);
         LinearLayout dateEffectColorLayout = findViewById(R.id.date_effect_color_layout);
@@ -354,7 +355,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             fontSizeLayout.setVisibility(View.GONE);
             horizontalLayout.setVisibility(View.GONE);
             verticalLayout.setVisibility(View.GONE);
-            fullMonthLayout.setVisibility(View.GONE);
+            dateFormatLayout.setVisibility(View.GONE);
             dateColorLayout.setVisibility(View.GONE);
             dateEffectLayout.setVisibility(View.GONE);
             dateEffectColorLayout.setVisibility(View.GONE);
@@ -363,7 +364,7 @@ public class DateSettingsActivity extends AppCompatActivity {
         } else {
             fontSizeLayout.setVisibility(View.VISIBLE);
             horizontalLayout.setVisibility(View.VISIBLE);
-            fullMonthLayout.setVisibility(View.VISIBLE);
+            dateFormatLayout.setVisibility(View.VISIBLE);
             dateColorLayout.setVisibility(View.VISIBLE);
             dateEffectLayout.setVisibility(View.VISIBLE);
             batteryInfoLayout.setVisibility(View.VISIBLE);
@@ -411,6 +412,23 @@ public class DateSettingsActivity extends AppCompatActivity {
 
     private String getLeftRightText(int pos) {
         return pos == 1 ? "RIGHT" : "LEFT";
+    }
+
+    private String getDateFormatText(int format) {
+        switch (format) {
+            case 0:
+                return "DD MMM YYYY";
+            case 1:
+                return "DD MMMM YYYY";
+            case 2:
+                return "MMM DD, YYYY";
+            case 3:
+                return "MMMM DD, YYYY";
+            case 4:
+                return "YYYY-MM-DD";
+            default:
+                return "DD MMM YYYY";
+        }
     }
 
     private String getDateColorText(int color) {

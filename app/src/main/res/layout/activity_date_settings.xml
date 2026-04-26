@@ -187,7 +187,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/full_month_name_layout"
+                    android:id="@+id/date_format_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -205,13 +205,13 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Full Month Name:"
+                        android:text="Date Format:"
                         android:textColor="?attr/text_color"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <include layout="@layout/plus_minus_layout"
-                        android:id="@+id/full_month_name_container" />
+                        android:id="@+id/date_format_container" />
 
                 </LinearLayout>
 
