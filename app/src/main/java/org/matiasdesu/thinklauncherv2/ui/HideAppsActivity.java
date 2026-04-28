@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -432,6 +433,7 @@ public class HideAppsActivity extends AppCompatActivity {
             int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
             AppSearchHelper.AppItem app = apps.get(globalPosition);
             holder.textView.setText(app.label);
+            holder.textView.setTypeface(null, Typeface.BOLD);
             ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
             boolean isHidden = hiddenApps.contains(app.packageName);
