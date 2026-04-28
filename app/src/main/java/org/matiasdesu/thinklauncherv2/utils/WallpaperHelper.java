@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
+import android.util.LruCache;
 import android.view.WindowManager;
 
 import java.io.File;
@@ -17,6 +18,57 @@ import java.io.IOException;
 public class WallpaperHelper {
 
     private static final String WALLPAPER_FILENAME = "custom_wallpaper.png";
+
+    private static final LruCache<String, Bitmap> WALLPAPER_CACHE = new LruCache<String, Bitmap>(getDefaultCacheSize()) {
+        @Override
+        protected int sizeOf(String key, Bitmap value) {
+            return value == null ? 0 : value.getByteCount();
+        }
+    };
+
+    private static int getDefaultCacheSize() {
+        int maxKb = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        return (maxKb / 16) * 1024; // 1/16th of heap in bytes
+    }
+
+    private static String getCacheKey(Context context, int screenWidth, int screenHeight, boolean blur, int blurStrength) {
+        File file = new File(context.getFilesDir(), WALLPAPER_FILENAME);
+        long lastModified = file.exists() ? file.lastModified() : 0L;
+        long length = file.exists() ? file.length() : 0L;
+
+        SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        float offsetX = prefs.getFloat("wallpaper_offset_x", 0.5f);
+        float offsetY = prefs.getFloat("wallpaper_offset_y", 0.5f);
+
+        return screenWidth + "x" + screenHeight
+                + "|blur=" + (blur ? 1 : 0)
+                + "|s=" + blurStrength
+                + "|ox=" + offsetX
+                + "|oy=" + offsetY
+                + "|lm=" + lastModified
+                + "|len=" + length;
+    }
+
+    /**
+     * Cached version of {@link #getWallpaperForScreen(Context, int, int, boolean, int)}.
+     * Returns null when no wallpaper exists or decoding fails.
+     */
+    public static Bitmap getWallpaperForScreenCached(Context context, int screenWidth, int screenHeight, boolean blur,
+            int blurStrength) {
+        if (!hasWallpaper(context)) {
+            return null;
+        }
+        String key = getCacheKey(context, screenWidth, screenHeight, blur, blurStrength);
+        Bitmap cached = WALLPAPER_CACHE.get(key);
+        if (cached != null && !cached.isRecycled()) {
+            return cached;
+        }
+        Bitmap computed = getWallpaperForScreen(context, screenWidth, screenHeight, blur, blurStrength);
+        if (computed != null) {
+            WALLPAPER_CACHE.put(key, computed);
+        }
+        return computed;
+    }
 
     /**
      * Save a wallpaper bitmap to internal storage
