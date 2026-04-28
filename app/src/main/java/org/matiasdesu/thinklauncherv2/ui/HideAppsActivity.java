@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -48,8 +47,8 @@ import java.util.Set;
 
 public class HideAppsActivity extends AppCompatActivity {
 
-    private int textSize;
-    private boolean boldText;
+    private static final int SETTINGS_ITEM_TEXT_SIZE_SP = 18;
+
     private List<AppSearchHelper.AppItem> originalApps;
     private List<AppSearchHelper.AppItem> filteredApps;
     private int itemsPerPage;
@@ -62,6 +61,8 @@ public class HideAppsActivity extends AppCompatActivity {
     private List<String> installedAppLabels;
     private List<String> installedAppPackages;
     private Set<String> hiddenApps;
+    private SwipePageNavigator pageNavigator;
+    private boolean scrollAppList;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -148,8 +149,7 @@ public class HideAppsActivity extends AppCompatActivity {
         RecyclerView rv = findViewById(R.id.app_selector_list);
         ThemeUtils.applyBackgroundColor(rv, theme, this);
 
-        textSize = prefs.getInt("text_size", 32);
-        boldText = prefs.getBoolean("bold_text", true);
+        scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
 
         // Calculate items per page for hide apps (different item height due to image)
         DisplayMetrics dm = getResources().getDisplayMetrics();
@@ -173,9 +173,9 @@ public class HideAppsActivity extends AppCompatActivity {
         float bottomHeightDp = 48; // bottom bar
         float recyclerHeightDp = screenHeightDp - topHeightDp - dividerDp - bottomHeightDp;
 
-        // Calculate text height
+        // Calculate text height using the same size as Settings screens (18sp).
         Paint paint = new Paint();
-        paint.setTextSize(textSize * scaledDensity);
+        paint.setTextSize(SETTINGS_ITEM_TEXT_SIZE_SP * scaledDensity);
         float textHeightPx = paint.getFontMetrics().bottom - paint.getFontMetrics().top;
         float textHeightDp = textHeightPx / density;
 
@@ -190,26 +190,28 @@ public class HideAppsActivity extends AppCompatActivity {
         recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         View container = findViewById(R.id.app_list_container);
-        SwipePageNavigator pageNavigator = new SwipePageNavigator(this, recyclerView, container,
-            new SwipePageNavigator.PageChangeCallback() {
-                @Override
-                public void onPageChanged(int newPage) {
-                    currentPage = newPage;
-                    recyclerView.getAdapter().notifyDataSetChanged();
-                    updatePageIndicator();
-                    EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                }
+        if (!scrollAppList) {
+            pageNavigator = new SwipePageNavigator(this, recyclerView, container,
+                new SwipePageNavigator.PageChangeCallback() {
+                    @Override
+                    public void onPageChanged(int newPage) {
+                        currentPage = newPage;
+                        recyclerView.getAdapter().notifyDataSetChanged();
+                        updatePageIndicator();
+                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                    }
 
-                @Override
-                public int getTotalPages() {
-                    return (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
-                }
+                    @Override
+                    public int getTotalPages() {
+                        return (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
+                    }
 
-                @Override
-                public void updatePageIndicator() {
-                    HideAppsActivity.this.updatePageIndicator();
-                }
-            }, theme);
+                    @Override
+                    public void updatePageIndicator() {
+                        HideAppsActivity.this.updatePageIndicator();
+                    }
+                }, theme);
+        }
 
         List<String> installedAppLabels = new ArrayList<>();
         List<String> installedAppPackages = new ArrayList<>();
@@ -237,9 +239,11 @@ public class HideAppsActivity extends AppCompatActivity {
 
         recyclerView.setItemAnimator(null);
 
-        pageNavigator.setItemsPerPage(itemsPerPage);
-        pageNavigator.setTotalItems(filteredApps.size());
-        pageNavigator.setCurrentPage(currentPage);
+        if (!scrollAppList && pageNavigator != null) {
+            pageNavigator.setItemsPerPage(itemsPerPage);
+            pageNavigator.setTotalItems(filteredApps.size());
+            pageNavigator.setCurrentPage(currentPage);
+        }
 
         updatePageIndicator();
 
@@ -264,6 +268,10 @@ public class HideAppsActivity extends AppCompatActivity {
                     filteredApps.addAll(filtered);
                 }
                 currentPage = 0;
+                if (!scrollAppList && pageNavigator != null) {
+                    pageNavigator.setTotalItems(filteredApps.size());
+                    pageNavigator.setCurrentPage(currentPage);
+                }
                 hideAppsAdapter.notifyDataSetChanged();
                 updatePageIndicator();
             }
@@ -282,9 +290,30 @@ public class HideAppsActivity extends AppCompatActivity {
     }
 
     private void updatePageIndicator() {
+        TextView pageIndicator = findViewById(R.id.page_indicator);
+        View bottomDivider = findViewById(R.id.bottom_divider);
+        View bottomBar = findViewById(R.id.bottom_bar);
+        if (scrollAppList) {
+            pageIndicator.setVisibility(View.GONE);
+            if (bottomDivider != null) {
+                bottomDivider.setVisibility(View.GONE);
+            }
+            if (bottomBar != null) {
+                bottomBar.setVisibility(View.GONE);
+            }
+            return;
+        }
+
+        pageIndicator.setVisibility(View.VISIBLE);
+        if (bottomDivider != null) {
+            bottomDivider.setVisibility(View.VISIBLE);
+        }
+        if (bottomBar != null) {
+            bottomBar.setVisibility(View.VISIBLE);
+        }
+
         int totalPages = (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
         if (totalPages == 0) totalPages = 1;
-        TextView pageIndicator = findViewById(R.id.page_indicator);
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
     }
@@ -325,6 +354,10 @@ public class HideAppsActivity extends AppCompatActivity {
         packages.add(0, "launcher_settings");
         loadApps(labels, packages);
         currentPage = 0;
+        if (!scrollAppList && pageNavigator != null) {
+            pageNavigator.setTotalItems(filteredApps.size());
+            pageNavigator.setCurrentPage(currentPage);
+        }
         hideAppsAdapter.notifyDataSetChanged();
         updatePageIndicator();
     }
@@ -396,11 +429,9 @@ public class HideAppsActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            int globalPosition = currentPage * itemsPerPage + position;
+            int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
             AppSearchHelper.AppItem app = apps.get(globalPosition);
             holder.textView.setText(app.label);
-            holder.textView.setTextSize(activity.textSize);
-            holder.textView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
             ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
             boolean isHidden = hiddenApps.contains(app.packageName);
@@ -419,6 +450,9 @@ public class HideAppsActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
+            if (scrollAppList) {
+                return apps.size();
+            }
             int start = currentPage * itemsPerPage;
             int end = Math.min(start + itemsPerPage, apps.size());
             return end - start;
