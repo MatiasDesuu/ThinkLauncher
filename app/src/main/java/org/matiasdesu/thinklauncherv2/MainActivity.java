@@ -992,6 +992,8 @@ public class MainActivity extends Activity {
         homeAlignment = prefs.getInt("home_alignment", 1);
         homeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
         homeColumns = prefs.getInt("home_columns", 1);
+        if (homeColumns < 1) homeColumns = 1;
+        if (homeColumns > 10) homeColumns = 10;
         homePages = prefs.getInt("home_pages", 1);
         hidePagination = prefs.getBoolean("hide_pagination", false);
         timePosition = prefs.getInt("time_position", 0);
@@ -1117,6 +1119,8 @@ public class MainActivity extends Activity {
         int newHomeAlignment = prefs.getInt("home_alignment", 1);
         int newHomeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
         int newHomeColumns = prefs.getInt("home_columns", 1);
+        if (newHomeColumns < 1) newHomeColumns = 1;
+        if (newHomeColumns > 10) newHomeColumns = 10;
         int newHomePages = prefs.getInt("home_pages", 1);
         boolean newHidePagination = prefs.getBoolean("hide_pagination", false);
         int newTimePosition = prefs.getInt("time_position", 0);

@@ -26,6 +26,9 @@ import android.widget.ScrollView;
 
 public class HomeSettingsActivity extends AppCompatActivity {
 
+    private static final int HOME_COLUMNS_MIN = 1;
+    private static final int HOME_COLUMNS_MAX = 10;
+
     private int maxApps;
     private int homeAlignment;
     private int homeVerticalAlignment;
@@ -83,7 +86,9 @@ public class HomeSettingsActivity extends AppCompatActivity {
         maxApps = prefs.getInt("max_apps", 4);
         homeAlignment = prefs.getInt("home_alignment", 1);
         homeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
-        homeColumns = prefs.getInt("home_columns", 1);
+        homeColumns = prefs.getInt("home_columns", HOME_COLUMNS_MIN);
+        if (homeColumns < HOME_COLUMNS_MIN) homeColumns = HOME_COLUMNS_MIN;
+        if (homeColumns > HOME_COLUMNS_MAX) homeColumns = HOME_COLUMNS_MAX;
         homePages = prefs.getInt("home_pages", 1);
         hidePagination = prefs.getBoolean("hide_pagination", false);
 
@@ -173,7 +178,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
         }));
 
         minusColumnsBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
-            if (homeColumns > 1) {
+            if (homeColumns > HOME_COLUMNS_MIN) {
                 homeColumns--;
                 columnsValueTv.setText(String.valueOf(homeColumns));
                 prefs.edit().putInt("home_columns", homeColumns).apply();
@@ -181,7 +186,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
         }));
 
         plusColumnsBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
-            if (homeColumns < 4) {
+            if (homeColumns < HOME_COLUMNS_MAX) {
                 homeColumns++;
                 columnsValueTv.setText(String.valueOf(homeColumns));
                 prefs.edit().putInt("home_columns", homeColumns).apply();
