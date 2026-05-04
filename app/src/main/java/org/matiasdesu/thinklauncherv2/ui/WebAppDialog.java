@@ -3,13 +3,12 @@ package org.matiasdesu.thinklauncherv2.ui;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.drawable.GradientDrawable;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 public class WebAppDialog extends Dialog {
@@ -30,26 +29,16 @@ public class WebAppDialog extends Dialog {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_webapp);
-        getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        int surfaceColor = DialogEffectHelper.setup(this, theme);
 
-        // Apply colors
         View root = findViewById(android.R.id.content);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, getContext());
-            GradientDrawable drawable = (GradientDrawable) root.getBackground();
-            drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
-        }
+        DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
         EditText nameEditText = findViewById(R.id.webapp_name_edit_text);
-        ThemeUtils.applyEditTextTheme(nameEditText, theme, getContext());
-        GradientDrawable nameDrawable = (GradientDrawable) nameEditText.getBackground();
-        nameDrawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
+        DialogEffectHelper.applyEditTextTheme(nameEditText, theme, getContext(), surfaceColor);
 
         EditText urlEditText = findViewById(R.id.webapp_url_edit_text);
-        ThemeUtils.applyEditTextTheme(urlEditText, theme, getContext());
-        GradientDrawable urlDrawable = (GradientDrawable) urlEditText.getBackground();
-        urlDrawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
+        DialogEffectHelper.applyEditTextTheme(urlEditText, theme, getContext(), surfaceColor);
 
         TextView nameLabel = findViewById(R.id.webapp_name_label);
         ThemeUtils.applyTextColor(nameLabel, theme, getContext());
@@ -58,10 +47,10 @@ public class WebAppDialog extends Dialog {
         ThemeUtils.applyTextColor(urlLabel, theme, getContext());
 
         TextView cancelButton = findViewById(R.id.cancel_button);
-        ThemeUtils.applyButtonTheme(cancelButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(cancelButton, theme, getContext(), surfaceColor);
 
         TextView okButton = findViewById(R.id.ok_button);
-        ThemeUtils.applyButtonTheme(okButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(okButton, theme, getContext(), surfaceColor);
 
         nameEditText.setText(initialName);
         urlEditText.setText(initialUrl);

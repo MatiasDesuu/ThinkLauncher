@@ -16,11 +16,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.DocumentsContract;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,14 +30,13 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.KOReaderHistoryHelper;
+import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.ui.SwipePageNavigator;
 
 import java.io.File;
 import android.os.StrictMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class KOReaderHistoryActivity extends AppCompatActivity {
 
@@ -50,9 +47,11 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
     private int currentPage = 0;
     private int theme;
     private HistoryAdapter historyAdapter;
-    private LinearLayout rootLayout;
     private SharedPreferences prefs;
     private boolean scrollAppList;
+    private boolean opacityEnabled;
+    private boolean showWallpaperBackdrop;
+    private int historySurfaceColor;
     private boolean folderPickerRequested = false;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
@@ -74,31 +73,14 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
+        opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_koreader_history);
 
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        if (rootLayout != null) {
-            rootLayout.setBackgroundColor(bgColor);
-        }
+        LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+        historySurfaceColor = backdrop.surfaceColor;
+        showWallpaperBackdrop = backdrop.showWallpaperBackdrop;
 
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
@@ -110,11 +92,6 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
         divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
         View bottomDivider = findViewById(R.id.bottom_divider);
         bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
-
-        View root = findViewById(android.R.id.content);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, this);
-        }
 
         TextView titleView = findViewById(R.id.history_title);
         ThemeUtils.applyTextColor(titleView, theme, this);
@@ -149,7 +126,10 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
         });
 
         RecyclerView recyclerView = findViewById(R.id.history_list);
-        ThemeUtils.applyBackgroundColor(recyclerView, theme, this);
+        View topLayout = findViewById(R.id.top_layout);
+        View container = findViewById(R.id.app_list_container);
+        LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, historySurfaceColor,
+                topLayout, recyclerView, container);
 
         textSize = prefs.getInt("text_size", 24);
         boldText = prefs.getBoolean("bold_text", true);
@@ -165,7 +145,6 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
         historyAdapter = new HistoryAdapter(books, this, theme);
         recyclerView.setAdapter(historyAdapter);
 
-        View container = findViewById(R.id.app_list_container);
         if (!scrollAppList) {
             new SwipePageNavigator(this, recyclerView, container,
                     new SwipePageNavigator.PageChangeCallback() {
@@ -413,7 +392,8 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
             holder.textView.setText(book.title);
             holder.textView.setTextSize(activity.textSize);
             holder.textView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
-            ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
+            LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop,
+                    activity.historySurfaceColor);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
             holder.itemView.setOnClickListener(v -> activity.openBook(book));
         }

@@ -100,6 +100,10 @@ public class GestureHandler {
             Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             activity.startActivity(intent);
+        } else if ("calendar".equals(packageName)) {
+            Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            activity.startActivity(intent);
         } else if ("launcher_settings".equals(packageName)) {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");

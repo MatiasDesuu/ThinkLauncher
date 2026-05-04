@@ -27,30 +27,28 @@
                 android:id="@+id/back_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/back_arrow"
                 android:padding="12dp"
+                android:src="@drawable/back_arrow"
                 android:tint="?attr/text_color" />
 
             <TextView
-                android:id="@+id/history_title"
+                android:id="@+id/calendar_title"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:padding="8dp"
-                android:text="KOReader History"
+                android:text="Calendar"
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:clickable="true"
-                android:focusable="true" />
+                android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/open_koreader_button"
+                android:id="@+id/open_calendar_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/arrow_outward"
                 android:padding="12dp"
+                android:src="@drawable/date"
                 android:tint="?attr/text_color" />
 
         </LinearLayout>
@@ -67,7 +65,7 @@
             android:layout_weight="1">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/history_list"
+                android:id="@+id/calendar_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -85,34 +83,34 @@
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/prev_page_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/back_arrow"
                 android:padding="12dp"
+                android:src="@drawable/back_arrow"
                 android:tint="?attr/text_color" />
 
             <TextView
                 android:id="@+id/page_indicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
                 android:text="1 / 1"
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
-                android:textStyle="bold"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp" />
+                android:textStyle="bold" />
 
             <ImageView
                 android:id="@+id/next_page_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/forward_arrow"
                 android:padding="12dp"
+                android:src="@drawable/forward_arrow"
                 android:tint="?attr/text_color" />
 
         </LinearLayout>

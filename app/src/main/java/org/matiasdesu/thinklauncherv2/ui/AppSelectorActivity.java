@@ -209,15 +209,20 @@ public class AppSelectorActivity extends AppCompatActivity {
                 installedAppPackages.add(specialIndex + 3, "koreader_history");
             }
 
+            if (position != -2) {
+                installedAppLabels.add(specialIndex + 4, "Calendar Screen");
+                installedAppPackages.add(specialIndex + 4, "calendar");
+            }
+
             if (position == -1) {
-                int nextPageIndex = specialIndex + 4;
+                int nextPageIndex = specialIndex + 5;
                 installedAppLabels.add(nextPageIndex, "Next Home Page");
                 installedAppPackages.add(nextPageIndex, "next_home_page");
             }
 
             if (position == -1) {
-                installedAppLabels.add(specialIndex + 4, "Previous Home Page");
-                installedAppPackages.add(specialIndex + 4, "previous_home_page");
+                installedAppLabels.add(specialIndex + 6, "Previous Home Page");
+                installedAppPackages.add(specialIndex + 6, "previous_home_page");
             }
         }
 

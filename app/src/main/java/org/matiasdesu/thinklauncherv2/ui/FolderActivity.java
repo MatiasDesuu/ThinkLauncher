@@ -360,6 +360,12 @@ public class FolderActivity extends AppCompatActivity {
             startActivity(intent);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
+        } else if ("calendar".equals(packageName)) {
+            Intent intent = new Intent(this, CalendarActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+            return;
         } else if (packageName != null && packageName.startsWith("webapp_")) {
             // Launch web app in default browser
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);

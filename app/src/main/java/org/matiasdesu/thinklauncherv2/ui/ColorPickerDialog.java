@@ -8,11 +8,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.views.ColorPickerView;
 
@@ -38,15 +38,10 @@ public class ColorPickerDialog extends Dialog {
         theme = prefs.getInt("theme", 0);
         
         setContentView(R.layout.dialog_color_picker);
-        getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+        int surfaceColor = DialogEffectHelper.setup(this, theme);
 
         View root = findViewById(R.id.root_layout);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, getContext());
-            GradientDrawable drawable = (GradientDrawable) root.getBackground();
-            drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
-        }
+        DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
         ColorPickerView colorPickerView = findViewById(R.id.color_picker_view);
         View colorPreview = findViewById(R.id.color_preview);
@@ -54,7 +49,6 @@ public class ColorPickerDialog extends Dialog {
         TextView cancelButton = findViewById(R.id.cancel_button);
         TextView okButton = findViewById(R.id.ok_button);
 
-        // Aplicar bordes a los elementos
         int textColor = ThemeUtils.getTextColor(theme, getContext());
         float density = getContext().getResources().getDisplayMetrics().density;
         
@@ -68,13 +62,10 @@ public class ColorPickerDialog extends Dialog {
         colorPickerView.setColor(currentColor);
         hexEditText.setText(String.format("#%06X", (0xFFFFFF & currentColor)));
 
-        ThemeUtils.applyEditTextTheme(hexEditText, theme, getContext());
-        GradientDrawable editDrawable = (GradientDrawable) hexEditText.getBackground();
-        editDrawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
-        hexEditText.setTextColor(ThemeUtils.getTextColor(theme, getContext()));
+        DialogEffectHelper.applyEditTextTheme(hexEditText, theme, getContext(), surfaceColor);
 
-        ThemeUtils.applyButtonTheme(cancelButton, theme, getContext());
-        ThemeUtils.applyButtonTheme(okButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(cancelButton, theme, getContext(), surfaceColor);
+        DialogEffectHelper.applyButtonTheme(okButton, theme, getContext(), surfaceColor);
 
         final boolean[] isUpdating = {false};
 

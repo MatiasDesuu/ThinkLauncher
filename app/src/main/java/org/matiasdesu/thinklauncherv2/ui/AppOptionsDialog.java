@@ -4,16 +4,13 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
-import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 
 public class AppOptionsDialog extends Dialog {
 
@@ -76,17 +73,10 @@ public class AppOptionsDialog extends Dialog {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_app_options);
-        getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        getWindow()
-                .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        int surfaceColor = DialogEffectHelper.setup(this, theme);
 
         View root = findViewById(android.R.id.content);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, getContext());
-            GradientDrawable drawable = (GradientDrawable) root.getBackground();
-            drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density),
-                    ThemeUtils.getTextColor(theme, getContext()));
-        }
+        DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
         TextView renameButton = findViewById(R.id.rename_button);
         TextView moreInfoButton = findViewById(R.id.more_info_button);
@@ -95,7 +85,7 @@ public class AppOptionsDialog extends Dialog {
 
         if (renameCallback != null) {
             renameButton.setVisibility(View.VISIBLE);
-            ThemeUtils.applyButtonTheme(renameButton, theme, getContext());
+            DialogEffectHelper.applyButtonTheme(renameButton, theme, getContext(), surfaceColor);
             renameButton.setOnClickListener(v -> {
                 renameCallback.onRename();
                 dismiss();
@@ -104,13 +94,14 @@ public class AppOptionsDialog extends Dialog {
             renameButton.setVisibility(View.GONE);
         }
 
-        ThemeUtils.applyButtonTheme(moreInfoButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(moreInfoButton, theme, getContext(), surfaceColor);
         if (packageName != null && packageName.startsWith("webapp_")) {
             moreInfoButton.setText("Edit Web App");
         }
         if (packageName != null && (packageName.startsWith("folder_")
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
-                || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
+                || packageName.equals("notification_panel") || packageName.equals("koreader_history")
+                || packageName.equals("calendar"))) {
             moreInfoButton.setVisibility(View.GONE);
         } else {
             moreInfoButton.setVisibility(View.VISIBLE);
@@ -130,10 +121,11 @@ public class AppOptionsDialog extends Dialog {
             });
         }
 
-        ThemeUtils.applyButtonTheme(uninstallButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(uninstallButton, theme, getContext(), surfaceColor);
         if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_")
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
-                || packageName.equals("notification_panel") || packageName.equals("koreader_history"))) {
+                || packageName.equals("notification_panel") || packageName.equals("koreader_history")
+                || packageName.equals("calendar"))) {
             uninstallButton.setVisibility(View.GONE);
         } else {
             uninstallButton.setVisibility(View.VISIBLE);
@@ -147,7 +139,7 @@ public class AppOptionsDialog extends Dialog {
 
         if (removeCallback != null) {
             removeButton.setVisibility(View.VISIBLE);
-            ThemeUtils.applyButtonTheme(removeButton, theme, getContext());
+            DialogEffectHelper.applyButtonTheme(removeButton, theme, getContext(), surfaceColor);
             removeButton.setOnClickListener(v -> {
                 removeCallback.onRemove();
                 dismiss();

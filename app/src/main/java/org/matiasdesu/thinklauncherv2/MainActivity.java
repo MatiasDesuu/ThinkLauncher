@@ -1437,6 +1437,7 @@ public class MainActivity extends Activity {
                     String pkg = appPackages.get(i);
                     boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                             || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
+                            || "calendar".equals(pkg)
                             || (pkg != null && pkg.startsWith("folder_"))
                             || (pkg != null && pkg.startsWith("webapp_"));
                     iconView.setTag(isSpecial ? "special" : "app");
@@ -1447,9 +1448,10 @@ public class MainActivity extends Activity {
                                     : "app_launcher".equals(pkg) ? R.drawable.search
                                             : "notification_panel".equals(pkg) ? R.drawable.notifications
                                                     : "koreader_history".equals(pkg) ? R.drawable.koreader
-                                                            : (pkg != null && pkg.startsWith("webapp_"))
-                                                                    ? R.drawable.webapps
-                                                                    : R.drawable.folder;
+                                                            : "calendar".equals(pkg) ? R.drawable.date
+                                                                    : (pkg != null && pkg.startsWith("webapp_"))
+                                                                            ? R.drawable.webapps
+                                                                            : R.drawable.folder;
                             Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                                     iconBackground, dynamicColors, invertIconColors, iconShape);
                             iconView.setImageDrawable(specialIcon);
@@ -1722,6 +1724,11 @@ public class MainActivity extends Activity {
                     org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent);
+        } else if ("calendar".equals(packageName)) {
+            Intent intent = new Intent(MainActivity.this,
+                    org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
         } else if ("launcher_settings".equals(packageName)) {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
@@ -1899,6 +1906,16 @@ public class MainActivity extends Activity {
                         iconView.setImageResource(R.drawable.koreader);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
+                } else if ("calendar".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.date,
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.date);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
                 } else if (appPackages.get(position).startsWith("folder_")) {
                     if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
@@ -1994,6 +2011,16 @@ public class MainActivity extends Activity {
                         iconView.clearColorFilter();
                     } else {
                         iconView.setImageResource(R.drawable.koreader);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
+                } else if ("calendar".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.date,
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.date);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("folder_")) {
@@ -2515,6 +2542,7 @@ public class MainActivity extends Activity {
             String pkg = appPackages.get(index);
             boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
+                    || "calendar".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             iconView.setTag(isSpecial ? "special" : "app");
@@ -2575,6 +2603,19 @@ public class MainActivity extends Activity {
                     iconView.clearColorFilter();
                 } else {
                     iconView.setImageResource(R.drawable.koreader);
+                    iconView.setColorFilter(getSpecialIconColor());
+                }
+                iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
+                slotLayout.addView(iconView);
+            } else if ("calendar".equals(appPackages.get(index))) {
+                if (dynamicIcons || iconBackground) {
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.date, theme,
+                            iconBackground, dynamicColors, invertIconColors, iconShape);
+                    iconView.setImageDrawable(specialIcon);
+                    iconView.clearColorFilter();
+                } else {
+                    iconView.setImageResource(R.drawable.date);
                     iconView.setColorFilter(getSpecialIconColor());
                 }
                 iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);

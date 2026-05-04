@@ -192,6 +192,9 @@ public class AppLauncherActivity extends AppCompatActivity {
         installedAppLabels.add(1, "KOReader History");
         installedAppPackages.add(1, "koreader_history");
 
+        installedAppLabels.add(2, "Calendar Screen");
+        installedAppPackages.add(2, "calendar");
+
         loadApps(installedAppLabels, installedAppPackages);
 
         launcherAdapter = new AppLauncherAdapter(filteredApps, this, theme);
@@ -276,6 +279,12 @@ public class AppLauncherActivity extends AppCompatActivity {
             }
         } else if ("koreader_history".equals(packageName)) {
             Intent intent = new Intent(this, KOReaderHistoryActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+            return;
+        } else if ("calendar".equals(packageName)) {
+            Intent intent = new Intent(this, CalendarActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
@@ -387,6 +396,9 @@ public class AppLauncherActivity extends AppCompatActivity {
 
         labels.add(1, "KOReader History");
         packages.add(1, "koreader_history");
+
+        labels.add(2, "Calendar Screen");
+        packages.add(2, "calendar");
         loadApps(labels, packages);
         currentPage = 0;
         launcherAdapter.notifyDataSetChanged();

@@ -3,14 +3,12 @@ package org.matiasdesu.thinklauncherv2.ui;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.drawable.GradientDrawable;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
-import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 
 public class FolderOptionsDialog extends Dialog {
 
@@ -44,26 +42,20 @@ public class FolderOptionsDialog extends Dialog {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_folder_options);
-        getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        int surfaceColor = DialogEffectHelper.setup(this, theme);
 
-        // Aplicar colores
         View root = findViewById(android.R.id.content);
-        if (root != null) {
-            ThemeUtils.applyDialogBackground(root, theme, getContext());
-            GradientDrawable drawable = (GradientDrawable) root.getBackground();
-            drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, getContext()));
-        }
+        DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
         TextView changeFolderNameButton = findViewById(R.id.change_folder_name_button);
-        ThemeUtils.applyButtonTheme(changeFolderNameButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(changeFolderNameButton, theme, getContext(), surfaceColor);
         changeFolderNameButton.setOnClickListener(v -> {
             changeFolderNameCallback.onChangeFolderName();
             dismiss();
         });
 
         TextView sortButton = findViewById(R.id.sort_button);
-        ThemeUtils.applyButtonTheme(sortButton, theme, getContext());
+        DialogEffectHelper.applyButtonTheme(sortButton, theme, getContext(), surfaceColor);
         
         // Update button text based on current sort state
         if (sortMode == 0) {
@@ -82,7 +74,7 @@ public class FolderOptionsDialog extends Dialog {
         TextView reorderButton = findViewById(R.id.reorder_button);
         if (sortMode == 2) {
             reorderButton.setVisibility(View.VISIBLE);
-            ThemeUtils.applyButtonTheme(reorderButton, theme, getContext());
+            DialogEffectHelper.applyButtonTheme(reorderButton, theme, getContext(), surfaceColor);
             reorderButton.setOnClickListener(v -> {
                 reorderCallback.onReorder();
                 dismiss();
