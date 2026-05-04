@@ -21,16 +21,18 @@ public class CalendarOptionsDialog extends Dialog {
     private boolean highlightToday;
     private boolean showMonthSeparators;
     private boolean highlightEventTimes;
+    private int highlightStyle;
     private OnOptionsChangedCallback callback;
 
     public CalendarOptionsDialog(Context context, boolean showAccount, int eventLimit, boolean highlightToday,
-            boolean showMonthSeparators, boolean highlightEventTimes, OnOptionsChangedCallback callback) {
+            boolean showMonthSeparators, boolean highlightEventTimes, int highlightStyle, OnOptionsChangedCallback callback) {
         super(context, R.style.NoAnimationDialog);
         this.showAccount = showAccount;
         this.eventLimit = eventLimit;
         this.highlightToday = highlightToday;
         this.showMonthSeparators = showMonthSeparators;
         this.highlightEventTimes = highlightEventTimes;
+        this.highlightStyle = highlightStyle;
         this.callback = callback;
         init();
     }
@@ -49,14 +51,16 @@ public class CalendarOptionsDialog extends Dialog {
         TextView todayHighlightButton = findViewById(R.id.today_highlight_button);
         TextView monthSeparatorsButton = findViewById(R.id.month_separators_button);
         TextView timeHighlightButton = findViewById(R.id.time_highlight_button);
+        TextView styleButton = findViewById(R.id.time_highlight_style_button);
 
         DialogEffectHelper.applyButtonTheme(accountButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(eventLimitButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(todayHighlightButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(monthSeparatorsButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(timeHighlightButton, theme, getContext(), surfaceColor);
+        DialogEffectHelper.applyButtonTheme(styleButton, theme, getContext(), surfaceColor);
 
-        updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, timeHighlightButton);
+        updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, timeHighlightButton, styleButton);
 
         accountButton.setOnClickListener(v -> {
             showAccount = !showAccount;
@@ -92,15 +96,33 @@ public class CalendarOptionsDialog extends Dialog {
             callback.onOptionsChanged();
             dismiss();
         });
+
+        styleButton.setOnClickListener(v -> {
+            highlightStyle = (highlightStyle + 1) % 3;
+            prefs.edit().putInt("calendar_highlight_style", highlightStyle).apply();
+            callback.onOptionsChanged();
+            dismiss();
+        });
     }
 
     private void updateTexts(TextView accountButton, TextView eventLimitButton, TextView todayHighlightButton,
-            TextView monthSeparatorsButton, TextView timeHighlightButton) {
+            TextView monthSeparatorsButton, TextView timeHighlightButton, TextView styleButton) {
         accountButton.setText(showAccount ? "Account: On" : "Account: Off");
         eventLimitButton.setText("Events: " + eventLimit);
         todayHighlightButton.setText(highlightToday ? "Today dot: On" : "Today dot: Off");
         monthSeparatorsButton.setText(showMonthSeparators ? "Month separators: On" : "Month separators: Off");
         timeHighlightButton.setText(highlightEventTimes ? "Highlight time: On" : "Highlight time: Off");
+
+        if (highlightEventTimes) {
+            styleButton.setVisibility(View.VISIBLE);
+            String styleText = "Style: ";
+            if (highlightStyle == 0) styleText += "Bold";
+            else if (highlightStyle == 1) styleText += "Underscore";
+            else styleText += "Bold & Underscore";
+            styleButton.setText(styleText);
+        } else {
+            styleButton.setVisibility(View.GONE);
+        }
     }
 
     private int getNextEventLimit(int current) {

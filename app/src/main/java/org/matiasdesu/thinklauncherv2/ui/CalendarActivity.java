@@ -17,6 +17,7 @@ import android.provider.CalendarContract;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
+import android.text.style.UnderlineSpan;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -64,6 +65,7 @@ public class CalendarActivity extends AppCompatActivity {
     private boolean highlightToday;
     private boolean showMonthSeparators;
     private boolean highlightEventTimes;
+    private int highlightStyle; // 0: Bold, 1: Underscore, 2: Bold & Underscore
     private int eventLimit;
     private int calendarSurfaceColor;
     private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEE, MMM d - HH:mm", Locale.getDefault());
@@ -113,7 +115,7 @@ public class CalendarActivity extends AppCompatActivity {
         ThemeUtils.applyTextColor(titleView, theme, this);
         titleView.setOnLongClickListener(v -> {
             new CalendarOptionsDialog(this, showAccount, eventLimit, highlightToday, showMonthSeparators,
-                    highlightEventTimes, () -> {
+                    highlightEventTimes, highlightStyle, () -> {
                 loadCalendarOptions();
                 itemsPerPage = calculateCalendarItemsPerPage();
                 loadEvents();
@@ -203,6 +205,7 @@ public class CalendarActivity extends AppCompatActivity {
         highlightToday = prefs.getBoolean("calendar_highlight_today", false);
         showMonthSeparators = prefs.getBoolean("calendar_month_separators", false);
         highlightEventTimes = prefs.getBoolean("calendar_highlight_event_times", false);
+        highlightStyle = prefs.getInt("calendar_highlight_style", 0);
     }
 
     private void loadEvents() {
@@ -400,8 +403,14 @@ public class CalendarActivity extends AppCompatActivity {
             return text;
         }
         SpannableString spannable = new SpannableString(text);
-        spannable.setSpan(new StyleSpan(Typeface.BOLD), startIndex, startIndex + timeRange.length(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (highlightStyle == 0 || highlightStyle == 2) {
+            spannable.setSpan(new StyleSpan(Typeface.BOLD), startIndex, startIndex + timeRange.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (highlightStyle == 1 || highlightStyle == 2) {
+            spannable.setSpan(new UnderlineSpan(), startIndex, startIndex + timeRange.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
         return spannable;
     }
 

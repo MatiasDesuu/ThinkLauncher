@@ -49,6 +49,13 @@
             android:layout_width="match_parent"
             android:text="Highlight time: Off" />
 
+        <TextView
+            android:id="@+id/time_highlight_style_button"
+            style="@style/DialogButton"
+            android:layout_width="match_parent"
+            android:layout_marginTop="8dp"
+            android:text="Style: Bold" />
+
     </LinearLayout>
 
 </LinearLayout>
