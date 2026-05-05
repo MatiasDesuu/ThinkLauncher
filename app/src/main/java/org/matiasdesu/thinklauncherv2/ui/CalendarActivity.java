@@ -357,6 +357,8 @@ public class CalendarActivity extends AppCompatActivity {
         }
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.id));
+        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.begin);
+        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.end);
         try {
             startActivity(intent);
         } catch (Exception e) {
