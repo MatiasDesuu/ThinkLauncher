@@ -1,19 +1,25 @@
 package org.matiasdesu.thinklauncherv2;
 
 import android.app.Activity;
+import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.AlarmClock;
+import android.provider.CalendarContract;
 import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -22,6 +28,7 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import androidx.core.view.WindowCompat;
+import androidx.core.content.ContextCompat;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -29,8 +36,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import android.os.Build;
 
 import org.matiasdesu.thinklauncherv2.adapters.AppAdapter;
@@ -84,6 +94,7 @@ public class MainActivity extends Activity {
     private int dateVerticalPosition;
     private int datePosition;
     private int dateHorizontalPosition;
+    private int dateCalendarEvents;
     private int timeHorizontalPosition;
     private int dateFormat;
     private int timeFontSize;
@@ -116,6 +127,8 @@ public class MainActivity extends Activity {
     private String dateAppPkg;
     private TextView timeView;
     private TextView dateView;
+    private TextView calendarEventView;
+    private CalendarEventSummary calendarEventSummary;
     private RelativeLayout rootLayout;
     private LinearLayout mainLayout;
     private HomePagesManager homePagesManager;
@@ -138,6 +151,7 @@ public class MainActivity extends Activity {
     private int homePaddingRightPx;
     private int customBgColor;
     private int customAccentColor;
+    private boolean calendarPermissionGranted;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -597,6 +611,7 @@ public class MainActivity extends Activity {
     private void createTimeViews(int bgColor, int textColor) {
         boolean showTime = timePosition == 1;
         boolean showDate = datePosition != 0;
+        boolean showCalendarEvents = dateCalendarEvents == 1 && showDate && hasCalendarPermission();
         boolean hasWallpaper = WallpaperHelper.hasWallpaper(this);
         int timeDateBgColor = hasWallpaper ? android.graphics.Color.TRANSPARENT : bgColor;
 
@@ -653,6 +668,34 @@ public class MainActivity extends Activity {
                 dateParams.rightMargin = buttonSizePx + 16;
             }
             rootLayout.addView(dateView, dateParams);
+
+            if (showCalendarEvents) {
+                calendarEventView = new StrokeTextView(this);
+                calendarEventView.setId(View.generateViewId());
+                updateCalendarEventText();
+                calendarEventView.setTextColor(getDateColorValue());
+                calendarEventView.setTextSize(dateFontSize);
+                calendarEventView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
+                applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
+                calendarEventView.setPadding(32, 5, 32, 5);
+                calendarEventView.setBackgroundColor(timeDateBgColor);
+                calendarEventView.setGravity(getHorizontalGravity(dateHorizontalPosition));
+                calendarEventView.setMaxLines(1);
+                calendarEventView.setEllipsize(TextUtils.TruncateAt.END);
+                calendarEventView.setOnClickListener(v -> openCalendarEvent(calendarEventSummary));
+                RelativeLayout.LayoutParams eventParams = new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                eventParams.addRule(RelativeLayout.BELOW, dateView.getId());
+                eventParams.addRule(getRelativeHorizontalRule(dateHorizontalPosition));
+                if ((showSettingsButton == 1 || showSearchButton == 1) && dateHorizontalPosition == 2) {
+                    int maxBtnSize = Math.max(showSettingsButton == 1 ? settingsButtonSize : 0,
+                            showSearchButton == 1 ? searchButtonSize : 0);
+                    int buttonSizePx = (int) android.util.TypedValue.applyDimension(
+                            android.util.TypedValue.COMPLEX_UNIT_DIP, maxBtnSize, getResources().getDisplayMetrics());
+                    eventParams.rightMargin = buttonSizePx + 16;
+                }
+                rootLayout.addView(calendarEventView, eventParams);
+            }
             if (showTime) {
                 timeSdf = new SimpleDateFormat(getTimePattern());
                 timeView = new StrokeTextView(this);
@@ -693,7 +736,8 @@ public class MainActivity extends Activity {
                 timeView.setOnTouchListener((v, event) -> timeGestureDetector.onTouchEvent(event));
                 RelativeLayout.LayoutParams timeParams = new RelativeLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                timeParams.addRule(RelativeLayout.BELOW, dateView.getId());
+                timeParams.addRule(RelativeLayout.BELOW,
+                    showCalendarEvents ? calendarEventView.getId() : dateView.getId());
                 timeParams.addRule(getRelativeHorizontalRule(timeHorizontalPosition));
                 if ((showSettingsButton == 1 || showSearchButton == 1) && timeHorizontalPosition == 2) {
                     int maxBtnSize = Math.max(showSettingsButton == 1 ? settingsButtonSize : 0,
@@ -821,6 +865,34 @@ public class MainActivity extends Activity {
                 }
                 rootLayout.addView(dateView, dateParams);
             }
+
+            if (showCalendarEvents) {
+                calendarEventView = new StrokeTextView(this);
+                calendarEventView.setId(View.generateViewId());
+                updateCalendarEventText();
+                calendarEventView.setTextColor(getDateColorValue());
+                calendarEventView.setTextSize(dateFontSize);
+                calendarEventView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
+                applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
+                calendarEventView.setPadding(32, 5, 32, 5);
+                calendarEventView.setBackgroundColor(timeDateBgColor);
+                calendarEventView.setGravity(getHorizontalGravity(dateHorizontalPosition));
+                calendarEventView.setMaxLines(1);
+                calendarEventView.setEllipsize(TextUtils.TruncateAt.END);
+                calendarEventView.setOnClickListener(v -> openCalendarEvent(calendarEventSummary));
+                RelativeLayout.LayoutParams eventParams = new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                eventParams.addRule(RelativeLayout.BELOW, dateView.getId());
+                eventParams.addRule(getRelativeHorizontalRule(dateHorizontalPosition));
+                if ((showSettingsButton == 1 || showSearchButton == 1) && dateHorizontalPosition == 2) {
+                    int maxBtnSize = Math.max(showSettingsButton == 1 ? settingsButtonSize : 0,
+                            showSearchButton == 1 ? searchButtonSize : 0);
+                    int buttonSizePx = (int) android.util.TypedValue.applyDimension(
+                            android.util.TypedValue.COMPLEX_UNIT_DIP, maxBtnSize, getResources().getDisplayMetrics());
+                    eventParams.rightMargin = buttonSizePx + 16;
+                }
+                rootLayout.addView(calendarEventView, eventParams);
+            }
         }
     }
 
@@ -892,12 +964,12 @@ public class MainActivity extends Activity {
                 if (dateVerticalPosition == 0) {
                     topView = timeView;
                 } else {
-                    topView = dateView;
+                    topView = calendarEventView != null ? calendarEventView : dateView;
                 }
             } else if (timePosition == 1) {
                 topView = timeView;
             } else if (datePosition != 0) {
-                topView = dateView;
+                topView = calendarEventView != null ? calendarEventView : dateView;
             }
         }
         if (topView != null) {
@@ -1003,6 +1075,7 @@ public class MainActivity extends Activity {
         dateVerticalPosition = prefs.getInt("date_vertical_position", 0);
         datePosition = prefs.getInt("date_position", 0);
         dateHorizontalPosition = prefs.getInt("date_horizontal_position", 0);
+        dateCalendarEvents = prefs.getInt("date_calendar_events", 0);
         timeHorizontalPosition = prefs.getInt("time_horizontal_position", 0);
         timeFontSize = prefs.getInt("time_font_size", 54);
         timeColor = prefs.getInt("time_color", 0);
@@ -1023,6 +1096,7 @@ public class MainActivity extends Activity {
         showSearchButton = prefs.getInt("show_search_button", 0);
         clockAppPkg = prefs.getString("clock_app_pkg", "system_default");
         dateAppPkg = prefs.getString("date_app_pkg", "system_default");
+        calendarPermissionGranted = hasCalendarPermission();
         settingsButtonSize = prefs.getInt("settings_button_size", 42);
         settingsButtonColor = prefs.getInt("settings_button_color", 0);
         settingsButtonEffect = prefs.getInt("settings_button_effect", 0);
@@ -1145,6 +1219,7 @@ public class MainActivity extends Activity {
         int newDateColor = prefs.getInt("date_color", 0);
         int newDateEffect = prefs.getInt("date_effect", 0);
         int newDateEffectColor = prefs.getInt("date_effect_color", 0);
+        int newDateCalendarEvents = prefs.getInt("date_calendar_events", 0);
         int newHomePaddingTop = prefs.getInt("home_padding_top", 0);
         int newHomePaddingBottom = prefs.getInt("home_padding_bottom", 0);
         int newHomePaddingLeft = prefs.getInt("home_padding_left", 0);
@@ -1173,6 +1248,8 @@ public class MainActivity extends Activity {
         boolean newInvertHomeColors = prefs.getBoolean("invert_home_colors", false);
         boolean newIconBackground = prefs.getBoolean("icon_background", true);
         int newIconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
+        boolean newCalendarPermissionGranted = hasCalendarPermission();
+        boolean calendarPermissionChanged = newCalendarPermissionGranted != calendarPermissionGranted;
         int bgColor = ThemeUtils.getBgColor(newTheme, this);
         int textColor = ThemeUtils.getTextColor(newTheme, this);
         boolean newHasWallpaper = WallpaperHelper.hasWallpaper(this);
@@ -1196,6 +1273,7 @@ public class MainActivity extends Activity {
                 || newTimeFormat24h != timeFormat24h
                 || newDateFormat != dateFormat
                 || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
+                || newDateCalendarEvents != dateCalendarEvents
                 || newHomePaddingTop != homePaddingTop || newHomePaddingBottom != homePaddingBottom
                 || newHomePaddingLeft != homePaddingLeft || newHomePaddingRight != homePaddingRight
                 || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
@@ -1214,7 +1292,8 @@ public class MainActivity extends Activity {
                 || newIconShape != iconShape || newHidePagination != hidePagination
                 || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg)
                 || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
-                || wallpaperChanged;
+                || wallpaperChanged
+                || (newDateCalendarEvents == 1 && calendarPermissionChanged);
         boolean onlyAlignmentChanged = (newHomeAlignment != homeAlignment
                 || newHomeVerticalAlignment != homeVerticalAlignment)
                 && !(newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
@@ -1261,6 +1340,7 @@ public class MainActivity extends Activity {
             timeEffectColor = newTimeEffectColor;
             dateEffect = newDateEffect;
             dateEffectColor = newDateEffectColor;
+            dateCalendarEvents = newDateCalendarEvents;
             dateVerticalPosition = newDateVerticalPosition;
             datePosition = newDatePosition;
             dateHorizontalPosition = newDateHorizontalPosition;
@@ -1303,6 +1383,7 @@ public class MainActivity extends Activity {
             invertHomeColors = newInvertHomeColors;
             iconBackground = newIconBackground;
             iconShape = newIconShape;
+            calendarPermissionGranted = newCalendarPermissionGranted;
 
             if (layoutChanged && !onlyAlignmentChanged) {
                 recreateLayout();
@@ -1371,6 +1452,139 @@ public class MainActivity extends Activity {
             }
             dateView.setText(dateStr);
         }
+        updateCalendarEventText();
+    }
+
+    private void updateCalendarEventText() {
+        if (calendarEventView == null) {
+            return;
+        }
+        CalendarEventSummary nextEvent = getNextCalendarEvent();
+        calendarEventSummary = nextEvent;
+        if (nextEvent == null) {
+            calendarEventView.setText("No upcoming events");
+        } else if (nextEvent.messageOnly) {
+            calendarEventView.setText(nextEvent.title);
+        } else {
+            calendarEventView.setText(formatCalendarEventText(nextEvent));
+        }
+    }
+
+    private boolean hasCalendarPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private CalendarEventSummary getNextCalendarEvent() {
+        long now = System.currentTimeMillis();
+        long end = now + 24L * 60L * 60L * 1000L;
+        Uri.Builder builder = CalendarContract.Instances.CONTENT_URI.buildUpon();
+        ContentUris.appendId(builder, now);
+        ContentUris.appendId(builder, end);
+
+        String[] projection = {
+                CalendarContract.Instances.EVENT_ID,
+                CalendarContract.Instances.TITLE,
+                CalendarContract.Instances.BEGIN,
+                CalendarContract.Instances.END,
+                CalendarContract.Instances.ALL_DAY
+        };
+
+        String selection = CalendarContract.Instances.BEGIN + ">=? AND "
+            + CalendarContract.Instances.BEGIN + "<=?";
+        String[] args = { String.valueOf(now), String.valueOf(end) };
+        String sortOrder = CalendarContract.Instances.BEGIN + " ASC";
+
+        try (Cursor cursor = getContentResolver().query(builder.build(), projection, selection, args, sortOrder)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                long id = cursor.getLong(0);
+                String title = cursor.getString(1);
+                long begin = cursor.getLong(2);
+                long eventEnd = cursor.getLong(3);
+                boolean allDay = cursor.getInt(4) == 1;
+                if (title == null || title.trim().isEmpty()) {
+                    title = "Untitled event";
+                }
+                return new CalendarEventSummary(id, title, begin, eventEnd, allDay);
+            }
+        } catch (SecurityException e) {
+            return null;
+        }
+
+        return null;
+    }
+
+    private String formatCalendarEventText(CalendarEventSummary event) {
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEE, MMM d - HH:mm", Locale.getDefault());
+        SimpleDateFormat allDayDateFormat = new SimpleDateFormat("EEE, MMM d", Locale.getDefault());
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        allDayDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        boolean isToday = isCalendarEventToday(event);
+        if (event.allDay) {
+            if (isToday) {
+                return event.title;
+            }
+            return event.title + ", " + allDayDateFormat.format(new Date(event.begin));
+        }
+
+        String startTime = timeFormat.format(new Date(event.begin));
+        String endTime = timeFormat.format(new Date(event.end));
+        String timeRange = startTime + " - " + endTime;
+
+        if (isToday) {
+            return event.title + ", " + timeRange;
+        }
+
+        return event.title + ", " + dateTimeFormat.format(new Date(event.begin)) + " - " + endTime;
+    }
+
+    private boolean isCalendarEventToday(CalendarEventSummary event) {
+        Calendar eventCalendar = Calendar.getInstance();
+        if (event.allDay) {
+            eventCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        }
+        eventCalendar.setTimeInMillis(event.begin);
+        Calendar todayCalendar = Calendar.getInstance();
+        return eventCalendar.get(Calendar.YEAR) == todayCalendar.get(Calendar.YEAR)
+                && eventCalendar.get(Calendar.DAY_OF_YEAR) == todayCalendar.get(Calendar.DAY_OF_YEAR);
+    }
+
+    private void openCalendarEvent(CalendarEventSummary event) {
+        if (event == null || event.messageOnly) {
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.id));
+        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.begin);
+        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.end);
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Calendar app not found", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static class CalendarEventSummary {
+        long id;
+        String title;
+        long begin;
+        long end;
+        boolean allDay;
+        boolean messageOnly;
+
+        CalendarEventSummary(long id, String title, long begin, long end, boolean allDay) {
+            this.id = id;
+            this.title = title;
+            this.begin = begin;
+            this.end = end;
+            this.allDay = allDay;
+        }
+
+        static CalendarEventSummary message(String title) {
+            CalendarEventSummary event = new CalendarEventSummary(-1, title, 0, 0, false);
+            event.messageOnly = true;
+            return event;
+        }
     }
 
     private void updateTheme() {
@@ -1421,6 +1635,11 @@ public class MainActivity extends Activity {
             dateView.setBackgroundColor(timeDateBgColor);
             dateView.setTextColor(getDateColorValue());
             applyTextEffect(dateView, dateEffect, getDateEffectColorValue());
+        }
+        if (calendarEventView != null) {
+            calendarEventView.setBackgroundColor(timeDateBgColor);
+            calendarEventView.setTextColor(getDateColorValue());
+            applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
         }
         int slotBgColor = hasWallpaper ? android.graphics.Color.TRANSPARENT : bgColor;
         for (int i = 0; i < appSlots.length; i++) {
@@ -1515,6 +1734,11 @@ public class MainActivity extends Activity {
             dateView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
             applyTextEffect(dateView, dateEffect, getDateEffectColorValue());
         }
+        if (calendarEventView != null) {
+            calendarEventView.setTextSize(dateFontSize);
+            calendarEventView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
+            applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
+        }
         for (LinearLayout slot : appSlots) {
             if (slot != null) {
                 TextView tv = getSlotTextView(slot);
@@ -1578,6 +1802,15 @@ public class MainActivity extends Activity {
                 dateParams.rightMargin = marginSizePx + 16;
                 dateView.setLayoutParams(dateParams);
             }
+                if (calendarEventView != null && dateHorizontalPosition == 2) {
+                int maxBtnSize = Math.max(settingsButtonSize, showSearchButton == 1 ? searchButtonSize : 0);
+                int marginSizePx = (int) android.util.TypedValue.applyDimension(
+                    android.util.TypedValue.COMPLEX_UNIT_DIP, maxBtnSize, getResources().getDisplayMetrics());
+                RelativeLayout.LayoutParams eventParams = (RelativeLayout.LayoutParams) calendarEventView
+                    .getLayoutParams();
+                eventParams.rightMargin = marginSizePx + 16;
+                calendarEventView.setLayoutParams(eventParams);
+                }
         }
         if (searchButton != null) {
             int sizePx = (int) android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP,
@@ -1597,6 +1830,12 @@ public class MainActivity extends Activity {
                     RelativeLayout.LayoutParams dateParams = (RelativeLayout.LayoutParams) dateView.getLayoutParams();
                     dateParams.rightMargin = sizePx + 16;
                     dateView.setLayoutParams(dateParams);
+                }
+                if (calendarEventView != null && dateHorizontalPosition == 2) {
+                    RelativeLayout.LayoutParams eventParams = (RelativeLayout.LayoutParams) calendarEventView
+                            .getLayoutParams();
+                    eventParams.rightMargin = sizePx + 16;
+                    calendarEventView.setLayoutParams(eventParams);
                 }
             }
         }
@@ -1668,6 +1907,10 @@ public class MainActivity extends Activity {
         if (dateView != null) {
             rootLayout.removeView(dateView);
             dateView = null;
+        }
+        if (calendarEventView != null) {
+            rootLayout.removeView(calendarEventView);
+            calendarEventView = null;
         }
         if (settingsButton != null) {
             rootLayout.removeView(settingsButton);
@@ -2364,6 +2607,24 @@ public class MainActivity extends Activity {
                 params.rightMargin = rightMargin;
             }
             dateView.setLayoutParams(params);
+        }
+
+        if (calendarEventView != null && calendarEventView.getParent() == rootLayout) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) calendarEventView.getLayoutParams();
+            if (dateHorizontalPosition == 0) {
+                params.leftMargin = homePaddingLeftPx;
+            } else if (dateHorizontalPosition == 2) {
+                int rightMargin = homePaddingRightPx;
+                if (showSettingsButton == 1 || showSearchButton == 1) {
+                    int maxBtnSize = Math.max(showSettingsButton == 1 ? settingsButtonSize : 0,
+                            showSearchButton == 1 ? searchButtonSize : 0);
+                    int buttonSizePx = (int) android.util.TypedValue.applyDimension(
+                            android.util.TypedValue.COMPLEX_UNIT_DIP, maxBtnSize, getResources().getDisplayMetrics());
+                    rightMargin += buttonSizePx + 16;
+                }
+                params.rightMargin = rightMargin;
+            }
+            calendarEventView.setLayoutParams(params);
         }
 
         if (timeView != null && timeView.getParent() == rootLayout) {

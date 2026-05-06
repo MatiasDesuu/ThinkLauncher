@@ -35,6 +35,7 @@ public class DateSettingsActivity extends AppCompatActivity {
     private int dateColor;
     private int dateEffect;
     private int dateEffectColor;
+    private int dateCalendarEvents;
     private int batteryInfo;
     private int batteryPosition;
     private LinearLayout rootLayout;
@@ -95,6 +96,7 @@ public class DateSettingsActivity extends AppCompatActivity {
         dateColor = prefs.getInt("date_color", 0);
         dateEffect = prefs.getInt("date_effect", 0);
         dateEffectColor = prefs.getInt("date_effect_color", 0);
+        dateCalendarEvents = prefs.getInt("date_calendar_events", 0);
         batteryInfo = prefs.getInt("battery_info", 0);
         batteryPosition = prefs.getInt("battery_position", 1); // Default to Right
 
@@ -167,6 +169,15 @@ public class DateSettingsActivity extends AppCompatActivity {
 
         TextView minusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_minus);
         TextView plusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_plus);
+
+        View dateCalendarEventsContainer = findViewById(R.id.date_calendar_events_container);
+        TextView dateCalendarEventsValueTv = dateCalendarEventsContainer.findViewById(R.id.value_text);
+        dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
+        dateCalendarEventsValueTv.setMinWidth(
+            TextWidthHelper.getMaxTextWidthPx(dateCalendarEventsValueTv, new String[] { "OFF", "ON" }));
+
+        TextView minusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_minus);
+        TextView plusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_plus);
 
         View batteryInfoContainer = findViewById(R.id.battery_info_container);
         TextView batteryInfoValueTv = batteryInfoContainer.findViewById(R.id.value_text);
@@ -300,6 +311,18 @@ public class DateSettingsActivity extends AppCompatActivity {
             prefs.edit().putInt("date_effect_color", dateEffectColor).apply();
         });
 
+        minusDateCalendarEventsBtn.setOnClickListener(v -> {
+            dateCalendarEvents = (dateCalendarEvents - 1 + 2) % 2;
+            dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
+            prefs.edit().putInt("date_calendar_events", dateCalendarEvents).apply();
+        });
+
+        plusDateCalendarEventsBtn.setOnClickListener(v -> {
+            dateCalendarEvents = (dateCalendarEvents + 1) % 2;
+            dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
+            prefs.edit().putInt("date_calendar_events", dateCalendarEvents).apply();
+        });
+
         minusBatteryInfoBtn.setOnClickListener(v -> {
             batteryInfo = (batteryInfo - 1 + 2) % 2;
             batteryInfoValueTv.setText(getOnOffText(batteryInfo));
@@ -348,6 +371,7 @@ public class DateSettingsActivity extends AppCompatActivity {
         LinearLayout dateColorLayout = findViewById(R.id.date_color_layout);
         LinearLayout dateEffectLayout = findViewById(R.id.date_effect_layout);
         LinearLayout dateEffectColorLayout = findViewById(R.id.date_effect_color_layout);
+        LinearLayout dateCalendarEventsLayout = findViewById(R.id.date_calendar_events_layout);
         LinearLayout batteryInfoLayout = findViewById(R.id.battery_info_layout);
         LinearLayout batteryPositionLayout = findViewById(R.id.battery_position_layout);
 
@@ -359,6 +383,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateColorLayout.setVisibility(View.GONE);
             dateEffectLayout.setVisibility(View.GONE);
             dateEffectColorLayout.setVisibility(View.GONE);
+            dateCalendarEventsLayout.setVisibility(View.GONE);
             batteryInfoLayout.setVisibility(View.GONE);
             batteryPositionLayout.setVisibility(View.GONE);
         } else {
@@ -367,6 +392,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateFormatLayout.setVisibility(View.VISIBLE);
             dateColorLayout.setVisibility(View.VISIBLE);
             dateEffectLayout.setVisibility(View.VISIBLE);
+            dateCalendarEventsLayout.setVisibility(View.VISIBLE);
             batteryInfoLayout.setVisibility(View.VISIBLE);
 
             if (batteryInfo == 1) {
