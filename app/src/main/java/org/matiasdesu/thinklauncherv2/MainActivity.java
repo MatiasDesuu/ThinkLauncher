@@ -128,6 +128,7 @@ public class MainActivity extends Activity {
     private TextView timeView;
     private TextView dateView;
     private TextView calendarEventView;
+    private int calendarEventFontSize;
     private CalendarEventSummary calendarEventSummary;
     private RelativeLayout rootLayout;
     private LinearLayout mainLayout;
@@ -674,7 +675,7 @@ public class MainActivity extends Activity {
                 calendarEventView.setId(View.generateViewId());
                 updateCalendarEventText();
                 calendarEventView.setTextColor(getDateColorValue());
-                calendarEventView.setTextSize(dateFontSize);
+                calendarEventView.setTextSize(calendarEventFontSize);
                 calendarEventView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
                 applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
                 calendarEventView.setPadding(32, 5, 32, 5);
@@ -871,7 +872,7 @@ public class MainActivity extends Activity {
                 calendarEventView.setId(View.generateViewId());
                 updateCalendarEventText();
                 calendarEventView.setTextColor(getDateColorValue());
-                calendarEventView.setTextSize(dateFontSize);
+                calendarEventView.setTextSize(calendarEventFontSize);
                 calendarEventView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
                 applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
                 calendarEventView.setPadding(32, 5, 32, 5);
@@ -1082,6 +1083,7 @@ public class MainActivity extends Activity {
         timeEffect = prefs.getInt("time_effect", 0);
         timeEffectColor = prefs.getInt("time_effect_color", 0);
         dateFontSize = prefs.getInt("date_font_size", 22);
+        calendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
         dateColor = prefs.getInt("date_color", 0);
         dateEffect = prefs.getInt("date_effect", 0);
         dateEffectColor = prefs.getInt("date_effect_color", 0);
@@ -1220,6 +1222,7 @@ public class MainActivity extends Activity {
         int newDateEffect = prefs.getInt("date_effect", 0);
         int newDateEffectColor = prefs.getInt("date_effect_color", 0);
         int newDateCalendarEvents = prefs.getInt("date_calendar_events", 0);
+        int newCalendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
         int newHomePaddingTop = prefs.getInt("home_padding_top", 0);
         int newHomePaddingBottom = prefs.getInt("home_padding_bottom", 0);
         int newHomePaddingLeft = prefs.getInt("home_padding_left", 0);
@@ -1264,7 +1267,8 @@ public class MainActivity extends Activity {
                 || newTextEffect != textEffect || newEffectColor != effectColor
                 || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
                 || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
-                || newBatteryInfo != batteryInfo || newBatteryPosition != batteryPosition;
+                || newBatteryInfo != batteryInfo || newBatteryPosition != batteryPosition
+                || newCalendarEventFontSize != calendarEventFontSize;
         boolean iconChanged = newIconEffect != iconEffect || newIconEffectColor != iconEffectColor;
         boolean wallpaperChanged = newHasWallpaper != hasWallpaper;
         boolean layoutChanged = newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
@@ -1348,6 +1352,7 @@ public class MainActivity extends Activity {
             timeFontSize = newTimeFontSize;
             timeColor = newTimeColor;
             dateFontSize = newDateFontSize;
+            calendarEventFontSize = newCalendarEventFontSize;
             dateColor = newDateColor;
             homePaddingTop = newHomePaddingTop;
             homePaddingBottom = newHomePaddingBottom;
@@ -1462,11 +1467,14 @@ public class MainActivity extends Activity {
         CalendarEventSummary nextEvent = getNextCalendarEvent();
         calendarEventSummary = nextEvent;
         if (nextEvent == null) {
-            calendarEventView.setText("No upcoming events");
-        } else if (nextEvent.messageOnly) {
-            calendarEventView.setText(nextEvent.title);
+            calendarEventView.setVisibility(View.GONE);
         } else {
-            calendarEventView.setText(formatCalendarEventText(nextEvent));
+            calendarEventView.setVisibility(View.VISIBLE);
+            if (nextEvent.messageOnly) {
+                calendarEventView.setText(nextEvent.title);
+            } else {
+                calendarEventView.setText(formatCalendarEventText(nextEvent));
+            }
         }
     }
 
@@ -1735,7 +1743,7 @@ public class MainActivity extends Activity {
             applyTextEffect(dateView, dateEffect, getDateEffectColorValue());
         }
         if (calendarEventView != null) {
-            calendarEventView.setTextSize(dateFontSize);
+            calendarEventView.setTextSize(calendarEventFontSize);
             calendarEventView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
             applyTextEffect(calendarEventView, dateEffect, getDateEffectColorValue());
         }

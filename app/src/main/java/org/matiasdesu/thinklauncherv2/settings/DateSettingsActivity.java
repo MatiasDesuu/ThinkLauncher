@@ -36,6 +36,7 @@ public class DateSettingsActivity extends AppCompatActivity {
     private int dateEffect;
     private int dateEffectColor;
     private int dateCalendarEvents;
+    private int calendarEventFontSize;
     private int batteryInfo;
     private int batteryPosition;
     private LinearLayout rootLayout;
@@ -97,6 +98,7 @@ public class DateSettingsActivity extends AppCompatActivity {
         dateEffect = prefs.getInt("date_effect", 0);
         dateEffectColor = prefs.getInt("date_effect_color", 0);
         dateCalendarEvents = prefs.getInt("date_calendar_events", 0);
+        calendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
         batteryInfo = prefs.getInt("battery_info", 0);
         batteryPosition = prefs.getInt("battery_position", 1); // Default to Right
 
@@ -178,6 +180,13 @@ public class DateSettingsActivity extends AppCompatActivity {
 
         TextView minusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_minus);
         TextView plusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_plus);
+
+        View calendarEventFontSizeContainer = findViewById(R.id.calendar_event_font_size_container);
+        TextView calendarEventFontSizeValueTv = calendarEventFontSizeContainer.findViewById(R.id.value_text);
+        calendarEventFontSizeValueTv.setText(String.valueOf(calendarEventFontSize));
+
+        TextView minusCalendarEventFontSizeBtn = calendarEventFontSizeContainer.findViewById(R.id.btn_minus);
+        TextView plusCalendarEventFontSizeBtn = calendarEventFontSizeContainer.findViewById(R.id.btn_plus);
 
         View batteryInfoContainer = findViewById(R.id.battery_info_container);
         TextView batteryInfoValueTv = batteryInfoContainer.findViewById(R.id.value_text);
@@ -315,13 +324,37 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateCalendarEvents = (dateCalendarEvents - 1 + 2) % 2;
             dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
             prefs.edit().putInt("date_calendar_events", dateCalendarEvents).apply();
+            refreshVisibility();
+            if (paginationHelper != null) {
+                paginationHelper.updateVisibleItemsList();
+            }
         });
 
         plusDateCalendarEventsBtn.setOnClickListener(v -> {
             dateCalendarEvents = (dateCalendarEvents + 1) % 2;
             dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
             prefs.edit().putInt("date_calendar_events", dateCalendarEvents).apply();
+            refreshVisibility();
+            if (paginationHelper != null) {
+                paginationHelper.updateVisibleItemsList();
+            }
         });
+
+        minusCalendarEventFontSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
+            if (calendarEventFontSize > 10) {
+                calendarEventFontSize--;
+                calendarEventFontSizeValueTv.setText(String.valueOf(calendarEventFontSize));
+                prefs.edit().putInt("calendar_event_font_size", calendarEventFontSize).apply();
+            }
+        }));
+
+        plusCalendarEventFontSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
+            if (calendarEventFontSize < 100) {
+                calendarEventFontSize++;
+                calendarEventFontSizeValueTv.setText(String.valueOf(calendarEventFontSize));
+                prefs.edit().putInt("calendar_event_font_size", calendarEventFontSize).apply();
+            }
+        }));
 
         minusBatteryInfoBtn.setOnClickListener(v -> {
             batteryInfo = (batteryInfo - 1 + 2) % 2;
@@ -372,6 +405,7 @@ public class DateSettingsActivity extends AppCompatActivity {
         LinearLayout dateEffectLayout = findViewById(R.id.date_effect_layout);
         LinearLayout dateEffectColorLayout = findViewById(R.id.date_effect_color_layout);
         LinearLayout dateCalendarEventsLayout = findViewById(R.id.date_calendar_events_layout);
+        LinearLayout calendarEventFontSizeLayout = findViewById(R.id.calendar_event_font_size_layout);
         LinearLayout batteryInfoLayout = findViewById(R.id.battery_info_layout);
         LinearLayout batteryPositionLayout = findViewById(R.id.battery_position_layout);
 
@@ -384,6 +418,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateEffectLayout.setVisibility(View.GONE);
             dateEffectColorLayout.setVisibility(View.GONE);
             dateCalendarEventsLayout.setVisibility(View.GONE);
+            calendarEventFontSizeLayout.setVisibility(View.GONE);
             batteryInfoLayout.setVisibility(View.GONE);
             batteryPositionLayout.setVisibility(View.GONE);
         } else {
@@ -393,6 +428,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateColorLayout.setVisibility(View.VISIBLE);
             dateEffectLayout.setVisibility(View.VISIBLE);
             dateCalendarEventsLayout.setVisibility(View.VISIBLE);
+            calendarEventFontSizeLayout.setVisibility(dateCalendarEvents == 1 ? View.VISIBLE : View.GONE);
             batteryInfoLayout.setVisibility(View.VISIBLE);
 
             if (batteryInfo == 1) {
