@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="280dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/dialog_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Clear all custom gestures and their assigned apps?"
+        android:textColor="?attr/text_color"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/cancel_button"
+            style="@style/DialogButton"
+            android:text="Cancel"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/clear_button"
+            style="@style/DialogButton"
+            android:text="Clear All"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</LinearLayout>

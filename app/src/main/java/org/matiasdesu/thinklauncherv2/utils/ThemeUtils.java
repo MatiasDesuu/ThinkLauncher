@@ -203,7 +203,8 @@ public class ThemeUtils {
                     id == R.id.swipe_down_app || id == R.id.swipe_up_app ||
                     id == R.id.clock_app || id == R.id.date_app ||
                     id == R.id.select_button_text || id == R.id.remove_button_text ||
-                    id == R.id.custom_bg_color_text || id == R.id.custom_accent_color_text) {
+                    id == R.id.custom_bg_color_text || id == R.id.custom_accent_color_text ||
+                    id == R.id.gesture_record_button || id == R.id.gesture_app_button) {
                     applyButtonTheme(tv, theme, context);
                 }
             } else if (child instanceof ImageView) {

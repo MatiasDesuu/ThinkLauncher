@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -134,8 +133,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
         clockAppTv.setOnClickListener(v -> selectAppForGesture("clock"));
         dateAppTv.setOnClickListener(v -> selectAppForGesture("date"));
 
-        TextView customGesturesButton = findViewById(R.id.custom_gestures_button);
-        applyGestureButtonStyle(customGesturesButton);
+        LinearLayout customGesturesButton = findViewById(R.id.custom_gestures_button);
         customGesturesButton.setOnClickListener(v -> {
             Intent intent = new Intent(GestureSettingsActivity.this, CustomGestureSettingsActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -178,18 +176,6 @@ public class GestureSettingsActivity extends AppCompatActivity {
 
         paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
         paginationHelper.initialize(null);
-    }
-
-    private void applyGestureButtonStyle(TextView button) {
-        int textColor = ThemeUtils.getTextColor(theme, this);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(bgColor);
-        drawable.setStroke((int) (2 * getResources().getDisplayMetrics().density), textColor);
-        button.setBackground(drawable);
-        button.setTextColor(textColor);
-        int padding = (int) (8 * getResources().getDisplayMetrics().density);
-        button.setPadding(padding, padding, padding, padding);
     }
 
     private String currentGestureDirection;

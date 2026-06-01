@@ -6,7 +6,6 @@ import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
 import android.gesture.GestureOverlayView;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
+import org.matiasdesu.thinklauncherv2.ui.ClearAllGesturesDialog;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -89,6 +89,9 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
+        findViewById(R.id.clear_all_button).setOnClickListener(v ->
+                new ClearAllGesturesDialog(this, this::clearAllGestures).show());
+
         gestureListContainer = findViewById(R.id.gesture_list_container);
 
         File gestureFile = new File(getFilesDir(), "custom_gestures");
@@ -135,8 +138,6 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
             slot.recordButton = row.findViewById(R.id.gesture_record_button);
             slot.appButton = row.findViewById(R.id.gesture_app_button);
-            applyGestureButtonStyle(slot.recordButton);
-            applyGestureButtonStyle(slot.appButton);
 
             int index = i;
             slot.recordButton.setOnClickListener(v -> startRecording(index));
@@ -147,20 +148,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         }
     }
 
-    private void applyGestureButtonStyle(TextView button) {
-        int textColor = ThemeUtils.getTextColor(theme, this);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(bgColor);
-        drawable.setStroke((int) (2 * getResources().getDisplayMetrics().density), textColor);
-        button.setBackground(drawable);
-        button.setTextColor(textColor);
-        int padding = (int) (8 * getResources().getDisplayMetrics().density);
-        button.setPadding(padding, padding, padding, padding);
-    }
-
     private void loadGestureData() {
-        int accentColor = ThemeUtils.getTextColor(theme, this);
         for (int i = 0; i < GESTURE_COUNT; i++) {
             String name = gestureNames[i];
             String appLabel = prefs.getString("custom_gesture_" + name + "_app_label", "");
@@ -168,10 +156,8 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             ArrayList<Gesture> storedGestures = gestureLibrary.getGestures(name);
             if (storedGestures != null && !storedGestures.isEmpty()) {
                 slots.get(i).recordButton.setText("Recorded");
-                slots.get(i).recordButton.setTextColor(accentColor);
             } else {
                 slots.get(i).recordButton.setText("Tap to record");
-                slots.get(i).recordButton.setTextColor(accentColor);
             }
 
             if (appLabel.isEmpty()) {
@@ -180,6 +166,21 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
                 slots.get(i).appButton.setText(appLabel);
             }
         }
+    }
+
+    private void clearAllGestures() {
+        for (int i = 0; i < GESTURE_COUNT; i++) {
+            String name = gestureNames[i];
+            gestureLibrary.removeEntry(name);
+            prefs.edit()
+                .remove("custom_gesture_" + name + "_app")
+                .remove("custom_gesture_" + name + "_app_label")
+                .apply();
+            slots.get(i).recordButton.setText("Tap to record");
+            slots.get(i).appButton.setText("App: None");
+        }
+        gestureLibrary.save();
+        Toast.makeText(this, "All custom gestures cleared", Toast.LENGTH_SHORT).show();
     }
 
     private void startRecording(int index) {
