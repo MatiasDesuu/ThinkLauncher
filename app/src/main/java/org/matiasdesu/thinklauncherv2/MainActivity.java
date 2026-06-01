@@ -293,9 +293,7 @@ public class MainActivity extends Activity {
 
     private int getTimeColorValue() {
         int color;
-        if (theme == ThemeUtils.THEME_CUSTOM) {
-            color = this.textColor;
-        } else if (timeColor == 0) {
+        if (timeColor == 0) {
             color = this.textColor;
         } else {
             switch (timeColor) {
@@ -317,7 +315,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || timeColor == 0)) {
+        if (invertHomeColors && timeColor == 0) {
             return ThemeUtils.getBgColor(theme, this);
         }
         return color;
@@ -346,9 +344,7 @@ public class MainActivity extends Activity {
 
     private int getDateColorValue() {
         int color;
-        if (theme == ThemeUtils.THEME_CUSTOM) {
-            color = this.textColor;
-        } else if (dateColor == 0) {
+        if (dateColor == 0) {
             color = this.textColor;
         } else {
             switch (dateColor) {
@@ -370,7 +366,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        if (invertHomeColors && (theme == ThemeUtils.THEME_CUSTOM || dateColor == 0)) {
+        if (invertHomeColors && dateColor == 0) {
             return ThemeUtils.getBgColor(theme, this);
         }
         return color;
