@@ -2520,20 +2520,73 @@ public class MainActivity extends Activity {
         }
 
         private void checkCustomGesture() {
-            if (customGestureLibrary == null || touchPoints.size() < 5) {
+            if (customGestureLibrary == null || touchPoints.size() < 10) {
                 return;
             }
+            // Skip entirely if the user hasn't recorded any gestures yet
+            if (customGestureLibrary.getGestureEntries().isEmpty()) {
+                return;
+            }
+
+            // --- Measure path geometry ---
+            float totalPathLength = 0;
+            float minX = touchPoints.get(0).x, maxX = touchPoints.get(0).x;
+            float minY = touchPoints.get(0).y, maxY = touchPoints.get(0).y;
+            for (int i = 1; i < touchPoints.size(); i++) {
+                GesturePoint p1 = touchPoints.get(i - 1);
+                GesturePoint p2 = touchPoints.get(i);
+                float dx = p2.x - p1.x;
+                float dy = p2.y - p1.y;
+                totalPathLength += (float) Math.sqrt(dx * dx + dy * dy);
+                minX = Math.min(minX, p2.x);
+                maxX = Math.max(maxX, p2.x);
+                minY = Math.min(minY, p2.y);
+                maxY = Math.max(maxY, p2.y);
+            }
+
+            float density = getResources().getDisplayMetrics().density;
+
+            // Gate 1: gesture must be long enough to be intentional
+            if (totalPathLength < 100 * density) {
+                return;
+            }
+
+            // Gate 2: gesture must span significant area in BOTH axes
+            // (rules out straight swipes that are wide in one axis but flat in the other)
+            float gestureWidth  = maxX - minX;
+            float gestureHeight = maxY - minY;
+            if (gestureWidth < 50 * density || gestureHeight < 50 * density) {
+                return;
+            }
+
+            // Gate 3: gesture must not be too linear
+            // Straight swipes have totalPath/directDistance ≈ 1.0
+            // Complex shapes (U, O, T, Z…) have ratio > 2.0
+            GesturePoint first = touchPoints.get(0);
+            GesturePoint last  = touchPoints.get(touchPoints.size() - 1);
+            float dxDirect = last.x - first.x;
+            float dyDirect = last.y - first.y;
+            float directDistance = (float) Math.sqrt(dxDirect * dxDirect + dyDirect * dyDirect);
+            if (directDistance > 10 && totalPathLength / directDistance < 1.5f) {
+                return;
+            }
+
+            // All geometry gates passed: this clearly looks like a custom gesture attempt.
+            // Block any swipe that the GestureDetector might fire from the same touch,
+            // regardless of whether the score is high enough to launch an app.
+            customGestureHandledThisTouch = true;
+
+            // --- Recognition with a strict score threshold ---
             try {
                 GestureStroke stroke = new GestureStroke(new java.util.ArrayList<>(touchPoints));
                 Gesture gesture = new Gesture();
                 gesture.addStroke(stroke);
                 java.util.ArrayList<Prediction> predictions = customGestureLibrary.recognize(gesture);
-                if (predictions != null && !predictions.isEmpty() && predictions.get(0).score > 2.0) {
+                if (predictions != null && !predictions.isEmpty() && predictions.get(0).score > 3.5) {
                     String name = predictions.get(0).name;
                     String pkg = getSharedPreferences("prefs", MODE_PRIVATE)
                             .getString("custom_gesture_" + name + "_app", "");
                     if (!pkg.isEmpty()) {
-                        customGestureHandledThisTouch = true;
                         launchApp(pkg);
                     }
                 }
