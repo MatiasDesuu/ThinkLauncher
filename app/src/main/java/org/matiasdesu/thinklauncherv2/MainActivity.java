@@ -12,6 +12,12 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.gesture.Gesture;
+import android.gesture.GestureLibraries;
+import android.gesture.GestureLibrary;
+import android.gesture.GesturePoint;
+import android.gesture.GestureStroke;
+import android.gesture.Prediction;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.net.Uri;
@@ -137,6 +143,8 @@ public class MainActivity extends Activity {
     private SimpleDateFormat dateSdf;
     private Handler handler;
     private GestureHandler gestureHandler;
+    private GestureLibrary customGestureLibrary;
+    private boolean isCustomFling = false;
     private ImageView settingsButton;
     private ImageView searchButton;
     private ImageView wallpaperView;
@@ -1169,6 +1177,9 @@ public class MainActivity extends Activity {
 
         gestureHandler = new GestureHandler();
         findViewById(R.id.root_layout).setOnTouchListener((v, event) -> gestureHandler.onTouch(event));
+
+        customGestureLibrary = GestureLibraries.fromFile(new java.io.File(getFilesDir(), "custom_gestures"));
+        customGestureLibrary.load();
     }
 
     @Override
@@ -1177,6 +1188,10 @@ public class MainActivity extends Activity {
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
         gestureHandler.loadApps();
+        if (customGestureLibrary != null) {
+            customGestureLibrary = GestureLibraries.fromFile(new java.io.File(getFilesDir(), "custom_gestures"));
+            customGestureLibrary.load();
+        }
 
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         int newMaxApps = prefs.getInt("max_apps", 4);
@@ -2413,6 +2428,8 @@ public class MainActivity extends Activity {
         private Handler handler = new Handler(Looper.getMainLooper());
         private Runnable openSettingsRunnable;
         private boolean doubleTapDone = false;
+        private final java.util.ArrayList<GesturePoint> touchPoints = new java.util.ArrayList<>();
+        private boolean customGestureHandledThisTouch = false;
 
         public GestureHandler() {
             loadApps();
@@ -2424,6 +2441,10 @@ public class MainActivity extends Activity {
 
                 @Override
                 public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                    isCustomFling = true;
+                    if (customGestureHandledThisTouch) {
+                        return true;
+                    }
                     return handleFling(e1, e2, velocityX, velocityY);
                 }
 
@@ -2478,7 +2499,47 @@ public class MainActivity extends Activity {
         }
 
         public boolean onTouch(MotionEvent event) {
-            return gestureDetector.onTouchEvent(event);
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    touchPoints.clear();
+                    isCustomFling = false;
+                    customGestureHandledThisTouch = false;
+                    touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
+                    checkCustomGesture();
+                    break;
+            }
+            boolean handled = gestureDetector.onTouchEvent(event);
+            return handled;
+        }
+
+        private void checkCustomGesture() {
+            if (customGestureLibrary == null || touchPoints.size() < 5) {
+                return;
+            }
+            try {
+                GestureStroke stroke = new GestureStroke(new java.util.ArrayList<>(touchPoints));
+                Gesture gesture = new Gesture();
+                gesture.addStroke(stroke);
+                java.util.ArrayList<Prediction> predictions = customGestureLibrary.recognize(gesture);
+                if (predictions != null && !predictions.isEmpty() && predictions.get(0).score > 2.0) {
+                    String name = predictions.get(0).name;
+                    String pkg = getSharedPreferences("prefs", MODE_PRIVATE)
+                            .getString("custom_gesture_" + name + "_app", "");
+                    if (!pkg.isEmpty()) {
+                        customGestureHandledThisTouch = true;
+                        launchApp(pkg);
+                    }
+                }
+            } catch (Exception e) {
+                // ignore
+            }
         }
 
         private boolean isPointInsideView(float x, float y, View view) {
@@ -2984,10 +3045,11 @@ public class MainActivity extends Activity {
                 showAppSelector(pos);
             }
 
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                return handleFling(e1, e2, velocityX, velocityY);
-            }
+                @Override
+                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                    isCustomFling = true;
+                    return handleFling(e1, e2, velocityX, velocityY);
+                }
         };
         GestureDetector slotGestureDetector = new GestureDetector(this, slotGestureListener);
         slotLayout.setOnTouchListener((v, event) -> slotGestureDetector.onTouchEvent(event));

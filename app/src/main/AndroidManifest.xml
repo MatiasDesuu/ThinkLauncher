@@ -62,6 +62,9 @@
             android:name=".settings.GestureSettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.CustomGestureSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.DisplaySettingsActivity"
             android:exported="false" />
         <activity
