@@ -20,17 +20,20 @@ public class CalendarOptionsDialog extends Dialog {
     private int eventLimit;
     private boolean highlightToday;
     private boolean showMonthSeparators;
+    private boolean showDaySeparators;
     private boolean highlightEventTimes;
     private int highlightStyle;
     private OnOptionsChangedCallback callback;
 
     public CalendarOptionsDialog(Context context, boolean showAccount, int eventLimit, boolean highlightToday,
-            boolean showMonthSeparators, boolean highlightEventTimes, int highlightStyle, OnOptionsChangedCallback callback) {
+            boolean showMonthSeparators, boolean showDaySeparators, boolean highlightEventTimes, int highlightStyle,
+            OnOptionsChangedCallback callback) {
         super(context, R.style.NoAnimationDialog);
         this.showAccount = showAccount;
         this.eventLimit = eventLimit;
         this.highlightToday = highlightToday;
         this.showMonthSeparators = showMonthSeparators;
+        this.showDaySeparators = showDaySeparators;
         this.highlightEventTimes = highlightEventTimes;
         this.highlightStyle = highlightStyle;
         this.callback = callback;
@@ -50,6 +53,7 @@ public class CalendarOptionsDialog extends Dialog {
         TextView eventLimitButton = findViewById(R.id.event_limit_button);
         TextView todayHighlightButton = findViewById(R.id.today_highlight_button);
         TextView monthSeparatorsButton = findViewById(R.id.month_separators_button);
+        TextView daySeparatorsButton = findViewById(R.id.day_separators_button);
         TextView timeHighlightButton = findViewById(R.id.time_highlight_button);
         TextView styleButton = findViewById(R.id.time_highlight_style_button);
 
@@ -57,10 +61,12 @@ public class CalendarOptionsDialog extends Dialog {
         DialogEffectHelper.applyButtonTheme(eventLimitButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(todayHighlightButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(monthSeparatorsButton, theme, getContext(), surfaceColor);
+        DialogEffectHelper.applyButtonTheme(daySeparatorsButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(timeHighlightButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(styleButton, theme, getContext(), surfaceColor);
 
-        updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, timeHighlightButton, styleButton);
+        updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton,
+                timeHighlightButton, styleButton);
 
         accountButton.setOnClickListener(v -> {
             showAccount = !showAccount;
@@ -90,6 +96,13 @@ public class CalendarOptionsDialog extends Dialog {
             dismiss();
         });
 
+        daySeparatorsButton.setOnClickListener(v -> {
+            showDaySeparators = !showDaySeparators;
+            prefs.edit().putBoolean("calendar_day_separators", showDaySeparators).apply();
+            callback.onOptionsChanged();
+            dismiss();
+        });
+
         timeHighlightButton.setOnClickListener(v -> {
             highlightEventTimes = !highlightEventTimes;
             prefs.edit().putBoolean("calendar_highlight_event_times", highlightEventTimes).apply();
@@ -106,11 +119,13 @@ public class CalendarOptionsDialog extends Dialog {
     }
 
     private void updateTexts(TextView accountButton, TextView eventLimitButton, TextView todayHighlightButton,
-            TextView monthSeparatorsButton, TextView timeHighlightButton, TextView styleButton) {
+            TextView monthSeparatorsButton, TextView daySeparatorsButton, TextView timeHighlightButton,
+            TextView styleButton) {
         accountButton.setText(showAccount ? "Account: On" : "Account: Off");
         eventLimitButton.setText("Events: " + eventLimit);
         todayHighlightButton.setText(highlightToday ? "Today dot: On" : "Today dot: Off");
         monthSeparatorsButton.setText(showMonthSeparators ? "Month separators: On" : "Month separators: Off");
+        daySeparatorsButton.setText(showDaySeparators ? "Day separators: On" : "Day separators: Off");
         timeHighlightButton.setText(highlightEventTimes ? "Highlight time: On" : "Highlight time: Off");
 
         if (highlightEventTimes) {

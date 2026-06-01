@@ -64,6 +64,7 @@ public class CalendarActivity extends AppCompatActivity {
     private boolean showAccount;
     private boolean highlightToday;
     private boolean showMonthSeparators;
+    private boolean showDaySeparators;
     private boolean highlightEventTimes;
     private int highlightStyle; // 0: Bold, 1: Underscore, 2: Bold & Underscore
     private int eventLimit;
@@ -71,6 +72,7 @@ public class CalendarActivity extends AppCompatActivity {
     private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("EEE, MMM d - HH:mm", Locale.getDefault());
     private final SimpleDateFormat allDayDateFormat = new SimpleDateFormat("EEE, MMM d", Locale.getDefault());
     private final SimpleDateFormat monthSeparatorFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+    private final SimpleDateFormat daySeparatorFormat = new SimpleDateFormat("EEEE, MMM d", Locale.getDefault());
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
@@ -98,6 +100,7 @@ public class CalendarActivity extends AppCompatActivity {
         setContentView(R.layout.activity_calendar);
         allDayDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         monthSeparatorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        daySeparatorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
         calendarSurfaceColor = backdrop.surfaceColor;
@@ -115,7 +118,7 @@ public class CalendarActivity extends AppCompatActivity {
         ThemeUtils.applyTextColor(titleView, theme, this);
         titleView.setOnLongClickListener(v -> {
             new CalendarOptionsDialog(this, showAccount, eventLimit, highlightToday, showMonthSeparators,
-                    highlightEventTimes, highlightStyle, () -> {
+                    showDaySeparators, highlightEventTimes, highlightStyle, () -> {
                 loadCalendarOptions();
                 itemsPerPage = calculateCalendarItemsPerPage();
                 loadEvents();
@@ -204,6 +207,7 @@ public class CalendarActivity extends AppCompatActivity {
         }
         highlightToday = prefs.getBoolean("calendar_highlight_today", false);
         showMonthSeparators = prefs.getBoolean("calendar_month_separators", false);
+        showDaySeparators = prefs.getBoolean("calendar_day_separators", false);
         highlightEventTimes = prefs.getBoolean("calendar_highlight_event_times", false);
         highlightStyle = prefs.getInt("calendar_highlight_style", 0);
     }
@@ -302,7 +306,7 @@ public class CalendarActivity extends AppCompatActivity {
         timePaint.setTextSize(Math.max(12, textSize - 8) * scaledDensity);
         float timeHeightDp = (timePaint.getFontMetrics().bottom - timePaint.getFontMetrics().top) / density;
 
-        float separatorHeightDp = showMonthSeparators ? timeHeightDp + 8 : 0;
+        float separatorHeightDp = (showMonthSeparators || showDaySeparators) ? timeHeightDp + 8 : 0;
         float itemHeightDp = titleHeightDp + timeHeightDp + separatorHeightDp + 26;
         int count = (int) (recyclerHeightDp / itemHeightDp);
         return Math.max(1, count);
@@ -349,6 +353,38 @@ public class CalendarActivity extends AppCompatActivity {
         }
         SimpleDateFormat localMonthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
         return localMonthFormat.format(new Date(event.begin));
+    }
+
+    private boolean shouldShowDaySeparator(int position) {
+        if (!showDaySeparators || position < 0 || position >= events.size()) {
+            return false;
+        }
+        CalendarEvent event = events.get(position);
+        if (event.messageOnly) {
+            return false;
+        }
+        if (position == 0) {
+            return true;
+        }
+        CalendarEvent previous = events.get(position - 1);
+        return previous.messageOnly || !getDayKey(event).equals(getDayKey(previous));
+    }
+
+    private String getDayKey(CalendarEvent event) {
+        Calendar calendar = Calendar.getInstance();
+        if (event.allDay) {
+            calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        }
+        calendar.setTimeInMillis(event.begin);
+        return calendar.get(Calendar.YEAR) + "-" + calendar.get(Calendar.MONTH) + "-" + calendar.get(Calendar.DAY_OF_MONTH);
+    }
+
+    private String formatDaySeparator(CalendarEvent event) {
+        if (event.allDay) {
+            return daySeparatorFormat.format(new Date(event.begin));
+        }
+        SimpleDateFormat localDayFormat = new SimpleDateFormat("EEEE, MMM d", Locale.getDefault());
+        return localDayFormat.format(new Date(event.begin));
     }
 
     private void openEvent(CalendarEvent event) {
@@ -503,13 +539,21 @@ public class CalendarActivity extends AppCompatActivity {
             }
 
             CalendarEvent event = items.get(globalPosition);
-            boolean showSeparator = activity.shouldShowMonthSeparator(globalPosition);
-            holder.monthSeparatorView.setVisibility(showSeparator ? View.VISIBLE : View.GONE);
-            if (showSeparator) {
+            boolean showMonthSep = activity.shouldShowMonthSeparator(globalPosition);
+            holder.monthSeparatorView.setVisibility(showMonthSep ? View.VISIBLE : View.GONE);
+            if (showMonthSep) {
                 holder.monthSeparatorView.setText(activity.formatMonthSeparator(event));
                 holder.monthSeparatorView.setTextSize(Math.max(12, activity.textSize - 10));
                 holder.monthSeparatorView.setTypeface(null, Typeface.BOLD);
                 ThemeUtils.applyTextColor(holder.monthSeparatorView, theme, activity);
+            }
+            boolean showDaySep = activity.shouldShowDaySeparator(globalPosition);
+            holder.daySeparatorView.setVisibility(showDaySep ? View.VISIBLE : View.GONE);
+            if (showDaySep) {
+                holder.daySeparatorView.setText(activity.formatDaySeparator(event));
+                holder.daySeparatorView.setTextSize(Math.max(12, activity.textSize - 10));
+                holder.daySeparatorView.setTypeface(null, Typeface.BOLD);
+                ThemeUtils.applyTextColor(holder.daySeparatorView, theme, activity);
             }
             holder.titleView.setText(event.title);
             holder.timeView.setText(activity.formatEventTime(event));
@@ -540,11 +584,13 @@ public class CalendarActivity extends AppCompatActivity {
             TextView titleView;
             TextView timeView;
             TextView monthSeparatorView;
+            TextView daySeparatorView;
             View todayDot;
 
             ViewHolder(View itemView) {
                 super(itemView);
                 monthSeparatorView = itemView.findViewById(R.id.month_separator);
+                daySeparatorView = itemView.findViewById(R.id.day_separator);
                 titleView = itemView.findViewById(R.id.event_title);
                 timeView = itemView.findViewById(R.id.event_time);
                 todayDot = itemView.findViewById(R.id.today_dot);
