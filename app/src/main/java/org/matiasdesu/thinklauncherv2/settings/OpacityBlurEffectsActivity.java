@@ -32,6 +32,7 @@ public class OpacityBlurEffectsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private final BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -57,6 +58,7 @@ public class OpacityBlurEffectsActivity extends AppCompatActivity {
         appLauncherBgOpacity = prefs.getInt("app_launcher_bg_opacity", 100);
         appLauncherBgBlurEnabled = prefs.getInt("app_launcher_bg_blur_enabled", 0);
         appLauncherBgBlurStrength = prefs.getInt("app_launcher_bg_blur_strength", 3);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         if (ThemeUtils.isDarkTheme(theme, this)) {
             setTheme(R.style.AppTheme_Dark);
@@ -86,7 +88,7 @@ public class OpacityBlurEffectsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View enabledContainer = findViewById(R.id.app_launcher_bg_opacity_enabled_container);
@@ -240,7 +242,7 @@ public class OpacityBlurEffectsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }
 

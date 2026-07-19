@@ -96,7 +96,7 @@ public class CalendarActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
-        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0) == 1;
+        appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);

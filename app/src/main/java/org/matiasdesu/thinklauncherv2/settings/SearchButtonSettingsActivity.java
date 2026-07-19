@@ -37,6 +37,7 @@ public class SearchButtonSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -87,11 +88,12 @@ public class SearchButtonSettingsActivity extends AppCompatActivity {
         searchButtonColor = prefs.getInt("search_button_color", 0);
         searchButtonEffect = prefs.getInt("search_button_effect", 0);
         searchButtonEffectColor = prefs.getInt("search_button_effect_color", 0);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View showSearchButtonContainer = findViewById(R.id.show_search_button_container);
@@ -288,6 +290,6 @@ public class SearchButtonSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

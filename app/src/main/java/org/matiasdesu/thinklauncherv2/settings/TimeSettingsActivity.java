@@ -36,6 +36,7 @@ public class TimeSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -88,11 +89,12 @@ public class TimeSettingsActivity extends AppCompatActivity {
         timeColor = prefs.getInt("time_color", 0);
         timeEffect = prefs.getInt("time_effect", 0);
         timeEffectColor = prefs.getInt("time_effect_color", 0);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View timePositionContainer = findViewById(R.id.time_position_container);
@@ -389,6 +391,6 @@ public class TimeSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

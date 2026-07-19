@@ -35,6 +35,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -86,11 +87,12 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         autoFocusSearch = prefs.getBoolean("auto_focus_search", true);
         einkRefreshEnabled = prefs.getInt("eink_refresh_enabled", 0);
         einkRefreshDelay = prefs.getInt("eink_refresh_delay", 100);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View scrollAppListContainer = findViewById(R.id.scroll_app_list_container);
@@ -186,8 +188,11 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         LinearLayout animationSettingsButton = findViewById(R.id.animation_settings_button);
         animationSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, AnimationSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         minusEinkRefreshEnabledBtn.setOnClickListener(v -> {
@@ -231,8 +236,11 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         LinearLayout homePaddingButton = findViewById(R.id.home_screen_padding_button);
         homePaddingButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, HomeScreenPaddingActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
@@ -244,38 +252,56 @@ public class DisplaySettingsActivity extends AppCompatActivity {
 
         findViewById(R.id.time_settings_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, TimeSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         findViewById(R.id.date_settings_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, DateSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         findViewById(R.id.settings_button_settings_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, SettingsButtonSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         findViewById(R.id.search_button_settings_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, SearchButtonSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         findViewById(R.id.opacity_blur_effects_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, OpacityBlurEffectsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         findViewById(R.id.font_sizes_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, FontSizesSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
     }
 
@@ -331,6 +357,6 @@ public class DisplaySettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

@@ -101,7 +101,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/app_launcher_animations_layout"
+                android:id="@+id/screen_animations_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -119,42 +119,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="App Launcher Animations:"
+                    android:text="Screen Animations:"
                     android:textColor="?attr/text_color"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/app_launcher_animations_container" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/folder_animations_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/folder"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Folder Animations:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/folder_animations_container" />
+                    android:id="@+id/screen_animations_container" />
 
             </LinearLayout>
 

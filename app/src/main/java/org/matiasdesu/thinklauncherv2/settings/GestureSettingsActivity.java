@@ -33,6 +33,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
     private int doubleTapLock;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -84,7 +85,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         TextView swipeLeftTv = findViewById(R.id.swipe_left_app);
@@ -118,6 +119,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
         }
 
         doubleTapLock = prefs.getInt("double_tap_lock", 0);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         swipeLeftTv.setText(leftLabel);
         swipeRightTv.setText(rightLabel);
@@ -136,9 +138,11 @@ public class GestureSettingsActivity extends AppCompatActivity {
         LinearLayout customGesturesButton = findViewById(R.id.custom_gestures_button);
         customGesturesButton.setOnClickListener(v -> {
             Intent intent = new Intent(GestureSettingsActivity.this, CustomGestureSettingsActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View doubleTapLockContainer = findViewById(R.id.double_tap_lock_container);
@@ -183,7 +187,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
     private void selectAppForGesture(String direction) {
         currentGestureDirection = direction;
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION,
                 direction.equals("clock") || direction.equals("date") ? -3 : -1);
@@ -264,7 +268,7 @@ public class GestureSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     private String getDoubleTapLockText(int pos) {

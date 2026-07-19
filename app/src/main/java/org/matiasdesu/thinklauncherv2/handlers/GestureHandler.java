@@ -63,8 +63,14 @@ public class GestureHandler {
                 try {
                     Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                     Intent intent = new Intent(activity, clazz);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    boolean animate = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("screen_animations", 0) == 1;
+                    if (!animate) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    }
                     activity.startActivity(intent);
+                    if (animate) {
+                        activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+                    }
                 } catch (ClassNotFoundException ex) {
                     ex.printStackTrace();
                 }
@@ -95,7 +101,7 @@ public class GestureHandler {
             }
         } else if ("app_launcher".equals(packageName)) {
             SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(activity, AppLauncherActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -106,7 +112,7 @@ public class GestureHandler {
             }
         } else if ("koreader_history".equals(packageName)) {
             SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -117,7 +123,7 @@ public class GestureHandler {
             }
         } else if ("calendar".equals(packageName)) {
             SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -130,8 +136,14 @@ public class GestureHandler {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                 Intent intent = new Intent(activity, clazz);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                boolean animate = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("screen_animations", 0) == 1;
+                if (!animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 activity.startActivity(intent);
+                if (animate) {
+                    activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
             }

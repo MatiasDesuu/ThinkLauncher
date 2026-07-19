@@ -97,7 +97,7 @@ public class FolderActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
-        folderAnimations = prefs.getInt("folder_animations", 0) == 1;
+        folderAnimations = prefs.getInt("screen_animations", 0) == 1;
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folder);
@@ -182,7 +182,7 @@ public class FolderActivity extends AppCompatActivity {
             } else {
                 Intent intent = new Intent(FolderActivity.this, AppSelectorActivity.class);
                 intent.putExtra(AppSelectorActivity.EXTRA_POSITION, -2);
-                boolean animateAdd = prefs.getInt("app_launcher_animations", 0) == 1;
+                boolean animateAdd = prefs.getInt("screen_animations", 0) == 1;
                 if (!animateAdd) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 }
@@ -347,19 +347,22 @@ public class FolderActivity extends AppCompatActivity {
                 // Log or ignore
             }
             finish();
-        } else if ("launcher_settings".equals(packageName)) {
-            try {
-                Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
-                Intent intent = new Intent(this, clazz);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-                return;
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
+            } else if ("launcher_settings".equals(packageName)) {
+                try {
+                    Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
+                    Intent intent = new Intent(this, clazz);
+                    if (!folderAnimations) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    }
+                    startActivity(intent);
+                    overridePendingTransition(0, folderAnimations ? R.anim.dialog_fade_out : 0);
+                    new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+                    return;
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
             }
         } else if ("app_launcher".equals(packageName)) {
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(this, AppLauncherActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -369,7 +372,7 @@ public class FolderActivity extends AppCompatActivity {
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if ("koreader_history".equals(packageName)) {
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(this, KOReaderHistoryActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -379,7 +382,7 @@ public class FolderActivity extends AppCompatActivity {
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if ("calendar".equals(packageName)) {
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(this, CalendarActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);

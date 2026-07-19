@@ -36,6 +36,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private GestureLibrary gestureLibrary;
     private LinearLayout gestureListContainer;
+    private boolean screenAnimations;
     private final String[] gestureNames = {"custom_1", "custom_2", "custom_3", "custom_4"};
     private int currentRecordingIndex = -1;
     private FrameLayout recordingOverlay;
@@ -67,6 +68,8 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_gesture_settings);
 
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(bgColor);
             getWindow().setNavigationBarColor(bgColor);
@@ -86,7 +89,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         findViewById(R.id.clear_all_button).setOnClickListener(v ->
@@ -198,12 +201,12 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             return;
         }
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     private void selectAppForGesture(int index) {
         currentGestureIndex = index;
-        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION, -3);
         if (!animate) {

@@ -148,7 +148,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
         appIndexAnimation = prefs.getInt("app_index_animation", 0);
-        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0) == 1;
+        appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         itemsPerPage = AppListSizeHelper.calculateItemsPerPage(this, textSize);
 
@@ -297,16 +297,19 @@ public class AppLauncherActivity extends AppCompatActivity {
                 // Log or ignore
             }
             finish();
-        } else if ("launcher_settings".equals(packageName)) {
-            try {
-                Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
-                Intent intent = new Intent(this, clazz);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-                return;
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
+            } else if ("launcher_settings".equals(packageName)) {
+                try {
+                    Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
+                    Intent intent = new Intent(this, clazz);
+                    if (!appLauncherAnimations) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    }
+                    startActivity(intent);
+                    overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
+                    new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+                    return;
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
             }
         } else if ("koreader_history".equals(packageName)) {
             Intent intent = new Intent(this, KOReaderHistoryActivity.class);

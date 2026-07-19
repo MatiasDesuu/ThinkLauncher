@@ -129,7 +129,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         textSize = prefs.getInt("text_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
-        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0) == 1;
+        appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         itemsPerPage = AppListSizeHelper.calculateItemsPerPage(this, textSize);
 

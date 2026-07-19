@@ -36,6 +36,7 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private boolean invertHomeColors;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -60,6 +61,7 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         customAccentColor = prefs.getInt("custom_accent_color", Color.BLACK);
         invertIconColors = prefs.getBoolean("invert_icon_colors", false);
         invertHomeColors = prefs.getBoolean("invert_home_colors", false);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
         
         if (ThemeUtils.isDarkTheme(theme, this)) {
             setTheme(R.style.AppTheme_Dark);
@@ -91,7 +93,7 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View themeContainer = findViewById(R.id.theme_container);
@@ -213,10 +215,12 @@ public class ThemeSettingsActivity extends AppCompatActivity {
 
     private void restartActivity() {
         Intent intent = new Intent(this, ThemeSettingsActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        if (!screenAnimations) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
         startActivity(intent);
         finish();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     @Override
@@ -247,6 +251,6 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

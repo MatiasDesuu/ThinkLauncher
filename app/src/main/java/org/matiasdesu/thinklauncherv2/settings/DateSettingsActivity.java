@@ -42,6 +42,7 @@ public class DateSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -101,11 +102,12 @@ public class DateSettingsActivity extends AppCompatActivity {
         calendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
         batteryInfo = prefs.getInt("battery_info", 0);
         batteryPosition = prefs.getInt("battery_position", 1); // Default to Right
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View dateContainer = findViewById(R.id.date_container);
@@ -571,6 +573,6 @@ public class DateSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

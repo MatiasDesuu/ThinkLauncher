@@ -35,6 +35,7 @@ public class SettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SharedPreferences prefs;
     private SettingsPaginationHelper paginationHelper;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -57,6 +58,7 @@ public class SettingsActivity extends AppCompatActivity {
         theme = prefs.getInt("theme", 0);
         customBgColor = prefs.getInt("custom_bg_color", android.graphics.Color.WHITE);
         customAccentColor = prefs.getInt("custom_accent_color", android.graphics.Color.BLACK);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
         if (!prefs.contains("theme")) {
             prefs.edit().putInt("theme", 0).apply();
         }
@@ -98,87 +100,120 @@ public class SettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout themeSettingsButton = findViewById(R.id.theme_settings_button);
         themeSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, ThemeSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout gestureSettingsButton = findViewById(R.id.gesture_settings_button);
         gestureSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, GestureSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout hardwareKeysButton = findViewById(R.id.hardware_keys_button);
         hardwareKeysButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, HardwareKeysSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout hideAppsButton = findViewById(R.id.hide_apps_button);
         hideAppsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, HideAppsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout homeSettingsButton = findViewById(R.id.home_settings_button);
         homeSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, HomeSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout displaySettingsButton = findViewById(R.id.display_settings_button);
         displaySettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, DisplaySettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout defaultLauncherButton = findViewById(R.id.default_launcher_button);
         defaultLauncherButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_HOME_SETTINGS);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout accessibilitySettingsButton = findViewById(R.id.accessibility_settings_button);
         accessibilitySettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout deviceAdminSettingsButton = findViewById(R.id.device_admin_settings_button);
         deviceAdminSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setClassName("com.android.settings", "com.android.settings.DeviceAdminSettings");
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout appSettingsButton = findViewById(R.id.app_settings_button);
         appSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(android.net.Uri.parse("package:" + getPackageName()));
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout githubRepoButton = findViewById(R.id.github_repo_button);
         githubRepoButton.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse("https://github.com/MatiasDesuu/ThinkLauncher"));
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
@@ -213,10 +248,12 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void restartActivity() {
         Intent intent = new Intent(this, SettingsActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        if (!screenAnimations) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
         startActivity(intent);
         finish();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     @Override
@@ -237,6 +274,6 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

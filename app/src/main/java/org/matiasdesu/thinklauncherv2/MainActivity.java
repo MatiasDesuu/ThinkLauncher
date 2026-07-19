@@ -811,8 +811,14 @@ public class MainActivity extends Activity {
                 try {
                     Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                     Intent intent = new Intent(MainActivity.this, clazz);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    boolean animate = getSharedPreferences("prefs", MODE_PRIVATE).getInt("screen_animations", 0) == 1;
+                    if (!animate) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    }
                     startActivity(intent);
+                    if (animate) {
+                        overridePendingTransition(R.anim.dialog_fade_in, 0);
+                    }
                 } catch (ClassNotFoundException ex) {
                     ex.printStackTrace();
                 }
@@ -843,7 +849,7 @@ public class MainActivity extends Activity {
             searchButton.setPadding(16, 8, 16, 8);
             searchButton.setOnClickListener(v -> {
                 SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-                boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+                boolean animate = prefs.getInt("screen_animations", 0) == 1;
                 Intent intent = new Intent(MainActivity.this, AppLauncherActivity.class);
                 if (!animate) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -1875,7 +1881,7 @@ public class MainActivity extends Activity {
 
     public void showAppSelector(int position) {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION, position);
         if (!animate) {
@@ -1921,7 +1927,7 @@ public class MainActivity extends Activity {
             }
         } else if ("app_launcher".equals(packageName)) {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this, AppLauncherActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -1932,7 +1938,7 @@ public class MainActivity extends Activity {
             }
         } else if ("koreader_history".equals(packageName)) {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this,
                     org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
             if (!animate) {
@@ -1944,7 +1950,7 @@ public class MainActivity extends Activity {
             }
         } else if ("calendar".equals(packageName)) {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this,
                     org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
             if (!animate) {
@@ -1958,8 +1964,14 @@ public class MainActivity extends Activity {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                 Intent intent = new Intent(MainActivity.this, clazz);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                boolean animate = getSharedPreferences("prefs", MODE_PRIVATE).getInt("screen_animations", 0) == 1;
+                if (!animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 startActivity(intent);
+                if (animate) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
             }
@@ -1992,7 +2004,7 @@ public class MainActivity extends Activity {
 
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String folderName = prefs.getString(packageName + "_name", "Folder");
-            boolean folderAnimations = prefs.getInt("folder_animations", 0) == 1;
+            boolean folderAnimations = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this, org.matiasdesu.thinklauncherv2.ui.FolderActivity.class);
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_ID, packageName);
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_NAME, folderName);
@@ -2508,8 +2520,14 @@ public class MainActivity extends Activity {
                             try {
                                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
                                 Intent intent = new Intent(MainActivity.this, clazz);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                boolean animate = getSharedPreferences("prefs", MODE_PRIVATE).getInt("screen_animations", 0) == 1;
+                                if (!animate) {
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                }
                                 startActivity(intent);
+                                if (animate) {
+                                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                                }
                             } catch (ClassNotFoundException ex) {
                                 ex.printStackTrace();
                             }

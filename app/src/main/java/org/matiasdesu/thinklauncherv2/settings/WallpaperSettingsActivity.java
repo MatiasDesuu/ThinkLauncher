@@ -41,6 +41,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
     private WallpaperPositionView wallpaperPositionView;
     private LinearLayout positionContainer;
 
@@ -74,6 +75,8 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wallpaper_settings);
 
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(bgColor);
             getWindow().setNavigationBarColor(bgColor);
@@ -95,7 +98,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout chooseWallpaperButton = findViewById(R.id.choose_wallpaper_button);
@@ -369,6 +372,6 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

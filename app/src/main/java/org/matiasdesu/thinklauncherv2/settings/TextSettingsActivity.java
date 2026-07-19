@@ -37,6 +37,7 @@ public class TextSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -86,11 +87,12 @@ public class TextSettingsActivity extends AppCompatActivity {
         appTextColor = prefs.getInt("app_text_color", 0);
         textEffect = prefs.getInt("text_effect", 0);
         effectColor = prefs.getInt("effect_color", 0);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View boldTextContainer = findViewById(R.id.bold_text_container);
@@ -212,6 +214,6 @@ public class TextSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

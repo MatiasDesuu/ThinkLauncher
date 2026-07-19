@@ -38,6 +38,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -91,11 +92,12 @@ public class HomeSettingsActivity extends AppCompatActivity {
         if (homeColumns > HOME_COLUMNS_MAX) homeColumns = HOME_COLUMNS_MAX;
         homePages = prefs.getInt("home_pages", 1);
         hidePagination = prefs.getBoolean("hide_pagination", false);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View maxAppsContainer = findViewById(R.id.max_apps_container);
@@ -120,22 +122,31 @@ public class HomeSettingsActivity extends AppCompatActivity {
         LinearLayout textSettingsButton = findViewById(R.id.text_settings_button);
         textSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, TextSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout iconSettingsButton = findViewById(R.id.icon_settings_button);
         iconSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, IconSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         LinearLayout wallpaperSettingsButton = findViewById(R.id.wallpaper_settings_button);
         wallpaperSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, WallpaperSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View homeAlignmentContainer = findViewById(R.id.home_alignment_container);
@@ -319,6 +330,6 @@ public class HomeSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

@@ -28,6 +28,7 @@ public class HardwareKeysSettingsActivity extends AppCompatActivity {
     private String currentKey;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -59,6 +60,8 @@ public class HardwareKeysSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hardware_keys_settings);
 
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(bgColor);
             getWindow().setNavigationBarColor(bgColor);
@@ -78,7 +81,7 @@ public class HardwareKeysSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         if (!prefs.contains("hardware_key_volume_up")) {
@@ -110,7 +113,7 @@ public class HardwareKeysSettingsActivity extends AppCompatActivity {
     private void selectAppForKey(String key) {
         currentKey = key;
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION, -1);
         if (!animate) {
@@ -187,6 +190,6 @@ public class HardwareKeysSettingsActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }

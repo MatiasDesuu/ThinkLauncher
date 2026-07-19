@@ -32,6 +32,7 @@ public class HomeScreenPaddingActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
+    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -81,11 +82,12 @@ public class HomeScreenPaddingActivity extends AppCompatActivity {
         paddingBottom = prefs.getInt("home_padding_bottom", 0);
         paddingLeft = prefs.getInt("home_padding_left", 0);
         paddingRight = prefs.getInt("home_padding_right", 0);
+        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         View paddingTopContainer = findViewById(R.id.top_padding_container);
@@ -213,6 +215,6 @@ public class HomeScreenPaddingActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
     }
 }
