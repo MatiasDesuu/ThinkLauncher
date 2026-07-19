@@ -144,7 +144,6 @@ public class MainActivity extends Activity {
     private Handler handler;
     private GestureHandler gestureHandler;
     private GestureLibrary customGestureLibrary;
-    private boolean isCustomFling = false;
     private ImageView settingsButton;
     private ImageView searchButton;
     private ImageView wallpaperView;
@@ -176,28 +175,20 @@ public class MainActivity extends Activity {
         }
     };
 
-    private boolean handleFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+    private void handleSwipe(float dx, float dy) {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         String leftApp = prefs.getString("swipe_left_app", "");
         String rightApp = prefs.getString("swipe_right_app", "");
         String downApp = prefs.getString("swipe_down_app", "");
         String upApp = prefs.getString("swipe_up_app", "");
-        float xDiff = e2.getX() - e1.getX();
-        float yDiff = e2.getY() - e1.getY();
-        if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 100 && Math.abs(velocityX) > 100) {
-            if (xDiff > 0) {
-                launchApp(rightApp);
-            } else {
-                launchApp(leftApp);
-            }
-        } else if (Math.abs(yDiff) > Math.abs(xDiff) && Math.abs(yDiff) > 100 && Math.abs(velocityY) > 100) {
-            if (yDiff > 0) {
-                launchApp(downApp);
-            } else {
-                launchApp(upApp);
-            }
+        float absDx = Math.abs(dx);
+        float absDy = Math.abs(dy);
+        float minDist = 50 * getResources().getDisplayMetrics().density;
+        if (absDx > absDy && absDx > minDist) {
+            launchApp(dx > 0 ? rightApp : leftApp);
+        } else if (absDy > absDx && absDy > minDist) {
+            launchApp(dy > 0 ? downApp : upApp);
         }
-        return true;
     }
 
     private int getEffectColorValue() {
@@ -634,33 +625,7 @@ public class MainActivity extends Activity {
             dateView.setPadding(32, 5, 32, 5);
             dateView.setBackgroundColor(timeDateBgColor);
             dateView.setGravity(getHorizontalGravity(dateHorizontalPosition));
-            GestureDetector.SimpleOnGestureListener dateGestureListener = new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onDown(MotionEvent e) {
-                    return true;
-                }
 
-                @Override
-                public boolean onSingleTapUp(MotionEvent e) {
-                    if (dateAppPkg.equals("system_default")) {
-                        Intent intent = new Intent(Intent.ACTION_MAIN);
-                        intent.addCategory(Intent.CATEGORY_APP_CALENDAR);
-                        if (intent.resolveActivity(getPackageManager()) != null) {
-                            startActivity(intent);
-                        }
-                    } else if (!dateAppPkg.isEmpty()) {
-                        launchApp(dateAppPkg);
-                    }
-                    return true;
-                }
-
-                @Override
-                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                    return handleFling(e1, e2, velocityX, velocityY);
-                }
-            };
-            GestureDetector dateGestureDetector = new GestureDetector(this, dateGestureListener);
-            dateView.setOnTouchListener((v, event) -> dateGestureDetector.onTouchEvent(event));
             RelativeLayout.LayoutParams dateParams = new RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             dateParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
@@ -713,32 +678,6 @@ public class MainActivity extends Activity {
                 timeView.setPadding(32, 5, 32, 5);
                 timeView.setBackgroundColor(timeDateBgColor);
                 timeView.setGravity(getHorizontalGravity(timeHorizontalPosition));
-                GestureDetector.SimpleOnGestureListener timeGestureListener = new GestureDetector.SimpleOnGestureListener() {
-                    @Override
-                    public boolean onDown(MotionEvent e) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onSingleTapUp(MotionEvent e) {
-                        if (clockAppPkg.equals("system_default")) {
-                            Intent intent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
-                            if (intent.resolveActivity(getPackageManager()) != null) {
-                                startActivity(intent);
-                            }
-                        } else if (!clockAppPkg.isEmpty()) {
-                            launchApp(clockAppPkg);
-                        }
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                        return handleFling(e1, e2, velocityX, velocityY);
-                    }
-                };
-                GestureDetector timeGestureDetector = new GestureDetector(this, timeGestureListener);
-                timeView.setOnTouchListener((v, event) -> timeGestureDetector.onTouchEvent(event));
                 RelativeLayout.LayoutParams timeParams = new RelativeLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 timeParams.addRule(RelativeLayout.BELOW,
@@ -767,35 +706,6 @@ public class MainActivity extends Activity {
                 timeView.setPadding(32, 5, 32, 5);
                 timeView.setBackgroundColor(timeDateBgColor);
                 timeView.setGravity(getHorizontalGravity(timeHorizontalPosition));
-                GestureDetector.SimpleOnGestureListener timeGestureListener = new GestureDetector.SimpleOnGestureListener() {
-
-                    @Override
-                    public boolean onDown(MotionEvent e) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onSingleTapUp(MotionEvent e) {
-                        if (clockAppPkg.equals("system_default")) {
-                            Intent intent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
-                            if (intent.resolveActivity(getPackageManager()) != null) {
-                                startActivity(intent);
-                            }
-                        } else if (!clockAppPkg.isEmpty()) {
-                            launchApp(clockAppPkg);
-                        }
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                        return handleFling(e1, e2, velocityX, velocityY);
-                    }
-                };
-
-                GestureDetector timeGestureDetector = new GestureDetector(this,
-                        timeGestureListener);
-                timeView.setOnTouchListener((v, event) -> timeGestureDetector.onTouchEvent(event));
                 RelativeLayout.LayoutParams timeParams = new RelativeLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -826,33 +736,6 @@ public class MainActivity extends Activity {
                 dateView.setPadding(32, 5, 32, 5);
                 dateView.setBackgroundColor(timeDateBgColor);
                 dateView.setGravity(getHorizontalGravity(dateHorizontalPosition));
-                GestureDetector.SimpleOnGestureListener dateGestureListener = new GestureDetector.SimpleOnGestureListener() {
-                    @Override
-                    public boolean onDown(MotionEvent e) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onSingleTapUp(MotionEvent e) {
-                        if (dateAppPkg.equals("system_default")) {
-                            Intent intent = new Intent(Intent.ACTION_MAIN);
-                            intent.addCategory(Intent.CATEGORY_APP_CALENDAR);
-                            if (intent.resolveActivity(getPackageManager()) != null) {
-                                startActivity(intent);
-                            }
-                        } else if (!dateAppPkg.isEmpty()) {
-                            launchApp(dateAppPkg);
-                        }
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                        return handleFling(e1, e2, velocityX, velocityY);
-                    }
-                };
-                GestureDetector dateGestureDetector = new GestureDetector(this, dateGestureListener);
-                dateView.setOnTouchListener((v, event) -> dateGestureDetector.onTouchEvent(event));
                 RelativeLayout.LayoutParams dateParams = new RelativeLayout.LayoutParams(
                         RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 if (showTime) {
@@ -1176,7 +1059,8 @@ public class MainActivity extends Activity {
         createHomeLayout();
 
         gestureHandler = new GestureHandler();
-        findViewById(R.id.root_layout).setOnTouchListener((v, event) -> gestureHandler.onTouch(event));
+        findViewById(R.id.root_layout).setOnTouchListener(gestureHandler::onTouch);
+        findViewById(R.id.root_layout).setClickable(true);
 
         customGestureLibrary = GestureLibraries.fromFile(new java.io.File(getFilesDir(), "custom_gestures"));
         customGestureLibrary.load();
@@ -2423,13 +2307,25 @@ public class MainActivity extends Activity {
 
     private class GestureHandler {
 
-        private String leftApp, rightApp, downApp, upApp;
         private GestureDetector gestureDetector;
-        private Handler handler = new Handler(Looper.getMainLooper());
-        private Runnable openSettingsRunnable;
         private boolean doubleTapDone = false;
+
+        private float downX, downY;
+        private long downTime;
+        private int touchedSlotIndex = -1;
+        private boolean touchedClock = false;
+        private boolean touchedDate = false;
+        private boolean isLongPress = false;
+
+        private final Handler handler = new Handler(Looper.getMainLooper());
         private final java.util.ArrayList<GesturePoint> touchPoints = new java.util.ArrayList<>();
-        private boolean customGestureHandledThisTouch = false;
+        private Runnable longPressRunnable;
+
+        private static final float SWIPE_THRESHOLD_DP = 50;
+        private static final float TAP_MAX_DISTANCE_DP = 20;
+        private static final int LONG_PRESS_MS = 500;
+        private static final int MIN_CUSTOM_GESTURE_POINTS = 10;
+        private static final float CUSTOM_GESTURE_SCORE_THRESHOLD = 2.5f;
 
         public GestureHandler() {
             loadApps();
@@ -2440,27 +2336,14 @@ public class MainActivity extends Activity {
                 }
 
                 @Override
-                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                    isCustomFling = true;
-                    if (customGestureHandledThisTouch) {
-                        return true;
-                    }
-                    return handleFling(e1, e2, velocityX, velocityY);
-                }
-
-                @Override
                 public boolean onDoubleTap(MotionEvent e) {
                     if (doubleTapLock == 1) {
                         if (LockAccessibilityService.lockScreen()) {
                             doubleTapDone = true;
-
-                            if (openSettingsRunnable != null) {
-                                handler.removeCallbacks(openSettingsRunnable);
-                                openSettingsRunnable = null;
-                            }
                             return true;
                         } else {
-                            Toast.makeText(MainActivity.this, "Please enable accessibility to use double tap to lock",
+                            Toast.makeText(MainActivity.this,
+                                    "Please enable accessibility to use double tap to lock",
                                     Toast.LENGTH_SHORT).show();
                             doubleTapDone = false;
                             return false;
@@ -2469,140 +2352,180 @@ public class MainActivity extends Activity {
                     doubleTapDone = false;
                     return false;
                 }
-
-                @Override
-                public void onLongPress(MotionEvent e) {
-                    if (doubleTapDone) {
-                        doubleTapDone = false;
-                        return;
-                    }
-
-                    try {
-                        Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
-                        Intent intent = new Intent(MainActivity.this, clazz);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                        startActivity(intent);
-                    } catch (ClassNotFoundException ex) {
-                        ex.printStackTrace();
-                    }
-                }
             };
             gestureDetector = new GestureDetector(getApplicationContext(), gestureListener);
         }
 
         public void loadApps() {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            leftApp = prefs.getString("swipe_left_app", "");
-            rightApp = prefs.getString("swipe_right_app", "");
-            downApp = prefs.getString("swipe_down_app", "");
-            upApp = prefs.getString("swipe_up_app", "");
+            // Swipe apps are loaded from prefs on each use; nothing to cache here.
         }
 
-        public boolean onTouch(MotionEvent event) {
+        public boolean onTouch(View v, MotionEvent event) {
+            gestureDetector.onTouchEvent(event);
+
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
+                    downX = event.getX();
+                    downY = event.getY();
+                    downTime = event.getEventTime();
+                    isLongPress = false;
+                    doubleTapDone = false;
                     touchPoints.clear();
-                    isCustomFling = false;
-                    customGestureHandledThisTouch = false;
                     touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
-                    break;
+
+                    touchedSlotIndex = findTouchedSlot(event.getX(), event.getY());
+                    touchedClock = isPointInsideView(event.getX(), event.getY(), timeView);
+                    touchedDate = isPointInsideView(event.getX(), event.getY(), dateView);
+
+                    longPressRunnable = () -> {
+                        isLongPress = true;
+                        if (touchedSlotIndex >= 0) {
+                            showAppSelector(touchedSlotIndex);
+                        } else {
+                            try {
+                                Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
+                                Intent intent = new Intent(MainActivity.this, clazz);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                startActivity(intent);
+                            } catch (ClassNotFoundException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    };
+                    handler.postDelayed(longPressRunnable, LONG_PRESS_MS);
+                    return true;
+
                 case MotionEvent.ACTION_MOVE:
                     touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
-                    break;
+                    if (movedTooFar(event)) {
+                        handler.removeCallbacks(longPressRunnable);
+                    }
+                    return true;
+
                 case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
+                    handler.removeCallbacks(longPressRunnable);
                     touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
-                    checkCustomGesture();
+                    if (isLongPress) return true;
+
+                    float totalDx = event.getX() - downX;
+                    float totalDy = event.getY() - downY;
+                    float totalDist = (float) Math.sqrt(totalDx * totalDx + totalDy * totalDy);
+                    float tapThreshold = TAP_MAX_DISTANCE_DP * getResources().getDisplayMetrics().density;
+
+                    if (totalDist < tapThreshold) {
+                        if (!doubleTapDone) handleTap();
+                        return true;
+                    }
+
+                    if (tryCustomGesture()) return true;
+
+                    handleSwipe(totalDx, totalDy);
+                    return true;
+
+                case MotionEvent.ACTION_CANCEL:
+                    handler.removeCallbacks(longPressRunnable);
                     break;
             }
-            boolean handled = gestureDetector.onTouchEvent(event);
-            return handled;
+            return true;
         }
 
-        private void checkCustomGesture() {
-            if (customGestureLibrary == null || touchPoints.size() < 10) {
-                return;
+        private boolean movedTooFar(MotionEvent event) {
+            float dx = event.getX() - downX;
+            float dy = event.getY() - downY;
+            float threshold = TAP_MAX_DISTANCE_DP * getResources().getDisplayMetrics().density;
+            return (dx * dx + dy * dy) > (threshold * threshold);
+        }
+
+        private void handleTap() {
+            if (touchedSlotIndex >= 0) {
+                String pkg = appPackages.get(touchedSlotIndex);
+                if (!pkg.isEmpty()) {
+                    launchApp(pkg);
+                }
+            } else if (touchedClock) {
+                if (clockAppPkg.equals("system_default")) {
+                    Intent intent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
+                    if (intent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(intent);
+                    }
+                } else if (!clockAppPkg.isEmpty()) {
+                    launchApp(clockAppPkg);
+                }
+            } else if (touchedDate) {
+                if (dateAppPkg.equals("system_default")) {
+                    Intent intent = new Intent(Intent.ACTION_MAIN);
+                    intent.addCategory(Intent.CATEGORY_APP_CALENDAR);
+                    if (intent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(intent);
+                    }
+                } else if (!dateAppPkg.isEmpty()) {
+                    launchApp(dateAppPkg);
+                }
             }
-            // Skip entirely if the user hasn't recorded any gestures yet
-            if (customGestureLibrary.getGestureEntries().isEmpty()) {
-                return;
-            }
+        }
 
-            // --- Measure path geometry ---
-            float totalPathLength = 0;
-            float minX = touchPoints.get(0).x, maxX = touchPoints.get(0).x;
-            float minY = touchPoints.get(0).y, maxY = touchPoints.get(0).y;
-            for (int i = 1; i < touchPoints.size(); i++) {
-                GesturePoint p1 = touchPoints.get(i - 1);
-                GesturePoint p2 = touchPoints.get(i);
-                float dx = p2.x - p1.x;
-                float dy = p2.y - p1.y;
-                totalPathLength += (float) Math.sqrt(dx * dx + dy * dy);
-                minX = Math.min(minX, p2.x);
-                maxX = Math.max(maxX, p2.x);
-                minY = Math.min(minY, p2.y);
-                maxY = Math.max(maxY, p2.y);
-            }
+        private boolean tryCustomGesture() {
+            if (customGestureLibrary == null || touchPoints.size() < MIN_CUSTOM_GESTURE_POINTS) return false;
+            if (customGestureLibrary.getGestureEntries().isEmpty()) return false;
 
-            float density = getResources().getDisplayMetrics().density;
-
-            // Gate 1: gesture must be long enough to be intentional
-            if (totalPathLength < 100 * density) {
-                return;
-            }
-
-            // Gate 2: gesture must span significant area in BOTH axes
-            // (rules out straight swipes that are wide in one axis but flat in the other)
-            float gestureWidth  = maxX - minX;
-            float gestureHeight = maxY - minY;
-            if (gestureWidth < 50 * density || gestureHeight < 50 * density) {
-                return;
-            }
-
-            // Gate 3: gesture must not be too linear
-            // Straight swipes have totalPath/directDistance ≈ 1.0
-            // Complex shapes (U, O, T, Z…) have ratio > 2.0
-            GesturePoint first = touchPoints.get(0);
-            GesturePoint last  = touchPoints.get(touchPoints.size() - 1);
-            float dxDirect = last.x - first.x;
-            float dyDirect = last.y - first.y;
-            float directDistance = (float) Math.sqrt(dxDirect * dxDirect + dyDirect * dyDirect);
-            if (directDistance > 10 && totalPathLength / directDistance < 1.5f) {
-                return;
-            }
-
-            // All geometry gates passed: this clearly looks like a custom gesture attempt.
-            // Block any swipe that the GestureDetector might fire from the same touch,
-            // regardless of whether the score is high enough to launch an app.
-            customGestureHandledThisTouch = true;
-
-            // --- Recognition with a strict score threshold ---
             try {
                 GestureStroke stroke = new GestureStroke(new java.util.ArrayList<>(touchPoints));
                 Gesture gesture = new Gesture();
                 gesture.addStroke(stroke);
                 java.util.ArrayList<Prediction> predictions = customGestureLibrary.recognize(gesture);
-                if (predictions != null && !predictions.isEmpty() && predictions.get(0).score > 3.5) {
+                if (predictions != null && !predictions.isEmpty()
+                        && predictions.get(0).score > CUSTOM_GESTURE_SCORE_THRESHOLD) {
                     String name = predictions.get(0).name;
                     String pkg = getSharedPreferences("prefs", MODE_PRIVATE)
                             .getString("custom_gesture_" + name + "_app", "");
                     if (!pkg.isEmpty()) {
                         launchApp(pkg);
+                        return true;
                     }
                 }
             } catch (Exception e) {
                 // ignore
             }
+            return false;
+        }
+
+        private void handleSwipe(float dx, float dy) {
+            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            String leftApp = prefs.getString("swipe_left_app", "");
+            String rightApp = prefs.getString("swipe_right_app", "");
+            String downApp = prefs.getString("swipe_down_app", "");
+            String upApp = prefs.getString("swipe_up_app", "");
+            float absDx = Math.abs(dx);
+            float absDy = Math.abs(dy);
+            float minDist = SWIPE_THRESHOLD_DP * getResources().getDisplayMetrics().density;
+            if (absDx > absDy && absDx > minDist) {
+                launchApp(dx > 0 ? rightApp : leftApp);
+            } else if (absDy > absDx && absDy > minDist) {
+                launchApp(dy > 0 ? downApp : upApp);
+            }
+        }
+
+        private int findTouchedSlot(float x, float y) {
+            for (int i = 0; i < appSlots.length; i++) {
+                if (appSlots[i] != null && appSlots[i].getVisibility() == View.VISIBLE) {
+                    if (isPointInsideView(x, y, appSlots[i])) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
         }
 
         private boolean isPointInsideView(float x, float y, View view) {
-            Rect rect = new Rect();
-            view.getGlobalVisibleRect(rect);
-            LinearLayout mainLayout = MainActivity.this.mainLayout;
-            int[] mainLocation = new int[2];
-            mainLayout.getLocationOnScreen(mainLocation);
-            rect.offset(-mainLocation[0], -mainLocation[1]);
-            return rect.contains((int) x, (int) y);
+            if (view == null) return false;
+            int[] viewLoc = new int[2];
+            int[] rootLoc = new int[2];
+            view.getLocationOnScreen(viewLoc);
+            rootLayout.getLocationOnScreen(rootLoc);
+            float vx = viewLoc[0] - rootLoc[0];
+            float vy = viewLoc[1] - rootLoc[1];
+            return x >= vx && x <= vx + view.getWidth()
+                    && y >= vy && y <= vy + view.getHeight();
         }
     }
 
@@ -3077,35 +3000,6 @@ public class MainActivity extends Activity {
         }
 
         final int pos = index;
-
-        GestureDetector.SimpleOnGestureListener slotGestureListener = new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onDown(MotionEvent e) {
-                return true;
-            }
-
-            @Override
-            public boolean onSingleTapUp(MotionEvent e) {
-                String packageName = appPackages.get(pos);
-                if (!packageName.isEmpty()) {
-                    launchApp(packageName);
-                }
-                return true;
-            }
-
-            @Override
-            public void onLongPress(MotionEvent e) {
-                showAppSelector(pos);
-            }
-
-                @Override
-                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                    isCustomFling = true;
-                    return handleFling(e1, e2, velocityX, velocityY);
-                }
-        };
-        GestureDetector slotGestureDetector = new GestureDetector(this, slotGestureListener);
-        slotLayout.setOnTouchListener((v, event) -> slotGestureDetector.onTouchEvent(event));
 
         parent.addView(slotLayout);
         appSlots[index] = slotLayout;
