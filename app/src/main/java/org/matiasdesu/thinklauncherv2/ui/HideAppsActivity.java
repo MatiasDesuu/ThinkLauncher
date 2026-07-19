@@ -227,9 +227,14 @@ public class HideAppsActivity extends AppCompatActivity {
             installedAppPackages.add(ri.activityInfo.packageName);
         }
 
-        // Add settings option at the top
         installedAppLabels.add(0, "Launcher Settings");
         installedAppPackages.add(0, "launcher_settings");
+
+        installedAppLabels.add(1, "KOReader History");
+        installedAppPackages.add(1, "koreader_history");
+
+        installedAppLabels.add(2, "Calendar Screen");
+        installedAppPackages.add(2, "calendar");
 
         hiddenApps = new HashSet<>(prefs.getStringSet("hidden_apps", new HashSet<>()));
 
@@ -350,9 +355,14 @@ public class HideAppsActivity extends AppCompatActivity {
             labels.add(ri.loadLabel(pm).toString());
             packages.add(ri.activityInfo.packageName);
         }
-        // Add settings
         labels.add(0, "Launcher Settings");
         packages.add(0, "launcher_settings");
+
+        labels.add(1, "KOReader History");
+        packages.add(1, "koreader_history");
+
+        labels.add(2, "Calendar Screen");
+        packages.add(2, "calendar");
         loadApps(labels, packages);
         currentPage = 0;
         if (!scrollAppList && pageNavigator != null) {
