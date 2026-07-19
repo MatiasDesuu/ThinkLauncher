@@ -27,6 +27,7 @@ import android.os.Build;
 public class DisplaySettingsActivity extends AppCompatActivity {
 
     private int scrollAppList;
+    private int appIndexSidebar;
     private boolean autoFocusSearch;
     private int einkRefreshEnabled;
     private int einkRefreshDelay;
@@ -79,6 +80,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
 
         scrollAppList = prefs.getInt("scroll_app_list", 0);
+        appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
         autoFocusSearch = prefs.getBoolean("auto_focus_search", true);
         einkRefreshEnabled = prefs.getInt("eink_refresh_enabled", 0);
         einkRefreshDelay = prefs.getInt("eink_refresh_delay", 100);
@@ -150,6 +152,33 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             autoFocusSearch = !autoFocusSearch;
             autoFocusValueTv.setText(autoFocusSearch ? "ON" : "OFF");
             prefs.edit().putBoolean("auto_focus_search", autoFocusSearch).apply();
+        });
+
+        View appIndexSidebarContainer = findViewById(R.id.app_index_sidebar_container);
+        TextView appIndexSidebarValueTv = appIndexSidebarContainer.findViewById(R.id.value_text);
+        appIndexSidebarValueTv.setText(getOnOffText(appIndexSidebar));
+        appIndexSidebarValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(appIndexSidebarValueTv, new String[]{"OFF", "ON"}));
+
+        TextView minusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_minus);
+        TextView plusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_plus);
+
+        minusAppIndexSidebarBtn.setOnClickListener(v -> {
+            appIndexSidebar = (appIndexSidebar - 1 + 2) % 2;
+            appIndexSidebarValueTv.setText(getOnOffText(appIndexSidebar));
+            prefs.edit().putInt("app_index_sidebar", appIndexSidebar).apply();
+            if (paginationHelper != null) {
+                paginationHelper.initialize(this::refreshVisibility);
+            }
+        });
+
+        plusAppIndexSidebarBtn.setOnClickListener(v -> {
+            appIndexSidebar = (appIndexSidebar + 1) % 2;
+            appIndexSidebarValueTv.setText(getOnOffText(appIndexSidebar));
+            prefs.edit().putInt("app_index_sidebar", appIndexSidebar).apply();
+            if (paginationHelper != null) {
+                paginationHelper.initialize(this::refreshVisibility);
+            }
         });
 
         minusEinkRefreshEnabledBtn.setOnClickListener(v -> {

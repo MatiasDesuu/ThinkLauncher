@@ -67,6 +67,16 @@
                 android:layout_gravity="center"
                 android:background="@android:color/transparent" />
 
+            <LinearLayout
+                android:id="@+id/index_sidebar"
+                android:layout_width="28dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="right|center_vertical"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:focusable="false" />
+
         </FrameLayout>
 
         <View

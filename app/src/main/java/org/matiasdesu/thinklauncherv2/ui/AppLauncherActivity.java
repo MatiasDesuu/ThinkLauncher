@@ -16,6 +16,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -23,6 +24,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -59,6 +61,11 @@ public class AppLauncherActivity extends AppCompatActivity {
     private Set<String> hiddenApps;
     private boolean scrollAppList;
     private boolean opacityEnabled;
+    private int appIndexSidebar;
+    private LinearLayout indexSidebar;
+    private String[] sidebarLetters;
+    private int highlightedLetterIndex = -1;
+    private int sidebarLetterTextSize = 12;
     private boolean showWallpaperBackdrop;
     private int launcherSurfaceColor;
 
@@ -132,6 +139,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         textSize = prefs.getInt("app_launcher_font_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
+        appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
 
         itemsPerPage = AppListSizeHelper.calculateItemsPerPage(this, textSize);
 
@@ -197,6 +205,9 @@ public class AppLauncherActivity extends AppCompatActivity {
 
         loadApps(installedAppLabels, installedAppPackages);
 
+        indexSidebar = findViewById(R.id.index_sidebar);
+        buildIndexSidebar();
+
         launcherAdapter = new AppLauncherAdapter(filteredApps, this, theme);
         recyclerView.setAdapter(launcherAdapter);
 
@@ -230,6 +241,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                             installedAppPackages, query);
                     filteredApps.addAll(filtered);
                 }
+                buildIndexSidebar();
                 currentPage = 0;
                 launcherAdapter.notifyDataSetChanged();
                 updatePageIndicator();
@@ -400,6 +412,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         labels.add(2, "Calendar Screen");
         packages.add(2, "calendar");
         loadApps(labels, packages);
+        buildIndexSidebar();
         currentPage = 0;
         launcherAdapter.notifyDataSetChanged();
         updatePageIndicator();
@@ -460,6 +473,114 @@ public class AppLauncherActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         overridePendingTransition(0, 0);
+    }
+
+    private void buildIndexSidebar() {
+        if (indexSidebar == null) return;
+
+        if (!scrollAppList || appIndexSidebar == 0 || filteredApps == null || filteredApps.isEmpty()) {
+            indexSidebar.setVisibility(View.GONE);
+            return;
+        }
+
+        java.util.TreeSet<Character> letterSet = new java.util.TreeSet<>();
+        for (int i = 0; i < filteredApps.size(); i++) {
+            String label = filteredApps.get(i).label;
+            if (label != null && !label.isEmpty()) {
+                char first = Character.toUpperCase(label.charAt(0));
+                if (first >= 'A' && first <= 'Z') {
+                    letterSet.add(first);
+                }
+            }
+        }
+        if (letterSet.isEmpty()) {
+            indexSidebar.setVisibility(View.GONE);
+            return;
+        }
+
+        sidebarLetters = new String[letterSet.size()];
+        int idx = 0;
+        for (Character c : letterSet) {
+            sidebarLetters[idx++] = String.valueOf(c);
+        }
+
+        indexSidebar.removeAllViews();
+        int textColor = ThemeUtils.getTextColor(theme, this);
+        int count = sidebarLetters.length;
+        float density = getResources().getDisplayMetrics().density;
+
+        for (int i = 0; i < count; i++) {
+            TextView tv = new TextView(this);
+            tv.setText(sidebarLetters[i]);
+            tv.setTextSize(sidebarLetterTextSize);
+            tv.setTextColor(textColor);
+            tv.setGravity(android.view.Gravity.CENTER);
+            tv.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+            indexSidebar.addView(tv);
+        }
+
+        indexSidebar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        highlightedLetterIndex = -1;
+
+        indexSidebar.setOnTouchListener((v, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_MOVE: {
+                    int letterIdx = (int) (event.getY() / (v.getHeight() / (float) count));
+                    if (letterIdx < 0) letterIdx = 0;
+                    if (letterIdx >= count) letterIdx = count - 1;
+                    if (letterIdx != highlightedLetterIndex) {
+                        highlightedLetterIndex = letterIdx;
+                        updateSidebarHighlight(textColor);
+                        scrollToLetter(sidebarLetters[letterIdx]);
+                    }
+                    return true;
+                }
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    highlightedLetterIndex = -1;
+                    updateSidebarHighlight(textColor);
+                    return true;
+            }
+            return false;
+        });
+
+        indexSidebar.setVisibility(View.VISIBLE);
+    }
+
+    private void updateSidebarHighlight(int textColor) {
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        for (int i = 0; i < indexSidebar.getChildCount(); i++) {
+            View child = indexSidebar.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView tv = (TextView) child;
+                if (i == highlightedLetterIndex) {
+                    tv.setBackgroundColor(textColor);
+                    tv.setTextColor(bgColor);
+                } else {
+                    tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    tv.setTextColor(textColor);
+                }
+            }
+        }
+    }
+
+    private void scrollToLetter(String letter) {
+        if (filteredApps == null) return;
+        RecyclerView rv = findViewById(R.id.app_selector_list);
+        if (rv == null) return;
+
+        char target = letter.charAt(0);
+        for (int i = 0; i < filteredApps.size(); i++) {
+            String label = filteredApps.get(i).label;
+            if (label != null && !label.isEmpty()
+                    && Character.toUpperCase(label.charAt(0)) == target) {
+                final int pos = i;
+                rv.postDelayed(() -> rv.smoothScrollToPosition(pos), 50);
+                return;
+            }
+        }
     }
 
     private class AppLauncherAdapter extends RecyclerView.Adapter<AppLauncherAdapter.ViewHolder> {
