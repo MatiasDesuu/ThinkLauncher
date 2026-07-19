@@ -14,8 +14,8 @@ import java.util.List;
 
 public class AppShortcutsDialog extends Dialog {
 
-    public interface OnEditCallback {
-        void onEdit();
+    public interface OnSecondaryCallback {
+        void onSecondary();
     }
 
     public interface OnShortcutClickCallback {
@@ -23,14 +23,17 @@ public class AppShortcutsDialog extends Dialog {
     }
 
     private List<ShortcutInfo> shortcuts;
-    private OnEditCallback editCallback;
+    private String secondaryLabel;
+    private OnSecondaryCallback secondaryCallback;
     private OnShortcutClickCallback shortcutCallback;
 
     public AppShortcutsDialog(Context context, List<ShortcutInfo> shortcuts,
-            OnEditCallback editCallback, OnShortcutClickCallback shortcutCallback) {
+            String secondaryLabel, OnSecondaryCallback secondaryCallback,
+            OnShortcutClickCallback shortcutCallback) {
         super(context, R.style.NoAnimationDialog);
         this.shortcuts = shortcuts;
-        this.editCallback = editCallback;
+        this.secondaryLabel = secondaryLabel;
+        this.secondaryCallback = secondaryCallback;
         this.shortcutCallback = shortcutCallback;
         init();
     }
@@ -45,7 +48,7 @@ public class AppShortcutsDialog extends Dialog {
         DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
         LinearLayout buttonContainer = findViewById(R.id.button_container);
-        TextView editButton = findViewById(R.id.edit_button);
+        TextView secondaryButton = findViewById(R.id.edit_button);
 
         int marginDp = (int) (8 * getContext().getResources().getDisplayMetrics().density);
 
@@ -53,7 +56,8 @@ public class AppShortcutsDialog extends Dialog {
             for (int i = 0; i < shortcuts.size(); i++) {
                 ShortcutInfo si = shortcuts.get(i);
                 TextView tv = new TextView(getContext());
-                tv.setText(si.getShortLabel() != null ? si.getShortLabel() : si.getId());
+                CharSequence label = si.getLongLabel() != null ? si.getLongLabel() : si.getShortLabel();
+                tv.setText(label != null ? label : si.getId());
                 tv.setGravity(android.view.Gravity.CENTER);
                 tv.setTextSize(18);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -67,18 +71,19 @@ public class AppShortcutsDialog extends Dialog {
                     if (shortcutCallback != null) {
                         shortcutCallback.onShortcutClick(shortcut);
                     }
-                    dismiss();
+                    v.post(this::dismiss);
                 });
                 buttonContainer.addView(tv, buttonContainer.getChildCount() - 1);
             }
         }
 
-        DialogEffectHelper.applyButtonTheme(editButton, theme, getContext(), surfaceColor);
-        editButton.setOnClickListener(v -> {
-            if (editCallback != null) {
-                editCallback.onEdit();
+        secondaryButton.setText(secondaryLabel != null ? secondaryLabel : "Edit");
+        DialogEffectHelper.applyButtonTheme(secondaryButton, theme, getContext(), surfaceColor);
+        secondaryButton.setOnClickListener(v -> {
+            if (secondaryCallback != null) {
+                secondaryCallback.onSecondary();
             }
-            dismiss();
+            v.post(this::dismiss);
         });
     }
 }

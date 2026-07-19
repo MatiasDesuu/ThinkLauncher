@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.pm.ShortcutInfo;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -428,6 +430,20 @@ public class FolderActivity extends AppCompatActivity {
         }
     }
 
+    private void showFolderAppOptions(int position) {
+        if (position < 0 || position >= folderApps.size()) return;
+        AppSearchHelper.AppItem app = folderApps.get(position);
+        AppOptionsDialog.OnMoreInfoCallback moreInfo = null;
+        if (app.packageName != null && app.packageName.startsWith("webapp_")) {
+            moreInfo = () -> editWebApp(position);
+        }
+        new AppOptionsDialog(this, app.packageName, () -> {
+            removeAppFromFolder(position);
+        }, moreInfo, () -> {
+            renameApp(position);
+        }).show();
+    }
+
     private void editWebApp(int position) {
         if (position >= 0 && position < folderApps.size()) {
             AppSearchHelper.AppItem app = folderApps.get(position);
@@ -642,15 +658,33 @@ public class FolderActivity extends AppCompatActivity {
                 holder.reorderButtons.setVisibility(View.GONE);
                 holder.itemView.setOnClickListener(v -> activity.launchApp(app.label, app.packageName));
                 holder.itemView.setOnLongClickListener(v -> {
-                    AppOptionsDialog.OnMoreInfoCallback moreInfo = null;
-                    if (app.packageName != null && app.packageName.startsWith("webapp_")) {
-                        moreInfo = () -> activity.editWebApp(globalPosition);
+                    boolean isRealApp = app.packageName != null && !app.packageName.isEmpty()
+                            && !app.packageName.equals("blank")
+                            && !app.packageName.startsWith("folder_")
+                            && !app.packageName.startsWith("webapp_")
+                            && !app.packageName.equals("launcher_settings")
+                            && !app.packageName.equals("app_launcher")
+                            && !app.packageName.equals("notification_panel")
+                            && !app.packageName.equals("koreader_history")
+                            && !app.packageName.equals("calendar")
+                            && !app.packageName.equals("next_home_page")
+                            && !app.packageName.equals("previous_home_page");
+                    if (isRealApp) {
+                        java.util.List<ShortcutInfo> shortcuts = org.matiasdesu.thinklauncherv2.utils.ShortcutHelper
+                                .getShortcuts(activity, app.packageName);
+                        if (!shortcuts.isEmpty()) {
+                            new AppShortcutsDialog(activity, shortcuts, "More options",
+                                    () -> showFolderAppOptions(globalPosition),
+                                    s -> {
+                                        LauncherApps la = (LauncherApps) activity
+                                                .getSystemService(Context.LAUNCHER_APPS_SERVICE);
+                                        if (la != null) la.startShortcut(s, null, null);
+                                        activity.finish();
+                                    }).show();
+                            return true;
+                        }
                     }
-                    new AppOptionsDialog(activity, app.packageName, () -> {
-                        activity.removeAppFromFolder(globalPosition);
-                    }, moreInfo, () -> {
-                        activity.renameApp(globalPosition);
-                    }).show();
+                    showFolderAppOptions(globalPosition);
                     return true;
                 });
             }

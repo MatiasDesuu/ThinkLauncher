@@ -1868,7 +1868,7 @@ public class MainActivity extends Activity {
     }
 
     private void showAppShortcutsDialog(int slotIndex, java.util.List<ShortcutInfo> shortcuts) {
-        new AppShortcutsDialog(this, shortcuts,
+        new AppShortcutsDialog(this, shortcuts, "Edit",
                 () -> showAppSelector(slotIndex),
                 shortcut -> launchShortcut(shortcut)
         ).show();
@@ -2362,7 +2362,7 @@ public class MainActivity extends Activity {
 
         private static final float SWIPE_THRESHOLD_DP = 50;
         private static final float TAP_MAX_DISTANCE_DP = 20;
-        private static final int LONG_PRESS_MS = 500;
+        private static final int LONG_PRESS_MS = 200;
         private static final int MIN_CUSTOM_GESTURE_POINTS = 10;
         private static final float CUSTOM_GESTURE_SCORE_THRESHOLD = 2.5f;
 
