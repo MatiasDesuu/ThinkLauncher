@@ -310,14 +310,20 @@ public class AppLauncherActivity extends AppCompatActivity {
             }
         } else if ("koreader_history".equals(packageName)) {
             Intent intent = new Intent(this, KOReaderHistoryActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!appLauncherAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if ("calendar".equals(packageName)) {
             Intent intent = new Intent(this, CalendarActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!appLauncherAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if (!packageName.isEmpty()) {

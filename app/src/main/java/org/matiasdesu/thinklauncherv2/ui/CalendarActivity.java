@@ -60,6 +60,7 @@ public class CalendarActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private boolean scrollAppList;
     private boolean opacityEnabled;
+    private boolean appLauncherAnimations;
     private boolean showWallpaperBackdrop;
     private boolean showAccount;
     private boolean highlightToday;
@@ -95,6 +96,7 @@ public class CalendarActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0) == 1;
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
@@ -130,7 +132,7 @@ public class CalendarActivity extends AppCompatActivity {
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         ImageView openCalendarButton = findViewById(R.id.open_calendar_button);
@@ -450,6 +452,12 @@ public class CalendarActivity extends AppCompatActivity {
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         return spannable;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     @Override

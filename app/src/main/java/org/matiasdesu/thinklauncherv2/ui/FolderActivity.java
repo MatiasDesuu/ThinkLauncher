@@ -369,15 +369,23 @@ public class FolderActivity extends AppCompatActivity {
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if ("koreader_history".equals(packageName)) {
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(this, KOReaderHistoryActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            overridePendingTransition(0, animate ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if ("calendar".equals(packageName)) {
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(this, CalendarActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            overridePendingTransition(0, animate ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if (packageName != null && packageName.startsWith("webapp_")) {

@@ -1931,15 +1931,29 @@ public class MainActivity extends Activity {
                 overridePendingTransition(R.anim.dialog_fade_in, 0);
             }
         } else if ("koreader_history".equals(packageName)) {
+            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this,
                     org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            if (animate) {
+                overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
         } else if ("calendar".equals(packageName)) {
+            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this,
                     org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            if (animate) {
+                overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
         } else if ("launcher_settings".equals(packageName)) {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
