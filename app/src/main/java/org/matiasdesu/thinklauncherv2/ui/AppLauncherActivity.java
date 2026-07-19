@@ -69,7 +69,7 @@ public class AppLauncherActivity extends AppCompatActivity {
     private SwipePageNavigator pageNavigator;
     private String[] sidebarLetters;
     private int highlightedLetterIndex = -1;
-    private int sidebarLetterTextSize = 12;
+    private int sidebarLetterTextSize = 16;
     private boolean showWallpaperBackdrop;
     private int launcherSurfaceColor;
 
@@ -130,8 +130,9 @@ public class AppLauncherActivity extends AppCompatActivity {
         ThemeUtils.applyEditTextTheme(searchEditText, theme, this);
         RecyclerView rv = findViewById(R.id.app_selector_list);
         View container = findViewById(R.id.app_list_container);
+        View listWrapper = findViewById(R.id.list_wrapper);
         LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, launcherSurfaceColor,
-                topLayout, searchEditText, rv, container);
+                topLayout, searchEditText, rv, container, listWrapper);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -151,6 +152,8 @@ public class AppLauncherActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.app_selector_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        recyclerView.setClipChildren(true);
+        recyclerView.setClipToPadding(true);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -637,9 +640,9 @@ public class AppLauncherActivity extends AppCompatActivity {
     private float getDockScale(int i, int highlighted) {
         if (highlighted < 0) return 1f;
         int dist = Math.abs(i - highlighted);
-        if (dist == 0) return 1.8f;
-        if (dist == 1) return 1.3f;
-        if (dist == 2) return 1.1f;
+        if (dist == 0) return 2.2f;
+        if (dist == 1) return 1.6f;
+        if (dist == 2) return 1.2f;
         return 1f;
     }
 
@@ -657,6 +660,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                     tv.setPivotY(tv.getHeight() / 2f);
                     tv.setScaleX(scale);
                     tv.setScaleY(scale);
+                    tv.setTranslationZ(scale > 1f ? 10f : 0f);
                 } else {
                     if (i == highlightedLetterIndex) {
                         tv.setBackgroundColor(textColor);
@@ -667,6 +671,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                     }
                     tv.setScaleX(1f);
                     tv.setScaleY(1f);
+                    tv.setTranslationZ(0f);
                 }
             }
         }
@@ -685,6 +690,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                     tv.setPivotY(0);
                     tv.setScaleX(scale);
                     tv.setScaleY(scale);
+                    tv.setTranslationZ(scale > 1f ? 10f : 0f);
                 } else {
                     if (i == highlightedLetterIndex) {
                         tv.setBackgroundColor(textColor);
@@ -695,6 +701,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                     }
                     tv.setScaleX(1f);
                     tv.setScaleY(1f);
+                    tv.setTranslationZ(0f);
                 }
             }
         }

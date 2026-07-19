@@ -183,25 +183,11 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             }
         });
 
-        View appIndexAnimationContainer = findViewById(R.id.app_index_animation_container);
-        TextView appIndexAnimationValueTv = appIndexAnimationContainer.findViewById(R.id.value_text);
-        appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
-        appIndexAnimationValueTv.setMinWidth(
-                TextWidthHelper.getMaxTextWidthPx(appIndexAnimationValueTv, new String[]{"OFF", "ON"}));
-
-        TextView minusAppIndexAnimationBtn = appIndexAnimationContainer.findViewById(R.id.btn_minus);
-        TextView plusAppIndexAnimationBtn = appIndexAnimationContainer.findViewById(R.id.btn_plus);
-
-        minusAppIndexAnimationBtn.setOnClickListener(v -> {
-            appIndexAnimation = (appIndexAnimation - 1 + 2) % 2;
-            appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
-            prefs.edit().putInt("app_index_animation", appIndexAnimation).apply();
-        });
-
-        plusAppIndexAnimationBtn.setOnClickListener(v -> {
-            appIndexAnimation = (appIndexAnimation + 1) % 2;
-            appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
-            prefs.edit().putInt("app_index_animation", appIndexAnimation).apply();
+        LinearLayout animationSettingsButton = findViewById(R.id.animation_settings_button);
+        animationSettingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AnimationSettingsActivity.class);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
         });
 
         minusEinkRefreshEnabledBtn.setOnClickListener(v -> {

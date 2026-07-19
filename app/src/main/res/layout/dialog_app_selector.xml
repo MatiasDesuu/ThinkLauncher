@@ -22,7 +22,8 @@
             android:id="@+id/top_layout"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:translationZ="10dp">
 
             <ImageView
                 android:id="@+id/back_button"
@@ -62,8 +63,7 @@
             android:gravity="center"
             android:orientation="horizontal"
             android:visibility="gone"
-            android:focusable="false"
-            android:translationZ="4dp" />
+            android:focusable="false" />
 
         <FrameLayout
             android:id="@+id/app_list_container"
@@ -72,12 +72,19 @@
             android:layout_weight="1"
             android:clipChildren="false">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/app_selector_list"
+            <FrameLayout
+                android:id="@+id/list_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@android:color/transparent" />
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/app_selector_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@android:color/transparent" />
+
+            </FrameLayout>
 
             <LinearLayout
                 android:id="@+id/index_sidebar"
@@ -87,6 +94,8 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:visibility="gone"
+                android:clipChildren="false"
+                android:translationZ="10dp"
                 android:focusable="false" />
 
         </FrameLayout>
