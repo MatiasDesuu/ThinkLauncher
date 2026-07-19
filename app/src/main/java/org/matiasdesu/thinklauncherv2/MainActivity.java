@@ -1918,6 +1918,9 @@ public class MainActivity extends Activity {
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_NAME, folderName);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivityForResult(intent, 9999);
+        } else if (packageName != null && packageName.startsWith("hidden_app_")) {
+            String realPkg = packageName.substring("hidden_app_".length());
+            launchApp(realPkg);
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
@@ -2209,6 +2212,14 @@ public class MainActivity extends Activity {
         } else if (!shouldHaveIcon && hasIcon) {
 
             slot.removeView(existingIcon);
+        }
+
+        if (appPackages.get(position) != null && appPackages.get(position).startsWith("hidden_app_")) {
+            tv.setVisibility(View.INVISIBLE);
+            ImageView icon = getSlotImageView(slot);
+            if (icon != null) {
+                icon.setVisibility(View.INVISIBLE);
+            }
         }
 
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);

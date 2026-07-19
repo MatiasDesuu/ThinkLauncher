@@ -188,12 +188,15 @@ public class AppSelectorActivity extends AppCompatActivity {
             installedAppPackages.add(1, "blank");
             installedAppLabels.add(2, "Folder");
             installedAppPackages.add(2, "folder");
+            installedAppLabels.add(3, "Web App");
+            installedAppPackages.add(3, "web_apps");
+            installedAppLabels.add(4, "Hidden App");
+            installedAppPackages.add(4, "hidden_app");
         }
 
-        if (position >= 0 || position == -2) {
-            int webAppIndex = position >= 0 ? 3 : 1;
-            installedAppLabels.add(webAppIndex, "Web App");
-            installedAppPackages.add(webAppIndex, "web_apps");
+        if (position == -2) {
+            installedAppLabels.add(1, "Web App");
+            installedAppPackages.add(1, "web_apps");
         }
 
         if (position == -3) {
@@ -203,7 +206,7 @@ public class AppSelectorActivity extends AppCompatActivity {
 
         int specialIndex;
         if (position >= 0) {
-            specialIndex = 4;
+            specialIndex = 5;
         } else if (position == -2) {
             specialIndex = 2;
         } else if (position == -3) {
@@ -335,6 +338,11 @@ public class AppSelectorActivity extends AppCompatActivity {
                     finish();
                     overridePendingTransition(0, 0);
                 }).show();
+            } else if (pkg.equals("hidden_app")) {
+                Intent intent = new Intent(AppSelectorActivity.this, AppSelectorActivity.class);
+                intent.putExtra(EXTRA_POSITION, -4);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivityForResult(intent, 1001);
             } else {
                 new RenameDialog(this, label, newLabel -> {
                     Intent resultIntent = new Intent();
@@ -376,6 +384,24 @@ public class AppSelectorActivity extends AppCompatActivity {
             setResult(RESULT_OK, resultIntent);
             finish();
             overridePendingTransition(0, 0);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
+            String pkg = data.getStringExtra(EXTRA_PACKAGE);
+            String label = data.getStringExtra(EXTRA_LABEL);
+            if (pkg != null && !pkg.isEmpty()) {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(EXTRA_LABEL, label != null ? label : "");
+                resultIntent.putExtra(EXTRA_PACKAGE, "hidden_app_" + pkg);
+                resultIntent.putExtra(EXTRA_POSITION, position);
+                setResult(RESULT_OK, resultIntent);
+                finish();
+                overridePendingTransition(0, 0);
+            }
         }
     }
 
