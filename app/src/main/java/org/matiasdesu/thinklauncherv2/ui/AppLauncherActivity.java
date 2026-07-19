@@ -577,7 +577,7 @@ public class AppLauncherActivity extends AppCompatActivity {
             if (label != null && !label.isEmpty()
                     && Character.toUpperCase(label.charAt(0)) == target) {
                 final int pos = i;
-                rv.postDelayed(() -> rv.smoothScrollToPosition(pos), 50);
+                rv.scrollToPosition(pos);
                 return;
             }
         }
