@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.LauncherApps;
+import android.content.pm.ShortcutInfo;
 import android.database.Cursor;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -53,6 +55,7 @@ import org.matiasdesu.thinklauncherv2.adapters.AppAdapter;
 import org.matiasdesu.thinklauncherv2.services.LockAccessibilityService;
 import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
+import org.matiasdesu.thinklauncherv2.ui.AppShortcutsDialog;
 import org.matiasdesu.thinklauncherv2.ui.StrokeTextView;
 import org.matiasdesu.thinklauncherv2.ui.ShadowOutlineDrawable;
 import org.matiasdesu.thinklauncherv2.utils.AppNamePositionHelper;
@@ -61,6 +64,7 @@ import org.matiasdesu.thinklauncherv2.utils.HomePagesManager;
 import org.matiasdesu.thinklauncherv2.utils.IconMonochromeHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.ShortcutHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.BigmeShims;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
@@ -1853,6 +1857,30 @@ public class MainActivity extends Activity {
         startActivityForResult(intent, position);
     }
 
+    private boolean isSlotRealApp(String pkg) {
+        if (pkg == null || pkg.isEmpty() || pkg.equals("blank")) return false;
+        if (pkg.startsWith("folder_") || pkg.startsWith("webapp_")) return false;
+        if (pkg.equals("launcher_settings") || pkg.equals("app_launcher") ||
+                pkg.equals("notification_panel") || pkg.equals("koreader_history") ||
+                pkg.equals("calendar") || pkg.equals("next_home_page") ||
+                pkg.equals("previous_home_page")) return false;
+        return true;
+    }
+
+    private void showAppShortcutsDialog(int slotIndex, java.util.List<ShortcutInfo> shortcuts) {
+        new AppShortcutsDialog(this, shortcuts,
+                () -> showAppSelector(slotIndex),
+                shortcut -> launchShortcut(shortcut)
+        ).show();
+    }
+
+    private void launchShortcut(ShortcutInfo shortcut) {
+        LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+        if (launcherApps != null) {
+            launcherApps.startShortcut(shortcut, null, null);
+        }
+    }
+
     public void launchApp(String packageName) {
         if ("notification_panel".equals(packageName)) {
             try {
@@ -2391,7 +2419,15 @@ public class MainActivity extends Activity {
                     longPressRunnable = () -> {
                         isLongPress = true;
                         if (touchedSlotIndex >= 0) {
-                            showAppSelector(touchedSlotIndex);
+                            String pkg = appPackages.get(touchedSlotIndex);
+                            java.util.List<ShortcutInfo> shortcuts = null;
+                            if (!pkg.isEmpty() && !pkg.equals("blank")) {
+                                String realPkg = pkg.startsWith("hidden_app_") ? pkg.substring("hidden_app_".length()) : pkg;
+                                if (isSlotRealApp(pkg)) {
+                                    shortcuts = ShortcutHelper.getShortcuts(MainActivity.this, realPkg);
+                                }
+                            }
+                            showAppShortcutsDialog(touchedSlotIndex, shortcuts);
                         } else {
                             try {
                                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
