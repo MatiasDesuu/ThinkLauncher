@@ -182,11 +182,18 @@ public class GestureSettingsActivity extends AppCompatActivity {
 
     private void selectAppForGesture(String direction) {
         currentGestureDirection = direction;
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION,
                 direction.equals("clock") || direction.equals("date") ? -3 : -1);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        if (!animate) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
         startActivityForResult(intent, 1000);
+        if (animate) {
+            overridePendingTransition(R.anim.dialog_fade_in, 0);
+        }
     }
 
     @Override

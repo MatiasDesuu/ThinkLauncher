@@ -842,9 +842,16 @@ public class MainActivity extends Activity {
             buttonParams.topMargin = 5;
             searchButton.setPadding(16, 8, 16, 8);
             searchButton.setOnClickListener(v -> {
+                SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
                 Intent intent = new Intent(MainActivity.this, AppLauncherActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                if (!animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 startActivity(intent);
+                if (animate) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             });
             rootLayout.addView(searchButton, buttonParams);
         }
@@ -1867,10 +1874,17 @@ public class MainActivity extends Activity {
     }
 
     public void showAppSelector(int position) {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION, position);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        if (!animate) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
         startActivityForResult(intent, position);
+        if (animate) {
+            overridePendingTransition(R.anim.dialog_fade_in, 0);
+        }
     }
 
     private boolean isSlotRealApp(String pkg) {
@@ -1906,9 +1920,16 @@ public class MainActivity extends Activity {
                 // Log or ignore
             }
         } else if ("app_launcher".equals(packageName)) {
+            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this, AppLauncherActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            if (animate) {
+                overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
         } else if ("koreader_history".equals(packageName)) {
             Intent intent = new Intent(MainActivity.this,
                     org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
@@ -1957,11 +1978,17 @@ public class MainActivity extends Activity {
 
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String folderName = prefs.getString(packageName + "_name", "Folder");
+            boolean folderAnimations = prefs.getInt("folder_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this, org.matiasdesu.thinklauncherv2.ui.FolderActivity.class);
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_ID, packageName);
             intent.putExtra(org.matiasdesu.thinklauncherv2.ui.FolderActivity.EXTRA_FOLDER_NAME, folderName);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!folderAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivityForResult(intent, 9999);
+            if (folderAnimations) {
+                overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
         } else if (packageName != null && packageName.startsWith("hidden_app_")) {
             String realPkg = packageName.substring("hidden_app_".length());
             launchApp(realPkg);

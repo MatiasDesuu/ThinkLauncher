@@ -68,6 +68,7 @@ public class AppLauncherActivity extends AppCompatActivity {
     private LinearLayout indexSidebar;
     private LinearLayout indexSidebarHorizontal;
     private SwipePageNavigator pageNavigator;
+    private boolean appLauncherAnimations;
     private String[] sidebarLetters;
     private int highlightedLetterIndex = -1;
     private int sidebarLetterTextSize = 16;
@@ -139,7 +140,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         textSize = prefs.getInt("app_launcher_font_size", 32);
@@ -147,6 +148,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
         appIndexAnimation = prefs.getInt("app_index_animation", 0);
+        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0) == 1;
 
         itemsPerPage = AppListSizeHelper.calculateItemsPerPage(this, textSize);
 
@@ -506,6 +508,7 @@ public class AppLauncherActivity extends AppCompatActivity {
     }
 
     public void onBackPressed() {
+        overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         super.onBackPressed();
     }
 

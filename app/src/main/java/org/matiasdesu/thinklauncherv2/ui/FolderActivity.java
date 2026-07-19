@@ -65,6 +65,7 @@ public class FolderActivity extends AppCompatActivity {
     private boolean isReordering = false;
     private List<AppSearchHelper.AppItem> originalAppsBeforeReorder;
     private TextView folderNameText;
+    private boolean folderAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -96,6 +97,7 @@ public class FolderActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        folderAnimations = prefs.getInt("folder_animations", 0) == 1;
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folder);
@@ -168,7 +170,7 @@ public class FolderActivity extends AppCompatActivity {
             } else {
                 returnResult();
                 finish();
-                overridePendingTransition(0, 0);
+                overridePendingTransition(0, folderAnimations ? R.anim.dialog_fade_out : 0);
             }
         });
 
@@ -179,9 +181,15 @@ public class FolderActivity extends AppCompatActivity {
                 exitReorderMode();
             } else {
                 Intent intent = new Intent(FolderActivity.this, AppSelectorActivity.class);
-                intent.putExtra(AppSelectorActivity.EXTRA_POSITION, -2); // Special value for folder
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                intent.putExtra(AppSelectorActivity.EXTRA_POSITION, -2);
+                boolean animateAdd = prefs.getInt("app_launcher_animations", 0) == 1;
+                if (!animateAdd) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 startActivityForResult(intent, REQUEST_ADD_APP);
+                if (animateAdd) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             }
         });
 
@@ -351,9 +359,13 @@ public class FolderActivity extends AppCompatActivity {
                 ex.printStackTrace();
             }
         } else if ("app_launcher".equals(packageName)) {
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(this, AppLauncherActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             startActivity(intent);
+            overridePendingTransition(0, animate ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if ("koreader_history".equals(packageName)) {
@@ -599,7 +611,7 @@ public class FolderActivity extends AppCompatActivity {
         } else {
             returnResult();
             super.onBackPressed();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, folderAnimations ? R.anim.dialog_fade_out : 0);
         }
     }
 

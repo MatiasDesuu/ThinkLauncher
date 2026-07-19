@@ -68,6 +68,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     private int highlightedLetterIndex = -1;
     private int sidebarLetterTextSize = 16;
     private AppSelectorAdapter adapter;
+    private boolean appLauncherAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -122,12 +123,13 @@ public class AppSelectorActivity extends AppCompatActivity {
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         });
 
         textSize = prefs.getInt("text_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
+        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0) == 1;
 
         itemsPerPage = AppListSizeHelper.calculateItemsPerPage(this, textSize);
 
@@ -310,7 +312,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                 resultIntent.putExtra(EXTRA_POSITION, position);
                 setResult(RESULT_OK, resultIntent);
                 finish();
-                overridePendingTransition(0, 0);
+                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             } else if (pkg.equals("blank")) {
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(EXTRA_LABEL, "");
@@ -318,7 +320,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                 resultIntent.putExtra(EXTRA_POSITION, position);
                 setResult(RESULT_OK, resultIntent);
                 finish();
-                overridePendingTransition(0, 0);
+                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             } else if (pkg.equals("folder")) {
                 new RenameDialog(this, "New Folder", newLabel -> {
                     String folderName = newLabel.isEmpty() ? "New Folder" : newLabel;
@@ -329,7 +331,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                     resultIntent.putExtra(EXTRA_POSITION, position);
                     setResult(RESULT_OK, resultIntent);
                     finish();
-                    overridePendingTransition(0, 0);
+                    overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
                 }).show();
             } else if (pkg.equals("web_apps")) {
                 new WebAppDialog(this, "New Web App", "", (name, url) -> {
@@ -341,13 +343,18 @@ public class AppSelectorActivity extends AppCompatActivity {
                     resultIntent.putExtra(EXTRA_POSITION, position);
                     setResult(RESULT_OK, resultIntent);
                     finish();
-                    overridePendingTransition(0, 0);
+                    overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
                 }).show();
             } else if (pkg.equals("hidden_app")) {
                 Intent intent = new Intent(AppSelectorActivity.this, AppSelectorActivity.class);
                 intent.putExtra(EXTRA_POSITION, -4);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                if (!appLauncherAnimations) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 startActivityForResult(intent, 1001);
+                if (appLauncherAnimations) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             } else {
                 new RenameDialog(this, label, newLabel -> {
                     Intent resultIntent = new Intent();
@@ -356,7 +363,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                     resultIntent.putExtra(EXTRA_POSITION, position);
                     setResult(RESULT_OK, resultIntent);
                     finish();
-                    overridePendingTransition(0, 0);
+                    overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
                 }).show();
             }
         } else if (position == -2) {
@@ -370,7 +377,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                     resultIntent.putExtra(EXTRA_POSITION, position);
                     setResult(RESULT_OK, resultIntent);
                     finish();
-                    overridePendingTransition(0, 0);
+                    overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
                 }).show();
             } else {
                 Intent resultIntent = new Intent();
@@ -379,7 +386,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                 resultIntent.putExtra(EXTRA_POSITION, position);
                 setResult(RESULT_OK, resultIntent);
                 finish();
-                overridePendingTransition(0, 0);
+                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             }
         } else {
             Intent resultIntent = new Intent();
@@ -388,7 +395,7 @@ public class AppSelectorActivity extends AppCompatActivity {
             resultIntent.putExtra(EXTRA_POSITION, position);
             setResult(RESULT_OK, resultIntent);
             finish();
-            overridePendingTransition(0, 0);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         }
     }
 
@@ -405,7 +412,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                 resultIntent.putExtra(EXTRA_POSITION, position);
                 setResult(RESULT_OK, resultIntent);
                 finish();
-                overridePendingTransition(0, 0);
+                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             }
         }
     }
@@ -472,7 +479,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     private void buildIndexSidebar() {

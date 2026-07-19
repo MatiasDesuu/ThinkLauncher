@@ -203,10 +203,16 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
     private void selectAppForGesture(int index) {
         currentGestureIndex = index;
+        boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION, -3);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        if (!animate) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
         startActivityForResult(intent, REQUEST_CODE_APP_SELECT);
+        if (animate) {
+            overridePendingTransition(R.anim.dialog_fade_in, 0);
+        }
     }
 
     @Override

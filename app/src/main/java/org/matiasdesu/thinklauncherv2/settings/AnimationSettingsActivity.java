@@ -27,7 +27,9 @@ public class AnimationSettingsActivity extends AppCompatActivity {
 
     private int appIndexAnimation;
     private int appIndexSidebar;
+    private int folderAnimations;
     private int dialogAnimations;
+    private int appLauncherAnimations;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
@@ -77,7 +79,9 @@ public class AnimationSettingsActivity extends AppCompatActivity {
 
         appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
         appIndexAnimation = prefs.getInt("app_index_animation", 0);
+        folderAnimations = prefs.getInt("folder_animations", 0);
         dialogAnimations = prefs.getInt("dialog_animations", 0);
+        appLauncherAnimations = prefs.getInt("app_launcher_animations", 0);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
@@ -102,6 +106,44 @@ public class AnimationSettingsActivity extends AppCompatActivity {
             appIndexAnimation = (appIndexAnimation + 1) % 2;
             appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
             prefs.edit().putInt("app_index_animation", appIndexAnimation).apply();
+        });
+
+        View appLauncherAnimationsContainer = findViewById(R.id.app_launcher_animations_container);
+        TextView appLauncherAnimationsValueTv = appLauncherAnimationsContainer.findViewById(R.id.value_text);
+        appLauncherAnimationsValueTv.setText(getOnOffText(appLauncherAnimations));
+
+        TextView minusAppLauncherBtn = appLauncherAnimationsContainer.findViewById(R.id.btn_minus);
+        TextView plusAppLauncherBtn = appLauncherAnimationsContainer.findViewById(R.id.btn_plus);
+
+        minusAppLauncherBtn.setOnClickListener(v -> {
+            appLauncherAnimations = (appLauncherAnimations - 1 + 2) % 2;
+            appLauncherAnimationsValueTv.setText(getOnOffText(appLauncherAnimations));
+            prefs.edit().putInt("app_launcher_animations", appLauncherAnimations).apply();
+        });
+
+        plusAppLauncherBtn.setOnClickListener(v -> {
+            appLauncherAnimations = (appLauncherAnimations + 1) % 2;
+            appLauncherAnimationsValueTv.setText(getOnOffText(appLauncherAnimations));
+            prefs.edit().putInt("app_launcher_animations", appLauncherAnimations).apply();
+        });
+
+        View folderAnimationsContainer = findViewById(R.id.folder_animations_container);
+        TextView folderAnimationsValueTv = folderAnimationsContainer.findViewById(R.id.value_text);
+        folderAnimationsValueTv.setText(getOnOffText(folderAnimations));
+
+        TextView minusFolderBtn = folderAnimationsContainer.findViewById(R.id.btn_minus);
+        TextView plusFolderBtn = folderAnimationsContainer.findViewById(R.id.btn_plus);
+
+        minusFolderBtn.setOnClickListener(v -> {
+            folderAnimations = (folderAnimations - 1 + 2) % 2;
+            folderAnimationsValueTv.setText(getOnOffText(folderAnimations));
+            prefs.edit().putInt("folder_animations", folderAnimations).apply();
+        });
+
+        plusFolderBtn.setOnClickListener(v -> {
+            folderAnimations = (folderAnimations + 1) % 2;
+            folderAnimationsValueTv.setText(getOnOffText(folderAnimations));
+            prefs.edit().putInt("folder_animations", folderAnimations).apply();
         });
 
         View dialogAnimationsContainer = findViewById(R.id.dialog_animations_container);

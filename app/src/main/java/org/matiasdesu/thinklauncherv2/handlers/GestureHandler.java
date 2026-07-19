@@ -8,6 +8,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import java.lang.reflect.Method;
 
+import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
 
 public class GestureHandler {
@@ -93,9 +94,16 @@ public class GestureHandler {
 
             }
         } else if ("app_launcher".equals(packageName)) {
+            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+            boolean animate = prefs.getInt("app_launcher_animations", 0) == 1;
             Intent intent = new Intent(activity, AppLauncherActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
             activity.startActivity(intent);
+            if (animate) {
+                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
         } else if ("koreader_history".equals(packageName)) {
             Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
