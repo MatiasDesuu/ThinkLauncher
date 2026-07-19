@@ -165,6 +165,8 @@ public class MainActivity extends Activity {
     private int customBgColor;
     private int customAccentColor;
     private boolean calendarPermissionGranted;
+    private volatile boolean prefsDirty = true;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefsChangeListener;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -1069,6 +1071,9 @@ public class MainActivity extends Activity {
 
         customGestureLibrary = GestureLibraries.fromFile(new java.io.File(getFilesDir(), "custom_gestures"));
         customGestureLibrary.load();
+
+        prefsChangeListener = (sharedPreferences, key) -> prefsDirty = true;
+        getSharedPreferences("prefs", MODE_PRIVATE).registerOnSharedPreferenceChangeListener(prefsChangeListener);
     }
 
     @Override
@@ -1082,224 +1087,242 @@ public class MainActivity extends Activity {
             customGestureLibrary.load();
         }
 
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        int newMaxApps = prefs.getInt("max_apps", 4);
-        int newTextSize = prefs.getInt("text_size", 32);
-        int newIconSize = prefs.getInt("icon_size", 32);
-        boolean newBoldText = prefs.getBoolean("bold_text", true);
-        int newAppTextColor = prefs.getInt("app_text_color", 0);
-        int newTextEffect = prefs.getInt("text_effect", 0);
-        int newEffectColor = prefs.getInt("effect_color", 0);
-        int newIconEffect = prefs.getInt("icon_effect", 0);
-        int newIconEffectColor = prefs.getInt("icon_effect_color", 0);
-        int newHomeAlignment = prefs.getInt("home_alignment", 1);
-        int newHomeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
-        int newHomeColumns = prefs.getInt("home_columns", 1);
-        if (newHomeColumns < 1) newHomeColumns = 1;
-        if (newHomeColumns > 10) newHomeColumns = 10;
-        int newHomePages = prefs.getInt("home_pages", 1);
-        boolean newHidePagination = prefs.getBoolean("hide_pagination", false);
-        int newTimePosition = prefs.getInt("time_position", 0);
-        int newTimeFormat24h = prefs.getInt("time_format_24h", 1);
-        int newDateVerticalPosition = prefs.getInt("date_vertical_position", 0);
-        int newDatePosition = prefs.getInt("date_position", 0);
-        int newSettingsButtonSize = prefs.getInt("settings_button_size", 42);
-        int newSettingsButtonColor = prefs.getInt("settings_button_color", 0);
-        int newSettingsButtonEffect = prefs.getInt("settings_button_effect", 0);
-        int newSettingsButtonEffectColor = prefs.getInt("settings_button_effect_color", 0);
-        int newSearchButtonSize = prefs.getInt("search_button_size", 42);
-        int newSearchButtonColor = prefs.getInt("search_button_color", 0);
-        int newSearchButtonEffect = prefs.getInt("search_button_effect", 0);
-        int newSearchButtonEffectColor = prefs.getInt("search_button_effect_color", 0);
-        int newDateHorizontalPosition = prefs.getInt("date_horizontal_position", 0);
-        int newTimeHorizontalPosition = prefs.getInt("time_horizontal_position", 0);
-        int newTimeFontSize = prefs.getInt("time_font_size", 54);
-        int newTimeColor = prefs.getInt("time_color", 0);
-        int newTimeEffect = prefs.getInt("time_effect", 0);
-        int newTimeEffectColor = prefs.getInt("time_effect_color", 0);
-        int newDateFontSize = prefs.getInt("date_font_size", 22);
-        int newDateColor = prefs.getInt("date_color", 0);
-        int newDateEffect = prefs.getInt("date_effect", 0);
-        int newDateEffectColor = prefs.getInt("date_effect_color", 0);
-        int newDateCalendarEvents = prefs.getInt("date_calendar_events", 0);
-        int newCalendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
-        int newHomePaddingTop = prefs.getInt("home_padding_top", 0);
-        int newHomePaddingBottom = prefs.getInt("home_padding_bottom", 0);
-        int newHomePaddingLeft = prefs.getInt("home_padding_left", 0);
-        int newHomePaddingRight = prefs.getInt("home_padding_right", 0);
-        int newDateFormat = prefs.contains("date_format") ? prefs.getInt("date_format", 0)
-                : (prefs.getInt("full_month_name", 0) == 1 ? 1 : 0);
-        int newFullMonthName = prefs.getInt("full_month_name", 0);
-        int newBatteryInfo = prefs.getInt("battery_info", 0);
-        int newBatteryPosition = prefs.getInt("battery_position", 1);
-        int newTheme = prefs.getInt("theme", 0);
-        int newShowSettingsButton = prefs.getInt("show_settings_button", 0);
-        int newShowSearchButton = prefs.getInt("show_search_button", 0);
-        String newClockAppPkg = prefs.getString("clock_app_pkg", "system_default");
-        String newDateAppPkg = prefs.getString("date_app_pkg", "system_default");
-        int newCustomBgColor = prefs.getInt("custom_bg_color", android.graphics.Color.WHITE);
-        int newCustomAccentColor = prefs.getInt("custom_accent_color", android.graphics.Color.BLACK);
-        boolean newShowIcons = prefs.getBoolean("show_icons", false);
-        boolean newShowAppNames = prefs.getBoolean("show_app_names", true);
-        if (!newShowIcons)
-            newShowAppNames = true;
-        int newAppNamePosition = prefs.getInt("app_name_position", AppNamePositionHelper.POSITION_RIGHT);
-        boolean newMonochromeIcons = prefs.getBoolean("monochrome_icons", false);
-        boolean newDynamicIcons = prefs.getBoolean("dynamic_icons", false);
-        boolean newDynamicColors = prefs.getBoolean("dynamic_colors", false);
-        boolean newInvertIconColors = prefs.getBoolean("invert_icon_colors", false);
-        boolean newInvertHomeColors = prefs.getBoolean("invert_home_colors", false);
-        boolean newIconBackground = prefs.getBoolean("icon_background", true);
-        int newIconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
-        boolean newCalendarPermissionGranted = hasCalendarPermission();
-        boolean calendarPermissionChanged = newCalendarPermissionGranted != calendarPermissionGranted;
-        int bgColor = ThemeUtils.getBgColor(newTheme, this);
-        int textColor = ThemeUtils.getTextColor(newTheme, this);
-        boolean newHasWallpaper = WallpaperHelper.hasWallpaper(this);
-        boolean themeChanged = newTheme != theme ||
-                (newTheme == ThemeUtils.THEME_CUSTOM
-                        && (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor));
-        boolean textChanged = newTextSize != textSize || newBoldText != boldText || newAppTextColor != appTextColor
-                || newTimeFontSize != timeFontSize
-                || newTimeFormat24h != timeFormat24h
-                || newDateFontSize != dateFontSize || newDateFormat != dateFormat || newIconSize != iconSize
-                || newSettingsButtonSize != settingsButtonSize || newSearchButtonSize != searchButtonSize
-                || newTextEffect != textEffect || newEffectColor != effectColor
-                || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
-                || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
-                || newBatteryInfo != batteryInfo || newBatteryPosition != batteryPosition
-                || newCalendarEventFontSize != calendarEventFontSize;
-        boolean iconChanged = newIconEffect != iconEffect || newIconEffectColor != iconEffectColor;
-        boolean wallpaperChanged = newHasWallpaper != hasWallpaper;
-        boolean layoutChanged = newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
-                || newHomeAlignment != homeAlignment || newHomeVerticalAlignment != homeVerticalAlignment
-                || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
-                || newTimeFormat24h != timeFormat24h
-                || newDateFormat != dateFormat
-                || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
-                || newDateCalendarEvents != dateCalendarEvents
-                || newHomePaddingTop != homePaddingTop || newHomePaddingBottom != homePaddingBottom
-                || newHomePaddingLeft != homePaddingLeft || newHomePaddingRight != homePaddingRight
-                || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
-                || newSearchButtonEffect != searchButtonEffect || newSearchButtonEffectColor != searchButtonEffectColor
-                || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
-                || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
-                || newShowIcons != showIcons || newShowAppNames != showAppNames || newTimeColor != timeColor
-                || newDateColor != dateColor
-                || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
-                || newAppNamePosition != appNamePosition
-                || newTextEffect != textEffect || newEffectColor != effectColor || newIconEffect != iconEffect
-                || newIconEffectColor != iconEffectColor || newMonochromeIcons != monochromeIcons
-                || newDynamicIcons != dynamicIcons || newDynamicColors != dynamicColors
-                || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors
-                || newIconBackground != iconBackground
-                || newIconShape != iconShape || newHidePagination != hidePagination
-                || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg)
-                || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
-                || wallpaperChanged
-                || (newDateCalendarEvents == 1 && calendarPermissionChanged);
-        boolean onlyAlignmentChanged = (newHomeAlignment != homeAlignment
-                || newHomeVerticalAlignment != homeVerticalAlignment)
-                && !(newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
-                        || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
-                        || newTimeFormat24h != timeFormat24h
-                        || newDateFormat != dateFormat
-                        || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
-                        || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
-                        || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
-                        || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
-                        || newShowIcons != showIcons || newShowAppNames != showAppNames
-                        || newAppNamePosition != appNamePosition || newTextEffect != textEffect
-                        || newEffectColor != effectColor || newIconEffect != iconEffect
-                        || newIconEffectColor != iconEffectColor || !newClockAppPkg.equals(clockAppPkg)
-                        || !newDateAppPkg.equals(dateAppPkg) || wallpaperChanged
-                        || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors);
-        boolean visibilityChanged = newShowAppNames != showAppNames || newTextEffect != textEffect
-                || newEffectColor != effectColor || newIconEffect != iconEffect
-                || newIconEffectColor != iconEffectColor;
+        if (prefsDirty) {
+            prefsDirty = false;
 
-        if (themeChanged || textChanged || layoutChanged || iconChanged || wallpaperChanged) {
-            rootLayout.setVisibility(View.INVISIBLE);
-            theme = newTheme;
-            customBgColor = newCustomBgColor;
-            customAccentColor = newCustomAccentColor;
-            hasWallpaper = newHasWallpaper;
-            textSize = newTextSize;
-            iconSize = newIconSize;
-            boldText = newBoldText;
-            appTextColor = newAppTextColor;
-            textEffect = newTextEffect;
-            effectColor = newEffectColor;
-            iconEffect = newIconEffect;
-            iconEffectColor = newIconEffectColor;
-            homeAlignment = newHomeAlignment;
-            homeVerticalAlignment = newHomeVerticalAlignment;
-            homeColumns = newHomeColumns;
-            homePages = newHomePages;
-            hidePagination = newHidePagination;
-            timePosition = newTimePosition;
-            timeFormat24h = newTimeFormat24h;
-            dateFormat = newDateFormat;
-            timeEffect = newTimeEffect;
-            timeEffectColor = newTimeEffectColor;
-            dateEffect = newDateEffect;
-            dateEffectColor = newDateEffectColor;
-            dateCalendarEvents = newDateCalendarEvents;
-            dateVerticalPosition = newDateVerticalPosition;
-            datePosition = newDatePosition;
-            dateHorizontalPosition = newDateHorizontalPosition;
-            timeHorizontalPosition = newTimeHorizontalPosition;
-            timeFontSize = newTimeFontSize;
-            timeColor = newTimeColor;
-            dateFontSize = newDateFontSize;
-            calendarEventFontSize = newCalendarEventFontSize;
-            dateColor = newDateColor;
-            homePaddingTop = newHomePaddingTop;
-            homePaddingBottom = newHomePaddingBottom;
-            homePaddingLeft = newHomePaddingLeft;
-            homePaddingRight = newHomePaddingRight;
-            updatePaddingPx();
-            fullMonthName = newFullMonthName;
-            batteryInfo = newBatteryInfo;
-            batteryPosition = newBatteryPosition;
-            if (newMaxApps != maxApps || newHomeColumns != homeColumns) {
-                adjustSlotsForMaxAppsChange(maxApps, newMaxApps, newHomePages, newHomeColumns);
+            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            int newMaxApps = prefs.getInt("max_apps", 4);
+            int newTextSize = prefs.getInt("text_size", 32);
+            int newIconSize = prefs.getInt("icon_size", 32);
+            boolean newBoldText = prefs.getBoolean("bold_text", true);
+            int newAppTextColor = prefs.getInt("app_text_color", 0);
+            int newTextEffect = prefs.getInt("text_effect", 0);
+            int newEffectColor = prefs.getInt("effect_color", 0);
+            int newIconEffect = prefs.getInt("icon_effect", 0);
+            int newIconEffectColor = prefs.getInt("icon_effect_color", 0);
+            int newHomeAlignment = prefs.getInt("home_alignment", 1);
+            int newHomeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
+            int newHomeColumns = prefs.getInt("home_columns", 1);
+            if (newHomeColumns < 1) newHomeColumns = 1;
+            if (newHomeColumns > 10) newHomeColumns = 10;
+            int newHomePages = prefs.getInt("home_pages", 1);
+            boolean newHidePagination = prefs.getBoolean("hide_pagination", false);
+            int newTimePosition = prefs.getInt("time_position", 0);
+            int newTimeFormat24h = prefs.getInt("time_format_24h", 1);
+            int newDateVerticalPosition = prefs.getInt("date_vertical_position", 0);
+            int newDatePosition = prefs.getInt("date_position", 0);
+            int newSettingsButtonSize = prefs.getInt("settings_button_size", 42);
+            int newSettingsButtonColor = prefs.getInt("settings_button_color", 0);
+            int newSettingsButtonEffect = prefs.getInt("settings_button_effect", 0);
+            int newSettingsButtonEffectColor = prefs.getInt("settings_button_effect_color", 0);
+            int newSearchButtonSize = prefs.getInt("search_button_size", 42);
+            int newSearchButtonColor = prefs.getInt("search_button_color", 0);
+            int newSearchButtonEffect = prefs.getInt("search_button_effect", 0);
+            int newSearchButtonEffectColor = prefs.getInt("search_button_effect_color", 0);
+            int newDateHorizontalPosition = prefs.getInt("date_horizontal_position", 0);
+            int newTimeHorizontalPosition = prefs.getInt("time_horizontal_position", 0);
+            int newTimeFontSize = prefs.getInt("time_font_size", 54);
+            int newTimeColor = prefs.getInt("time_color", 0);
+            int newTimeEffect = prefs.getInt("time_effect", 0);
+            int newTimeEffectColor = prefs.getInt("time_effect_color", 0);
+            int newDateFontSize = prefs.getInt("date_font_size", 22);
+            int newDateColor = prefs.getInt("date_color", 0);
+            int newDateEffect = prefs.getInt("date_effect", 0);
+            int newDateEffectColor = prefs.getInt("date_effect_color", 0);
+            int newDateCalendarEvents = prefs.getInt("date_calendar_events", 0);
+            int newCalendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
+            int newHomePaddingTop = prefs.getInt("home_padding_top", 0);
+            int newHomePaddingBottom = prefs.getInt("home_padding_bottom", 0);
+            int newHomePaddingLeft = prefs.getInt("home_padding_left", 0);
+            int newHomePaddingRight = prefs.getInt("home_padding_right", 0);
+            int newDateFormat = prefs.contains("date_format") ? prefs.getInt("date_format", 0)
+                    : (prefs.getInt("full_month_name", 0) == 1 ? 1 : 0);
+            int newFullMonthName = prefs.getInt("full_month_name", 0);
+            int newBatteryInfo = prefs.getInt("battery_info", 0);
+            int newBatteryPosition = prefs.getInt("battery_position", 1);
+            int newTheme = prefs.getInt("theme", 0);
+            int newShowSettingsButton = prefs.getInt("show_settings_button", 0);
+            int newShowSearchButton = prefs.getInt("show_search_button", 0);
+            String newClockAppPkg = prefs.getString("clock_app_pkg", "system_default");
+            String newDateAppPkg = prefs.getString("date_app_pkg", "system_default");
+            int newCustomBgColor = prefs.getInt("custom_bg_color", android.graphics.Color.WHITE);
+            int newCustomAccentColor = prefs.getInt("custom_accent_color", android.graphics.Color.BLACK);
+            boolean newShowIcons = prefs.getBoolean("show_icons", false);
+            boolean newShowAppNames = prefs.getBoolean("show_app_names", true);
+            if (!newShowIcons)
+                newShowAppNames = true;
+            int newAppNamePosition = prefs.getInt("app_name_position", AppNamePositionHelper.POSITION_RIGHT);
+            boolean newMonochromeIcons = prefs.getBoolean("monochrome_icons", false);
+            boolean newDynamicIcons = prefs.getBoolean("dynamic_icons", false);
+            boolean newDynamicColors = prefs.getBoolean("dynamic_colors", false);
+            boolean newInvertIconColors = prefs.getBoolean("invert_icon_colors", false);
+            boolean newInvertHomeColors = prefs.getBoolean("invert_home_colors", false);
+            boolean newIconBackground = prefs.getBoolean("icon_background", true);
+            int newIconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
+            boolean newCalendarPermissionGranted = hasCalendarPermission();
+            boolean calendarPermissionChanged = newCalendarPermissionGranted != calendarPermissionGranted;
+            int bgColor = ThemeUtils.getBgColor(newTheme, this);
+            int textColor = ThemeUtils.getTextColor(newTheme, this);
+            boolean newHasWallpaper = WallpaperHelper.hasWallpaper(this);
+            boolean themeChanged = newTheme != theme ||
+                    (newTheme == ThemeUtils.THEME_CUSTOM
+                            && (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor));
+            boolean textChanged = newTextSize != textSize || newBoldText != boldText || newAppTextColor != appTextColor
+                    || newTimeFontSize != timeFontSize
+                    || newTimeFormat24h != timeFormat24h
+                    || newDateFontSize != dateFontSize || newDateFormat != dateFormat || newIconSize != iconSize
+                    || newSettingsButtonSize != settingsButtonSize || newSearchButtonSize != searchButtonSize
+                    || newTextEffect != textEffect || newEffectColor != effectColor
+                    || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
+                    || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
+                    || newBatteryInfo != batteryInfo || newBatteryPosition != batteryPosition
+                    || newCalendarEventFontSize != calendarEventFontSize;
+            boolean iconChanged = newIconEffect != iconEffect || newIconEffectColor != iconEffectColor;
+            boolean wallpaperChanged = newHasWallpaper != hasWallpaper;
+            boolean layoutChanged = newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
+                    || newHomeAlignment != homeAlignment || newHomeVerticalAlignment != homeVerticalAlignment
+                    || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
+                    || newTimeFormat24h != timeFormat24h
+                    || newDateFormat != dateFormat
+                    || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
+                    || newDateCalendarEvents != dateCalendarEvents
+                    || newHomePaddingTop != homePaddingTop || newHomePaddingBottom != homePaddingBottom
+                    || newHomePaddingLeft != homePaddingLeft || newHomePaddingRight != homePaddingRight
+                    || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
+                    || newSearchButtonEffect != searchButtonEffect || newSearchButtonEffectColor != searchButtonEffectColor
+                    || newTimeEffect != timeEffect || newTimeEffectColor != timeEffectColor
+                    || newDateEffect != dateEffect || newDateEffectColor != dateEffectColor
+                    || newShowIcons != showIcons || newShowAppNames != showAppNames || newTimeColor != timeColor
+                    || newDateColor != dateColor
+                    || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
+                    || newAppNamePosition != appNamePosition
+                    || newTextEffect != textEffect || newEffectColor != effectColor || newIconEffect != iconEffect
+                    || newIconEffectColor != iconEffectColor || newMonochromeIcons != monochromeIcons
+                    || newDynamicIcons != dynamicIcons || newDynamicColors != dynamicColors
+                    || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors
+                    || newIconBackground != iconBackground
+                    || newIconShape != iconShape || newHidePagination != hidePagination
+                    || !newClockAppPkg.equals(clockAppPkg) || !newDateAppPkg.equals(dateAppPkg)
+                    || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
+                    || wallpaperChanged
+                    || (newDateCalendarEvents == 1 && calendarPermissionChanged);
+            boolean onlyAlignmentChanged = (newHomeAlignment != homeAlignment
+                    || newHomeVerticalAlignment != homeVerticalAlignment)
+                    && !(newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
+                            || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
+                            || newTimeFormat24h != timeFormat24h
+                            || newDateFormat != dateFormat
+                            || newDatePosition != datePosition || newDateHorizontalPosition != dateHorizontalPosition
+                            || newTimeHorizontalPosition != timeHorizontalPosition || newFullMonthName != fullMonthName
+                            || newShowSettingsButton != showSettingsButton || newShowSearchButton != showSearchButton
+                            || newSettingsButtonColor != settingsButtonColor || newSearchButtonColor != searchButtonColor
+                            || newShowIcons != showIcons || newShowAppNames != showAppNames
+                            || newAppNamePosition != appNamePosition || newTextEffect != textEffect
+                            || newEffectColor != effectColor || newIconEffect != iconEffect
+                            || newIconEffectColor != iconEffectColor || !newClockAppPkg.equals(clockAppPkg)
+                            || !newDateAppPkg.equals(dateAppPkg) || wallpaperChanged
+                            || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors);
+            boolean visibilityChanged = newShowAppNames != showAppNames || newTextEffect != textEffect
+                    || newEffectColor != effectColor || newIconEffect != iconEffect
+                    || newIconEffectColor != iconEffectColor;
+
+            if (themeChanged || textChanged || layoutChanged || iconChanged || wallpaperChanged) {
+                rootLayout.setVisibility(View.INVISIBLE);
+                theme = newTheme;
+                customBgColor = newCustomBgColor;
+                customAccentColor = newCustomAccentColor;
+                hasWallpaper = newHasWallpaper;
+                textSize = newTextSize;
+                iconSize = newIconSize;
+                boldText = newBoldText;
+                appTextColor = newAppTextColor;
+                textEffect = newTextEffect;
+                effectColor = newEffectColor;
+                iconEffect = newIconEffect;
+                iconEffectColor = newIconEffectColor;
+                homeAlignment = newHomeAlignment;
+                homeVerticalAlignment = newHomeVerticalAlignment;
+                homeColumns = newHomeColumns;
+                homePages = newHomePages;
+                hidePagination = newHidePagination;
+                timePosition = newTimePosition;
+                timeFormat24h = newTimeFormat24h;
+                dateFormat = newDateFormat;
+                timeEffect = newTimeEffect;
+                timeEffectColor = newTimeEffectColor;
+                dateEffect = newDateEffect;
+                dateEffectColor = newDateEffectColor;
+                dateCalendarEvents = newDateCalendarEvents;
+                dateVerticalPosition = newDateVerticalPosition;
+                datePosition = newDatePosition;
+                dateHorizontalPosition = newDateHorizontalPosition;
+                timeHorizontalPosition = newTimeHorizontalPosition;
+                timeFontSize = newTimeFontSize;
+                timeColor = newTimeColor;
+                dateFontSize = newDateFontSize;
+                calendarEventFontSize = newCalendarEventFontSize;
+                dateColor = newDateColor;
+                homePaddingTop = newHomePaddingTop;
+                homePaddingBottom = newHomePaddingBottom;
+                homePaddingLeft = newHomePaddingLeft;
+                homePaddingRight = newHomePaddingRight;
+                updatePaddingPx();
+                fullMonthName = newFullMonthName;
+                batteryInfo = newBatteryInfo;
+                batteryPosition = newBatteryPosition;
+                if (newMaxApps != maxApps || newHomeColumns != homeColumns) {
+                    adjustSlotsForMaxAppsChange(maxApps, newMaxApps, newHomePages, newHomeColumns);
+                }
+                maxApps = newMaxApps;
+                showSettingsButton = newShowSettingsButton;
+                showSearchButton = newShowSearchButton;
+                settingsButtonSize = newSettingsButtonSize;
+                settingsButtonColor = newSettingsButtonColor;
+                settingsButtonEffect = newSettingsButtonEffect;
+                settingsButtonEffectColor = newSettingsButtonEffectColor;
+                searchButtonSize = newSearchButtonSize;
+                searchButtonColor = newSearchButtonColor;
+                searchButtonEffect = newSearchButtonEffect;
+                searchButtonEffectColor = newSearchButtonEffectColor;
+                clockAppPkg = newClockAppPkg;
+                dateAppPkg = newDateAppPkg;
+                showIcons = newShowIcons;
+                showAppNames = newShowAppNames;
+                appNamePosition = newAppNamePosition;
+                monochromeIcons = newMonochromeIcons;
+                dynamicIcons = newDynamicIcons;
+                dynamicColors = newDynamicColors;
+                invertIconColors = newInvertIconColors;
+                invertHomeColors = newInvertHomeColors;
+                iconBackground = newIconBackground;
+                iconShape = newIconShape;
+                calendarPermissionGranted = newCalendarPermissionGranted;
+
+                if (layoutChanged && !onlyAlignmentChanged) {
+                    recreateLayout();
+                }
+
+                if (themeChanged || wallpaperChanged || layoutChanged) {
+                    updateTheme();
+                }
+
+                if (textChanged) {
+                    updateTextStyles();
+                }
             }
-            maxApps = newMaxApps;
-            showSettingsButton = newShowSettingsButton;
-            showSearchButton = newShowSearchButton;
-            settingsButtonSize = newSettingsButtonSize;
-            settingsButtonColor = newSettingsButtonColor;
-            settingsButtonEffect = newSettingsButtonEffect;
-            settingsButtonEffectColor = newSettingsButtonEffectColor;
-            searchButtonSize = newSearchButtonSize;
-            searchButtonColor = newSearchButtonColor;
-            searchButtonEffect = newSearchButtonEffect;
-            searchButtonEffectColor = newSearchButtonEffectColor;
-            clockAppPkg = newClockAppPkg;
-            dateAppPkg = newDateAppPkg;
-            showIcons = newShowIcons;
-            showAppNames = newShowAppNames;
-            appNamePosition = newAppNamePosition;
-            monochromeIcons = newMonochromeIcons;
-            dynamicIcons = newDynamicIcons;
-            dynamicColors = newDynamicColors;
-            invertIconColors = newInvertIconColors;
-            invertHomeColors = newInvertHomeColors;
-            iconBackground = newIconBackground;
-            iconShape = newIconShape;
-            calendarPermissionGranted = newCalendarPermissionGranted;
 
-            if (layoutChanged && !onlyAlignmentChanged) {
-                recreateLayout();
+            if (onlyAlignmentChanged) {
+                homeAlignment = newHomeAlignment;
+                homeVerticalAlignment = newHomeVerticalAlignment;
+                monochromeIcons = newMonochromeIcons;
+                dynamicIcons = newDynamicIcons;
+                dynamicColors = newDynamicColors;
+                updateGravity();
             }
 
-            if (themeChanged || wallpaperChanged || layoutChanged) {
-                updateTheme();
-            }
-
-            if (textChanged) {
-                updateTextStyles();
+            if (visibilityChanged && !layoutChanged) {
+                showAppNames = newShowAppNames;
+                updateVisibility();
             }
         }
 
@@ -1309,22 +1332,6 @@ public class MainActivity extends Activity {
 
         LinearLayout bottomBar = findViewById(R.id.bottom_bar);
         bottomBar.setVisibility((homePages > 1 && !hidePagination) ? View.VISIBLE : View.GONE);
-        updateGravity();
-
-        if (onlyAlignmentChanged) {
-            homeAlignment = newHomeAlignment;
-            homeVerticalAlignment = newHomeVerticalAlignment;
-            monochromeIcons = newMonochromeIcons;
-            dynamicIcons = newDynamicIcons;
-            dynamicColors = newDynamicColors;
-            updateGravity();
-        }
-
-        if (visibilityChanged && !layoutChanged) {
-            showAppNames = newShowAppNames;
-            updateVisibility();
-        }
-
         updateGravity();
 
         loadWallpaper();
@@ -1848,6 +1855,14 @@ public class MainActivity extends Activity {
         unregisterReceiver(homeButtonReceiver);
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (prefsChangeListener != null) {
+            getSharedPreferences("prefs", MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(prefsChangeListener);
         }
     }
 
