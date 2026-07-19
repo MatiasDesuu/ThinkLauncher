@@ -172,6 +172,53 @@
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
+                        <ImageView
+                            android:id="@+id/btn_move_left"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/button_border"
+                            android:src="@drawable/chevron_up"
+                            android:rotation="-90"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:tint="?attr/text_color" />
+
+                        <ImageView
+                            android:id="@+id/btn_move_up"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/button_border"
+                            android:src="@drawable/chevron_up"
+                            android:rotation="0"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:tint="?attr/text_color" />
+
+                        <ImageView
+                            android:id="@+id/btn_move_down"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/button_border"
+                            android:src="@drawable/chevron_up"
+                            android:rotation="180"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:tint="?attr/text_color" />
+
+                        <ImageView
+                            android:id="@+id/btn_move_right"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/button_border"
+                            android:src="@drawable/chevron_up"
+                            android:rotation="90"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:tint="?attr/text_color" />
+
                     </LinearLayout>
 
                     <FrameLayout

@@ -124,7 +124,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
         // Zoom controls (must be declared before listener)
         View zoomContainer = findViewById(R.id.wallpaper_zoom_container);
         TextView zoomValueTv = zoomContainer.findViewById(R.id.value_text);
-        zoomValueTv.setText(String.valueOf((int)(savedScale * 100f)) + "%");
+        zoomValueTv.setText(Math.round(savedScale * 100f) + "%");
         TextView minusZoomBtn = zoomContainer.findViewById(R.id.btn_minus);
         TextView plusZoomBtn = zoomContainer.findViewById(R.id.btn_plus);
 
@@ -144,7 +144,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
             @Override
             public void onScaleChanged(float scale) {
                 prefs.edit().putFloat("wallpaper_scale", scale).apply();
-                zoomValueTv.setText((int)(scale * 100f) + "%");
+                zoomValueTv.setText(Math.round(scale * 100f) + "%");
             }
         });
 
@@ -153,7 +153,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
             float newScale = Math.max(1f, current - 0.1f);
             newScale = Math.round(newScale * 10f) / 10f;
             prefs.edit().putFloat("wallpaper_scale", newScale).apply();
-            zoomValueTv.setText((int)(newScale * 100f) + "%");
+            zoomValueTv.setText(Math.round(newScale * 100f) + "%");
             wallpaperPositionView.setScale(newScale);
         }));
 
@@ -162,9 +162,20 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
             float newScale = Math.min(3f, current + 0.1f);
             newScale = Math.round(newScale * 10f) / 10f;
             prefs.edit().putFloat("wallpaper_scale", newScale).apply();
-            zoomValueTv.setText((int)(newScale * 100f) + "%");
+            zoomValueTv.setText(Math.round(newScale * 100f) + "%");
             wallpaperPositionView.setScale(newScale);
         }));
+
+        // D-Pad directional nudges
+        float nudgeStep = 0.02f;
+        View.OnTouchListener moveUp = new RepeatListener(v -> nudgeOffset(0f, -nudgeStep));
+        View.OnTouchListener moveDown = new RepeatListener(v -> nudgeOffset(0f, nudgeStep));
+        View.OnTouchListener moveLeft = new RepeatListener(v -> nudgeOffset(-nudgeStep, 0f));
+        View.OnTouchListener moveRight = new RepeatListener(v -> nudgeOffset(nudgeStep, 0f));
+        findViewById(R.id.btn_move_up).setOnTouchListener(moveUp);
+        findViewById(R.id.btn_move_down).setOnTouchListener(moveDown);
+        findViewById(R.id.btn_move_left).setOnTouchListener(moveLeft);
+        findViewById(R.id.btn_move_right).setOnTouchListener(moveRight);
 
         // Reset position button
         LinearLayout resetButton = findViewById(R.id.reset_position_button);
@@ -297,6 +308,21 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
         updateWallpaperStatus();
 
         Toast.makeText(this, "Wallpaper removed", Toast.LENGTH_SHORT).show();
+    }
+
+    private void nudgeOffset(float dx, float dy) {
+        SharedPreferences p = getSharedPreferences("prefs", MODE_PRIVATE);
+        float curX = p.getFloat("wallpaper_offset_x", 0.5f);
+        float curY = p.getFloat("wallpaper_offset_y", 0.5f);
+        float newX = Math.max(0f, Math.min(1f, curX + dx));
+        float newY = Math.max(0f, Math.min(1f, curY + dy));
+        if (newX != curX || newY != curY) {
+            p.edit()
+                    .putFloat("wallpaper_offset_x", newX)
+                    .putFloat("wallpaper_offset_y", newY)
+                    .apply();
+            wallpaperPositionView.setPosition(newX, newY);
+        }
     }
 
     private void updateWallpaperStatus() {
