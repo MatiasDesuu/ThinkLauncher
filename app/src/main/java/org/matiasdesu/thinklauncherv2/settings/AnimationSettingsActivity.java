@@ -27,6 +27,7 @@ public class AnimationSettingsActivity extends AppCompatActivity {
 
     private int appIndexAnimation;
     private int appIndexSidebar;
+    private int dialogAnimations;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
@@ -76,6 +77,7 @@ public class AnimationSettingsActivity extends AppCompatActivity {
 
         appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
         appIndexAnimation = prefs.getInt("app_index_animation", 0);
+        dialogAnimations = prefs.getInt("dialog_animations", 0);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
@@ -100,6 +102,25 @@ public class AnimationSettingsActivity extends AppCompatActivity {
             appIndexAnimation = (appIndexAnimation + 1) % 2;
             appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
             prefs.edit().putInt("app_index_animation", appIndexAnimation).apply();
+        });
+
+        View dialogAnimationsContainer = findViewById(R.id.dialog_animations_container);
+        TextView dialogAnimationsValueTv = dialogAnimationsContainer.findViewById(R.id.value_text);
+        dialogAnimationsValueTv.setText(getOnOffText(dialogAnimations));
+
+        TextView minusDialogBtn = dialogAnimationsContainer.findViewById(R.id.btn_minus);
+        TextView plusDialogBtn = dialogAnimationsContainer.findViewById(R.id.btn_plus);
+
+        minusDialogBtn.setOnClickListener(v -> {
+            dialogAnimations = (dialogAnimations - 1 + 2) % 2;
+            dialogAnimationsValueTv.setText(getOnOffText(dialogAnimations));
+            prefs.edit().putInt("dialog_animations", dialogAnimations).apply();
+        });
+
+        plusDialogBtn.setOnClickListener(v -> {
+            dialogAnimations = (dialogAnimations + 1) % 2;
+            dialogAnimationsValueTv.setText(getOnOffText(dialogAnimations));
+            prefs.edit().putInt("dialog_animations", dialogAnimations).apply();
         });
 
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);

@@ -3,13 +3,15 @@ package org.matiasdesu.thinklauncherv2.utils;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.view.Window;
+
+import org.matiasdesu.thinklauncherv2.R;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -24,6 +26,10 @@ public final class DialogEffectHelper {
             window.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             applyDialogBlur(window, dialog.getContext());
+            SharedPreferences prefs = dialog.getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
+            if (prefs.getInt("dialog_animations", 0) == 1) {
+                window.setWindowAnimations(R.style.DialogAnimation);
+            }
         }
         return getSurfaceColor(dialog.getContext(), theme);
     }
