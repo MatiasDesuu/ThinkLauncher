@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -486,9 +487,26 @@ public class AppLauncherActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            String action = prefs.getString("hardware_key_volume_up", "");
+            if (action != null && !action.isEmpty()) {
+                launchApp("", action);
+                return true;
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            String action = prefs.getString("hardware_key_volume_down", "");
+            if (action != null && !action.isEmpty()) {
+                launchApp("", action);
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(0, 0);
     }
 
     private void buildIndexSidebar() {

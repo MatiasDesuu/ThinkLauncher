@@ -108,6 +108,9 @@
             android:name=".settings.AnimationSettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.HardwareKeysSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.AppLauncherActivity"
             android:exported="false" />
         <activity

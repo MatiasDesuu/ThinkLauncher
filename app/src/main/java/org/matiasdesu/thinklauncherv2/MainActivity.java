@@ -31,6 +31,7 @@ import android.provider.CalendarContract;
 import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
@@ -2337,6 +2338,25 @@ public class MainActivity extends Activity {
                 updateSlot(position);
             }
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            String action = prefs.getString("hardware_key_volume_up", "");
+            if (action != null && !action.isEmpty()) {
+                launchApp(action);
+                return true;
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            String action = prefs.getString("hardware_key_volume_down", "");
+            if (action != null && !action.isEmpty()) {
+                launchApp(action);
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override

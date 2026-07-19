@@ -115,6 +115,13 @@ public class SettingsActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
+        LinearLayout hardwareKeysButton = findViewById(R.id.hardware_keys_button);
+        hardwareKeysButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HardwareKeysSettingsActivity.class);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+        });
+
         LinearLayout hideAppsButton = findViewById(R.id.hide_apps_button);
         hideAppsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, HideAppsActivity.class);
