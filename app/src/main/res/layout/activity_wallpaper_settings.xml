@@ -192,6 +192,68 @@
 
                     </FrameLayout>
 
+                    <!-- Zoom Scale -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_margin="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/text_size"
+                            android:layout_marginEnd="8dp"
+                            android:tint="?attr/text_color" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Zoom Scale:"
+                            android:textColor="?attr/text_color"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <include layout="@layout/plus_minus_layout"
+                            android:id="@+id/wallpaper_zoom_container" />
+
+                    </LinearLayout>
+
+                    <!-- Reset Position -->
+                    <LinearLayout
+                        android:id="@+id/reset_position_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_margin="16dp"
+                        android:clickable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/clean"
+                            android:layout_marginEnd="8dp"
+                            android:tint="?attr/text_color" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Reset Position:"
+                            android:textColor="?attr/text_color"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            style="@style/GestureAppButton"
+                            android:id="@+id/reset_button_text"
+                            android:text="Reset" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
 
             </LinearLayout>

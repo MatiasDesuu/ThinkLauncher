@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.RepeatListener;
 import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
@@ -116,12 +117,20 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
 
         float savedOffsetX = prefs.getFloat("wallpaper_offset_x", 0.5f);
         float savedOffsetY = prefs.getFloat("wallpaper_offset_y", 0.5f);
+        float savedScale = prefs.getFloat("wallpaper_scale", 1f);
         wallpaperPositionView.setPosition(savedOffsetX, savedOffsetY);
+        wallpaperPositionView.setScale(savedScale);
+
+        // Zoom controls (must be declared before listener)
+        View zoomContainer = findViewById(R.id.wallpaper_zoom_container);
+        TextView zoomValueTv = zoomContainer.findViewById(R.id.value_text);
+        zoomValueTv.setText(String.valueOf((int)(savedScale * 100f)) + "%");
+        TextView minusZoomBtn = zoomContainer.findViewById(R.id.btn_minus);
+        TextView plusZoomBtn = zoomContainer.findViewById(R.id.btn_plus);
 
         wallpaperPositionView.setOnPositionChangedListener(new WallpaperPositionView.OnPositionChangedListener() {
             @Override
             public void onPositionChanged(float offsetX, float offsetY) {
-                // Just update local variables if needed, or do nothing here for performance
             }
 
             @Override
@@ -131,6 +140,44 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
                         .putFloat("wallpaper_offset_y", offsetY)
                         .apply();
             }
+
+            @Override
+            public void onScaleChanged(float scale) {
+                prefs.edit().putFloat("wallpaper_scale", scale).apply();
+                zoomValueTv.setText((int)(scale * 100f) + "%");
+            }
+        });
+
+        minusZoomBtn.setOnTouchListener(new RepeatListener(v -> {
+            float current = prefs.getFloat("wallpaper_scale", 1f);
+            float newScale = Math.max(1f, current - 0.1f);
+            newScale = Math.round(newScale * 10f) / 10f;
+            prefs.edit().putFloat("wallpaper_scale", newScale).apply();
+            zoomValueTv.setText((int)(newScale * 100f) + "%");
+            wallpaperPositionView.setScale(newScale);
+        }));
+
+        plusZoomBtn.setOnTouchListener(new RepeatListener(v -> {
+            float current = prefs.getFloat("wallpaper_scale", 1f);
+            float newScale = Math.min(3f, current + 0.1f);
+            newScale = Math.round(newScale * 10f) / 10f;
+            prefs.edit().putFloat("wallpaper_scale", newScale).apply();
+            zoomValueTv.setText((int)(newScale * 100f) + "%");
+            wallpaperPositionView.setScale(newScale);
+        }));
+
+        // Reset position button
+        LinearLayout resetButton = findViewById(R.id.reset_position_button);
+        resetButton.setOnClickListener(v -> {
+            prefs.edit()
+                    .putFloat("wallpaper_offset_x", 0.5f)
+                    .putFloat("wallpaper_offset_y", 0.5f)
+                    .putFloat("wallpaper_scale", 1f)
+                    .apply();
+            wallpaperPositionView.setPosition(0.5f, 0.5f);
+            wallpaperPositionView.setScale(1f);
+            zoomValueTv.setText("100%");
+            loadWallpaperPreview();
         });
 
         loadWallpaperPreview();
@@ -241,8 +288,10 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
         prefs.edit()
                 .putFloat("wallpaper_offset_x", 0.5f)
                 .putFloat("wallpaper_offset_y", 0.5f)
+                .putFloat("wallpaper_scale", 1f)
                 .apply();
         wallpaperPositionView.setPosition(0.5f, 0.5f);
+        wallpaperPositionView.setScale(1f);
         wallpaperPositionView.setWallpaperBitmap(null);
 
         updateWallpaperStatus();

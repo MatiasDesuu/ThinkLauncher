@@ -26,15 +26,18 @@ public class WallpaperPositionView extends View {
     
     private float offsetX = 0.5f; // 0.0 = left, 1.0 = right
     private float offsetY = 0.5f; // 0.0 = top, 1.0 = bottom
-    
+    private float scale = 1f;
     private float screenAspectRatio;
     private OnPositionChangedListener listener;
     private float lastTouchX;
     private float lastTouchY;
+    private float lastPinchDist;
+    private boolean isPinching;
 
     public interface OnPositionChangedListener {
         void onPositionChanged(float offsetX, float offsetY);
         void onPositionChangeFinished(float offsetX, float offsetY);
+        void onScaleChanged(float scale);
     }
 
     public WallpaperPositionView(Context context) {
@@ -97,6 +100,16 @@ public class WallpaperPositionView extends View {
         invalidate();
     }
 
+    public float getOffsetX() { return offsetX; }
+    public float getOffsetY() { return offsetY; }
+
+    public void setScale(float scale) {
+        this.scale = Math.max(1f, scale);
+        invalidate();
+    }
+
+    public float getScale() { return scale; }
+
     public void setOnPositionChangedListener(OnPositionChangedListener listener) {
         this.listener = listener;
     }
@@ -142,21 +155,25 @@ public class WallpaperPositionView extends View {
         float screenRatio = previewWidth / previewHeight;
         float bitmapRatio = bitmapWidth / bitmapHeight;
 
-        float srcLeft, srcTop, srcWidth, srcHeight;
-
+        float baseWidth, baseHeight;
         if (bitmapRatio > screenRatio) {
-            // Bitmap is wider than screen - crop horizontally
-            srcHeight = bitmapHeight;
-            srcWidth = bitmapHeight * screenRatio;
-            srcTop = 0;
-            srcLeft = (bitmapWidth - srcWidth) * offsetX;
+            baseWidth = bitmapHeight * screenRatio;
+            baseHeight = bitmapHeight;
         } else {
-            // Bitmap is taller than screen - crop vertically
-            srcWidth = bitmapWidth;
-            srcHeight = bitmapWidth / screenRatio;
-            srcLeft = 0;
-            srcTop = (bitmapHeight - srcHeight) * offsetY;
+            baseWidth = bitmapWidth;
+            baseHeight = bitmapWidth / screenRatio;
         }
+
+        float srcWidth = baseWidth / scale;
+        float srcHeight = baseHeight / scale;
+        float srcLeft = (bitmapWidth - srcWidth) * offsetX;
+        float srcTop = (bitmapHeight - srcHeight) * offsetY;
+
+        // Clamp to bitmap bounds
+        if (srcLeft < 0) srcLeft = 0;
+        if (srcTop < 0) srcTop = 0;
+        if (srcLeft + srcWidth > bitmapWidth) srcLeft = bitmapWidth - srcWidth;
+        if (srcTop + srcHeight > bitmapHeight) srcTop = bitmapHeight - srcHeight;
 
         // Update rectangles
         srcRectInt.set((int)srcLeft, (int)srcTop, (int)(srcLeft + srcWidth), (int)(srcTop + srcHeight));
@@ -171,68 +188,128 @@ public class WallpaperPositionView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (wallpaperBitmap == null) return false;
 
-        float x = event.getX();
-        float y = event.getY();
+        int action = event.getActionMasked();
 
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                lastTouchX = x;
-                lastTouchY = y;
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
+                lastTouchX = event.getX();
+                lastTouchY = event.getY();
+                isPinching = false;
                 return true;
+            }
 
-            case MotionEvent.ACTION_MOVE:
-                float dx = x - lastTouchX;
-                float dy = y - lastTouchY;
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                if (event.getPointerCount() >= 2) {
+                    isPinching = true;
+                    float dx = event.getX(0) - event.getX(1);
+                    float dy = event.getY(0) - event.getY(1);
+                    lastPinchDist = (float) Math.sqrt(dx * dx + dy * dy);
+                }
+                return true;
+            }
 
-                float bitmapWidth = wallpaperBitmap.getWidth();
-                float bitmapHeight = wallpaperBitmap.getHeight();
-                float previewWidth = screenRect.width();
-                float previewHeight = screenRect.height();
-                
-                float screenRatio = previewWidth / previewHeight;
-                float bitmapRatio = bitmapWidth / bitmapHeight;
+            case MotionEvent.ACTION_MOVE: {
+                if (isPinching && event.getPointerCount() >= 2) {
+                    float dx = event.getX(0) - event.getX(1);
+                    float dy = event.getY(0) - event.getY(1);
+                    float dist = (float) Math.sqrt(dx * dx + dy * dy);
 
-                float newOffsetX = offsetX;
-                float newOffsetY = offsetY;
+                    if (lastPinchDist > 0) {
+                        float ratio = dist / lastPinchDist;
+                        float newScale = Math.max(1f, Math.min(3f, scale * ratio));
+                        if (newScale != scale) {
+                            scale = newScale;
+                            invalidate();
+                            if (listener != null) {
+                                listener.onScaleChanged(scale);
+                            }
+                        }
+                    }
+                    lastPinchDist = dist;
+                    return true;
+                }
 
-                if (bitmapRatio > screenRatio) {
-                    // Horizontal movement
-                    float srcWidth = bitmapHeight * screenRatio;
+                if (!isPinching) {
+                    float x = event.getX();
+                    float y = event.getY();
+                    float dx = x - lastTouchX;
+                    float dy = y - lastTouchY;
+
+                    float bitmapWidth = wallpaperBitmap.getWidth();
+                    float bitmapHeight = wallpaperBitmap.getHeight();
+                    float previewWidth = screenRect.width();
+                    float previewHeight = screenRect.height();
+
+                    float screenRatio = previewWidth / previewHeight;
+                    float bitmapRatio = bitmapWidth / bitmapHeight;
+
+                    float baseWidth, baseHeight;
+                    if (bitmapRatio > screenRatio) {
+                        baseWidth = bitmapHeight * screenRatio;
+                        baseHeight = bitmapHeight;
+                    } else {
+                        baseWidth = bitmapWidth;
+                        baseHeight = bitmapWidth / screenRatio;
+                    }
+
+                    float srcWidth = baseWidth / scale;
+                    float srcHeight = baseHeight / scale;
+
+                    float newOffsetX = offsetX;
+                    float newOffsetY = offsetY;
+
                     float movableWidth = bitmapWidth - srcWidth;
                     if (movableWidth > 0) {
                         float deltaX = (dx * srcWidth) / (previewWidth * movableWidth);
                         newOffsetX = Math.max(0, Math.min(1, offsetX - deltaX));
                     }
-                } else {
-                    // Vertical movement
-                    float srcHeight = bitmapWidth / screenRatio;
+
                     float movableHeight = bitmapHeight - srcHeight;
                     if (movableHeight > 0) {
                         float deltaY = (dy * srcHeight) / (previewHeight * movableHeight);
                         newOffsetY = Math.max(0, Math.min(1, offsetY - deltaY));
                     }
+
+                    if (newOffsetX != offsetX || newOffsetY != offsetY) {
+                        offsetX = newOffsetX;
+                        offsetY = newOffsetY;
+                        invalidate();
+
+                        if (listener != null) {
+                            listener.onPositionChanged(offsetX, offsetY);
+                        }
+                    }
+
+                    lastTouchX = x;
+                    lastTouchY = y;
                 }
+                return true;
+            }
 
-                if (newOffsetX != offsetX || newOffsetY != offsetY) {
-                    offsetX = newOffsetX;
-                    offsetY = newOffsetY;
-                    invalidate();
+            case MotionEvent.ACTION_POINTER_UP: {
+                int pointerIndex = event.getActionIndex();
+                int remainingCount = event.getPointerCount() - 1;
 
-                    if (listener != null) {
-                        listener.onPositionChanged(offsetX, offsetY);
+                if (isPinching && remainingCount < 2) {
+                    isPinching = false;
+                    // Transfer drag tracking to the remaining finger
+                    if (remainingCount == 1) {
+                        int otherIndex = (pointerIndex == 0) ? 1 : 0;
+                        lastTouchX = event.getX(otherIndex);
+                        lastTouchY = event.getY(otherIndex);
                     }
                 }
-
-                lastTouchX = x;
-                lastTouchY = y;
                 return true;
+            }
 
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_UP: {
                 if (listener != null) {
                     listener.onPositionChangeFinished(offsetX, offsetY);
                 }
+                isPinching = false;
                 performClick();
                 return true;
+            }
         }
 
         return super.onTouchEvent(event);

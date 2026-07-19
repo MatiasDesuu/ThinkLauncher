@@ -39,12 +39,14 @@ public class WallpaperHelper {
         SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
         float offsetX = prefs.getFloat("wallpaper_offset_x", 0.5f);
         float offsetY = prefs.getFloat("wallpaper_offset_y", 0.5f);
+        float scale = prefs.getFloat("wallpaper_scale", 1f);
 
         return screenWidth + "x" + screenHeight
                 + "|blur=" + (blur ? 1 : 0)
                 + "|s=" + blurStrength
                 + "|ox=" + offsetX
                 + "|oy=" + offsetY
+                + "|sc=" + scale
                 + "|lm=" + lastModified
                 + "|len=" + length;
     }
@@ -154,8 +156,9 @@ public class WallpaperHelper {
         SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
         float offsetX = prefs.getFloat("wallpaper_offset_x", 0.5f);
         float offsetY = prefs.getFloat("wallpaper_offset_y", 0.5f);
+        float scale = prefs.getFloat("wallpaper_scale", 1f);
 
-        return cropWallpaperForScreen(wallpaper, screenWidth, screenHeight, offsetX, offsetY);
+        return cropWallpaperForScreen(wallpaper, screenWidth, screenHeight, offsetX, offsetY, scale);
     }
 
     public static Bitmap getWallpaperForScreen(Context context, int screenWidth, int screenHeight, boolean blur) {
@@ -172,11 +175,17 @@ public class WallpaperHelper {
     }
 
     /**
-     * Crop and scale wallpaper to fit screen with given offset
+     * Crop and scale wallpaper to fit screen with given offset and zoom
      */
     public static Bitmap cropWallpaperForScreen(Bitmap bitmap, int screenWidth, int screenHeight, 
                                                  float offsetX, float offsetY) {
+        return cropWallpaperForScreen(bitmap, screenWidth, screenHeight, offsetX, offsetY, 1f);
+    }
+
+    public static Bitmap cropWallpaperForScreen(Bitmap bitmap, int screenWidth, int screenHeight, 
+                                                 float offsetX, float offsetY, float scale) {
         if (bitmap == null) return null;
+        if (scale < 1f) scale = 1f;
 
         float bitmapWidth = bitmap.getWidth();
         float bitmapHeight = bitmap.getHeight();
@@ -184,32 +193,35 @@ public class WallpaperHelper {
         float screenRatio = (float) screenWidth / screenHeight;
         float bitmapRatio = bitmapWidth / bitmapHeight;
 
-        float srcLeft, srcTop, srcWidth, srcHeight;
-
+        float baseWidth, baseHeight;
         if (bitmapRatio > screenRatio) {
-            // Bitmap is wider than screen - crop horizontally
-            srcHeight = bitmapHeight;
-            srcWidth = bitmapHeight * screenRatio;
-            srcTop = 0;
-            srcLeft = (bitmapWidth - srcWidth) * offsetX;
+            baseWidth = bitmapHeight * screenRatio;
+            baseHeight = bitmapHeight;
         } else {
-            // Bitmap is taller than screen - crop vertically
-            srcWidth = bitmapWidth;
-            srcHeight = bitmapWidth / screenRatio;
-            srcLeft = 0;
-            srcTop = (bitmapHeight - srcHeight) * offsetY;
+            baseWidth = bitmapWidth;
+            baseHeight = bitmapWidth / screenRatio;
         }
+
+        float srcWidth = baseWidth / scale;
+        float srcHeight = baseHeight / scale;
+        float srcLeft = (bitmapWidth - srcWidth) * offsetX;
+        float srcTop = (bitmapHeight - srcHeight) * offsetY;
+
+        // Clamp to bitmap bounds
+        if (srcLeft < 0) srcLeft = 0;
+        if (srcTop < 0) srcTop = 0;
+        if (srcLeft + srcWidth > bitmapWidth) srcLeft = bitmapWidth - srcWidth;
+        if (srcTop + srcHeight > bitmapHeight) srcTop = bitmapHeight - srcHeight;
 
         // Create output bitmap
         Bitmap result = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(result);
 
         // Draw the cropped portion of the wallpaper
-        RectF srcRect = new RectF(srcLeft, srcTop, srcLeft + srcWidth, srcTop + srcHeight);
         RectF dstRect = new RectF(0, 0, screenWidth, screenHeight);
         
         canvas.drawBitmap(bitmap,
-            new android.graphics.Rect((int)srcRect.left, (int)srcRect.top, (int)srcRect.right, (int)srcRect.bottom),
+            new android.graphics.Rect((int)srcLeft, (int)srcTop, (int)(srcLeft + srcWidth), (int)(srcTop + srcHeight)),
             new android.graphics.Rect((int)dstRect.left, (int)dstRect.top, (int)dstRect.right, (int)dstRect.bottom),
             null);
 
