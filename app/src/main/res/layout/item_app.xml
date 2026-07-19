@@ -40,7 +40,8 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:padding="8dp"
-                android:src="@drawable/arrow_up"
+                android:src="@drawable/back_arrow"
+                android:rotation="90"
                 android:tint="?attr/text_color" />
 
             <ImageView
@@ -48,7 +49,8 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:padding="8dp"
-                android:src="@drawable/arrow_down"
+                android:src="@drawable/back_arrow"
+                android:rotation="270"
                 android:tint="?attr/text_color" />
 
         </LinearLayout>
