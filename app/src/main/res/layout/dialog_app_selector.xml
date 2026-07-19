@@ -54,6 +54,15 @@
             android:layout_width="match_parent"
             android:layout_height="2dp" />
 
+        <LinearLayout
+            android:id="@+id/index_sidebar_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:focusable="false" />
+
         <FrameLayout
             android:id="@+id/app_list_container"
             android:layout_width="match_parent"

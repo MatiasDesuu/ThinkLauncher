@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.ui.SwipePageNavigator;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
@@ -63,6 +64,8 @@ public class AppLauncherActivity extends AppCompatActivity {
     private boolean opacityEnabled;
     private int appIndexSidebar;
     private LinearLayout indexSidebar;
+    private LinearLayout indexSidebarHorizontal;
+    private SwipePageNavigator pageNavigator;
     private String[] sidebarLetters;
     private int highlightedLetterIndex = -1;
     private int sidebarLetterTextSize = 12;
@@ -156,7 +159,7 @@ public class AppLauncherActivity extends AppCompatActivity {
             }
         });
 
-        SwipePageNavigator pageNavigator = null;
+        pageNavigator = null;
 
         if (!scrollAppList) {
             pageNavigator = new SwipePageNavigator(this, recyclerView, container,
@@ -164,6 +167,12 @@ public class AppLauncherActivity extends AppCompatActivity {
                         @Override
                         public void onPageChanged(int newPage) {
                             currentPage = newPage;
+                            highlightedLetterIndex = -1;
+                            if (indexSidebarHorizontal != null && !scrollAppList) {
+                                int textColor = ThemeUtils.getTextColor(theme, AppLauncherActivity.this);
+                                int bgColor = ThemeUtils.getBgColor(theme, AppLauncherActivity.this);
+                                updateHorizontalSidebarHighlight(textColor, bgColor);
+                            }
                             recyclerView.getAdapter().notifyDataSetChanged();
                             updatePageIndicator();
                             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
@@ -206,6 +215,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         loadApps(installedAppLabels, installedAppPackages);
 
         indexSidebar = findViewById(R.id.index_sidebar);
+        indexSidebarHorizontal = findViewById(R.id.index_sidebar_horizontal);
         buildIndexSidebar();
 
         launcherAdapter = new AppLauncherAdapter(filteredApps, this, theme);
@@ -476,10 +486,11 @@ public class AppLauncherActivity extends AppCompatActivity {
     }
 
     private void buildIndexSidebar() {
-        if (indexSidebar == null) return;
+        if (indexSidebar == null || indexSidebarHorizontal == null) return;
 
-        if (!scrollAppList || appIndexSidebar == 0 || filteredApps == null || filteredApps.isEmpty()) {
+        if (appIndexSidebar == 0 || filteredApps == null || filteredApps.isEmpty()) {
             indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.setVisibility(View.GONE);
             return;
         }
 
@@ -495,6 +506,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         }
         if (letterSet.isEmpty()) {
             indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.setVisibility(View.GONE);
             return;
         }
 
@@ -503,56 +515,140 @@ public class AppLauncherActivity extends AppCompatActivity {
         for (Character c : letterSet) {
             sidebarLetters[idx++] = String.valueOf(c);
         }
-
-        indexSidebar.removeAllViews();
-        int textColor = ThemeUtils.getTextColor(theme, this);
         int count = sidebarLetters.length;
-        float density = getResources().getDisplayMetrics().density;
-
-        for (int i = 0; i < count; i++) {
-            TextView tv = new TextView(this);
-            tv.setText(sidebarLetters[i]);
-            tv.setTextSize(sidebarLetterTextSize);
-            tv.setTextColor(textColor);
-            tv.setGravity(android.view.Gravity.CENTER);
-            tv.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
-            indexSidebar.addView(tv);
-        }
-
-        indexSidebar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        int textColor = ThemeUtils.getTextColor(theme, this);
         highlightedLetterIndex = -1;
 
-        indexSidebar.setOnTouchListener((v, event) -> {
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE: {
-                    int letterIdx = (int) (event.getY() / (v.getHeight() / (float) count));
-                    if (letterIdx < 0) letterIdx = 0;
-                    if (letterIdx >= count) letterIdx = count - 1;
-                    if (letterIdx != highlightedLetterIndex) {
-                        highlightedLetterIndex = letterIdx;
-                        updateSidebarHighlight(textColor);
-                        scrollToLetter(sidebarLetters[letterIdx]);
-                    }
-                    return true;
-                }
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    highlightedLetterIndex = -1;
-                    updateSidebarHighlight(textColor);
-                    return true;
-            }
-            return false;
-        });
+        if (scrollAppList) {
+            indexSidebarHorizontal.setVisibility(View.GONE);
 
-        indexSidebar.setVisibility(View.VISIBLE);
+            indexSidebar.removeAllViews();
+            for (int i = 0; i < count; i++) {
+                TextView tv = new TextView(this);
+                tv.setText(sidebarLetters[i]);
+                tv.setTextSize(sidebarLetterTextSize);
+                tv.setTextColor(textColor);
+                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+                indexSidebar.addView(tv);
+            }
+            indexSidebar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+            indexSidebar.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_MOVE: {
+                        int letterIdx = (int) (event.getY() / (v.getHeight() / (float) count));
+                        if (letterIdx < 0) letterIdx = 0;
+                        if (letterIdx >= count) letterIdx = count - 1;
+                        if (letterIdx != highlightedLetterIndex) {
+                            highlightedLetterIndex = letterIdx;
+                            updateVerticalSidebarHighlight(textColor);
+                            scrollToLetter(sidebarLetters[letterIdx]);
+                        }
+                        return true;
+                    }
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        highlightedLetterIndex = -1;
+                        updateVerticalSidebarHighlight(textColor);
+                        return true;
+                }
+                return false;
+            });
+
+            indexSidebar.setVisibility(View.VISIBLE);
+        } else {
+            indexSidebar.setVisibility(View.GONE);
+
+            indexSidebarHorizontal.removeAllViews();
+            float density = getResources().getDisplayMetrics().density;
+            int horizTextSize = (int) (sidebarLetterTextSize * 0.9f);
+
+            int bgColor = ThemeUtils.getBgColor(theme, this);
+            for (int i = 0; i < count; i++) {
+                TextView tv = new TextView(this);
+                tv.setText(sidebarLetters[i]);
+                tv.setTextSize(horizTextSize);
+                tv.setTextColor(textColor);
+                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setLayoutParams(new LinearLayout.LayoutParams(0,
+                        LinearLayout.LayoutParams.MATCH_PARENT, 1f));
+                indexSidebarHorizontal.addView(tv);
+            }
+            indexSidebarHorizontal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+            indexSidebarHorizontal.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_MOVE: {
+                        int letterIdx = (int) (event.getX() / (v.getWidth() / (float) count));
+                        if (letterIdx < 0) letterIdx = 0;
+                        if (letterIdx >= count) letterIdx = count - 1;
+                        if (letterIdx != highlightedLetterIndex) {
+                            highlightedLetterIndex = letterIdx;
+                            updateHorizontalSidebarHighlight(textColor, bgColor);
+                            navigateToLetterPage(sidebarLetters[letterIdx]);
+                        }
+                        return true;
+                    }
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        return true;
+                }
+                return false;
+            });
+
+            indexSidebarHorizontal.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void updateSidebarHighlight(int textColor) {
+    private void navigateToLetterPage(String letter) {
+        if (filteredApps == null || filteredApps.isEmpty()) return;
+
+        char target = letter.charAt(0);
+        for (int i = 0; i < filteredApps.size(); i++) {
+            String label = filteredApps.get(i).label;
+            if (label != null && !label.isEmpty()
+                    && Character.toUpperCase(label.charAt(0)) == target) {
+                int targetPage = i / itemsPerPage;
+                int totalPages = (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
+                if (targetPage >= totalPages) targetPage = totalPages - 1;
+                if (targetPage < 0) targetPage = 0;
+
+                currentPage = targetPage;
+                if (pageNavigator != null) {
+                    pageNavigator.setCurrentPage(targetPage);
+                }
+                launcherAdapter.notifyDataSetChanged();
+                updatePageIndicator();
+                EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                return;
+            }
+        }
+    }
+
+    private void updateVerticalSidebarHighlight(int textColor) {
         int bgColor = ThemeUtils.getBgColor(theme, this);
         for (int i = 0; i < indexSidebar.getChildCount(); i++) {
             View child = indexSidebar.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView tv = (TextView) child;
+                if (i == highlightedLetterIndex) {
+                    tv.setBackgroundColor(textColor);
+                    tv.setTextColor(bgColor);
+                } else {
+                    tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    tv.setTextColor(textColor);
+                }
+            }
+        }
+    }
+
+    private void updateHorizontalSidebarHighlight(int textColor, int bgColor) {
+        for (int i = 0; i < indexSidebarHorizontal.getChildCount(); i++) {
+            View child = indexSidebarHorizontal.getChildAt(i);
             if (child instanceof TextView) {
                 TextView tv = (TextView) child;
                 if (i == highlightedLetterIndex) {
