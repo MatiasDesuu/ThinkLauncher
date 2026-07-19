@@ -1324,6 +1324,8 @@ public class MainActivity extends Activity {
                 showAppNames = newShowAppNames;
                 updateVisibility();
             }
+
+            loadWallpaper();
         }
 
         TextView pageIndicator = findViewById(R.id.page_indicator);
@@ -1333,8 +1335,6 @@ public class MainActivity extends Activity {
         LinearLayout bottomBar = findViewById(R.id.bottom_bar);
         bottomBar.setVisibility((homePages > 1 && !hidePagination) ? View.VISIBLE : View.GONE);
         updateGravity();
-
-        loadWallpaper();
 
         if (timeView != null && timeSdf != null) {
             timeView.setText(timeSdf.format(new Date()));

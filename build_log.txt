@@ -1,48 +1,42 @@
-> Task :app:clean
-> Task :app:preBuild UP-TO-DATE
-> Task :app:preDebugBuild UP-TO-DATE
-> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
-> Task :app:javaPreCompileDebug
-> Task :app:generateDebugResValues
-> Task :app:checkDebugAarMetadata
-> Task :app:mapDebugSourceSetPaths
-> Task :app:generateDebugResources
-> Task :app:packageDebugResources
-> Task :app:createDebugCompatibleScreenManifests
-> Task :app:extractDeepLinksDebug
-> Task :app:processDebugMainManifest
-> Task :app:parseDebugLocalResources
-> Task :app:processDebugManifest
-> Task :app:mergeDebugShaders
-> Task :app:compileDebugShaders NO-SOURCE
-> Task :app:generateDebugAssets UP-TO-DATE
-> Task :app:mergeDebugAssets
-> Task :app:compressDebugAssets
-> Task :app:processDebugJavaRes NO-SOURCE
-> Task :app:desugarDebugFileDependencies
-> Task :app:mergeDebugJniLibFolders
-> Task :app:mergeDebugNativeLibs NO-SOURCE
-> Task :app:stripDebugDebugSymbols NO-SOURCE
-> Task :app:validateSigningDebug
-> Task :app:writeDebugAppMetadata
-> Task :app:checkDebugDuplicateClasses
-> Task :app:writeDebugSigningConfigVersions
-> Task :app:mergeLibDexDebug
-> Task :app:processDebugManifestForPackage
-> Task :app:mergeExtDexDebug
-> Task :app:mergeDebugResources
-> Task :app:processDebugResources
-
-> Task :app:compileDebugJavaWithJavac
-
-> Task :app:mergeDebugJavaResource
-> Task :app:dexBuilderDebug
-> Task :app:mergeProjectDexDebug
-> Task :app:packageDebug
-> Task :app:createDebugApkListingFileRedirect
-> Task :app:assembleDebug
+> Task :app:clean FAILED
 
 [Incubating] Problems report is available at: file:///E:/Documents/Projects/Apps/ThinkLauncher/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:clean'.
+> java.io.IOException: Unable to delete directory 'E:\Documents\Projects\Apps\ThinkLauncher\app\build'
+    Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates
+    New files were found. This might happen because a process is still writing to the target directory.
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\sub_project_dex_archive
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\sub_project_dex_archive\debug
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\sub_project_dex_archive\debug\dexBuilderDebug
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\sub_project_dex_archive\debug\dexBuilderDebug\out
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu\thinklauncherv2
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu\thinklauncherv2\views
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu\thinklauncherv2\views\WallpaperPositionView.dex
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu\thinklauncherv2\views\WallpaperPositionView$OnPositionChangedListener.dex
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu\thinklauncherv2\views\ColorPickerView.dex
+    - E:\Documents\Projects\Apps\ThinkLauncher\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\org\matiasdesu\thinklauncherv2\views\ColorPickerView$OnColorChangedListener.dex
+    - and more ...
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
 
@@ -50,6 +44,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 10s
-32 actionable tasks: 32 executed
-Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html
+BUILD FAILED in 4s
+1 actionable task: 1 executed
