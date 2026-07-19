@@ -15,10 +15,12 @@ import android.text.TextWatcher;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -57,6 +59,14 @@ public class AppSelectorActivity extends AppCompatActivity {
     private boolean opacityEnabled;
     private boolean showWallpaperBackdrop;
     private int selectorSurfaceColor;
+    private int appIndexSidebar;
+    private LinearLayout indexSidebar;
+    private LinearLayout indexSidebarHorizontal;
+    private SwipePageNavigator pageNavigator;
+    private String[] sidebarLetters;
+    private int highlightedLetterIndex = -1;
+    private int sidebarLetterTextSize = 12;
+    private AppSelectorAdapter adapter;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -131,7 +141,7 @@ public class AppSelectorActivity extends AppCompatActivity {
             }
         });
 
-        SwipePageNavigator pageNavigator = null;
+        pageNavigator = null;
 
         if (!scrollAppList) {
             pageNavigator = new SwipePageNavigator(this, recyclerView, container,
@@ -141,6 +151,7 @@ public class AppSelectorActivity extends AppCompatActivity {
                             currentPage = newPage;
                             recyclerView.getAdapter().notifyDataSetChanged();
                             updatePageIndicator();
+                            clearSidebarHighlight();
                             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
                         }
 
@@ -232,7 +243,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         }
         filteredApps = new ArrayList<>(originalApps);
 
-        AppSelectorAdapter adapter = new AppSelectorAdapter(filteredApps, this, theme);
+        adapter = new AppSelectorAdapter(filteredApps, this, theme);
         recyclerView.setAdapter(adapter);
 
         if (!scrollAppList && pageNavigator != null) {
@@ -248,6 +259,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         et.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         et.setSingleLine(true);
         et.setCursorVisible(false);
+        et.setMovementMethod(null);
         et.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -267,12 +279,18 @@ public class AppSelectorActivity extends AppCompatActivity {
                 currentPage = 0;
                 adapter.notifyDataSetChanged();
                 updatePageIndicator();
+                buildIndexSidebar();
             }
 
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
+
+        appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
+        indexSidebar = findViewById(R.id.index_sidebar);
+        indexSidebarHorizontal = findViewById(R.id.index_sidebar_horizontal);
+        buildIndexSidebar();
     }
 
     private void selectApp(String label, String pkg) {
@@ -424,6 +442,211 @@ public class AppSelectorActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         overridePendingTransition(0, 0);
+    }
+
+    private void buildIndexSidebar() {
+        if (indexSidebar == null || indexSidebarHorizontal == null) return;
+
+        if (appIndexSidebar == 0 || filteredApps == null || filteredApps.isEmpty()) {
+            indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.setVisibility(View.GONE);
+            return;
+        }
+
+        java.util.TreeSet<Character> letterSet = new java.util.TreeSet<>();
+        for (int i = 0; i < filteredApps.size(); i++) {
+            String label = filteredApps.get(i).label;
+            if (label != null && !label.isEmpty()) {
+                char first = Character.toUpperCase(label.charAt(0));
+                if (first >= 'A' && first <= 'Z') {
+                    letterSet.add(first);
+                }
+            }
+        }
+        if (letterSet.isEmpty()) {
+            indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.setVisibility(View.GONE);
+            return;
+        }
+
+        sidebarLetters = new String[letterSet.size()];
+        int idx = 0;
+        for (Character c : letterSet) {
+            sidebarLetters[idx++] = String.valueOf(c);
+        }
+        int count = sidebarLetters.length;
+        int textColor = ThemeUtils.getTextColor(theme, this);
+        highlightedLetterIndex = -1;
+
+        if (scrollAppList) {
+            indexSidebarHorizontal.setVisibility(View.GONE);
+
+            indexSidebar.removeAllViews();
+            for (int i = 0; i < count; i++) {
+                TextView tv = new TextView(this);
+                tv.setText(sidebarLetters[i]);
+                tv.setTextSize(sidebarLetterTextSize);
+                tv.setTextColor(textColor);
+                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+                indexSidebar.addView(tv);
+            }
+            indexSidebar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+            indexSidebar.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_MOVE: {
+                        int letterIdx = (int) (event.getY() / (v.getHeight() / (float) count));
+                        if (letterIdx < 0) letterIdx = 0;
+                        if (letterIdx >= count) letterIdx = count - 1;
+                        if (letterIdx != highlightedLetterIndex) {
+                            highlightedLetterIndex = letterIdx;
+                            updateVerticalSidebarHighlight(textColor);
+                            scrollToLetter(sidebarLetters[letterIdx]);
+                        }
+                        return true;
+                    }
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        highlightedLetterIndex = -1;
+                        updateVerticalSidebarHighlight(textColor);
+                        return true;
+                }
+                return false;
+            });
+
+            indexSidebar.setVisibility(View.VISIBLE);
+        } else {
+            indexSidebar.setVisibility(View.GONE);
+
+            indexSidebarHorizontal.removeAllViews();
+            float density = getResources().getDisplayMetrics().density;
+            int horizTextSize = (int) (sidebarLetterTextSize * 0.9f);
+
+            int bgColor = ThemeUtils.getBgColor(theme, this);
+            for (int i = 0; i < count; i++) {
+                TextView tv = new TextView(this);
+                tv.setText(sidebarLetters[i]);
+                tv.setTextSize(horizTextSize);
+                tv.setTextColor(textColor);
+                tv.setGravity(android.view.Gravity.CENTER);
+                tv.setLayoutParams(new LinearLayout.LayoutParams(0,
+                        LinearLayout.LayoutParams.MATCH_PARENT, 1f));
+                indexSidebarHorizontal.addView(tv);
+            }
+            indexSidebarHorizontal.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+            indexSidebarHorizontal.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_MOVE: {
+                        int letterIdx = (int) (event.getX() / (v.getWidth() / (float) count));
+                        if (letterIdx < 0) letterIdx = 0;
+                        if (letterIdx >= count) letterIdx = count - 1;
+                        if (letterIdx != highlightedLetterIndex) {
+                            highlightedLetterIndex = letterIdx;
+                            updateHorizontalSidebarHighlight(textColor, bgColor);
+                            navigateToLetterPage(sidebarLetters[letterIdx]);
+                        }
+                        return true;
+                    }
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        return true;
+                }
+                return false;
+            });
+
+            indexSidebarHorizontal.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateVerticalSidebarHighlight(int textColor) {
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        for (int i = 0; i < indexSidebar.getChildCount(); i++) {
+            View child = indexSidebar.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView tv = (TextView) child;
+                if (i == highlightedLetterIndex) {
+                    tv.setBackgroundColor(textColor);
+                    tv.setTextColor(bgColor);
+                } else {
+                    tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    tv.setTextColor(textColor);
+                }
+            }
+        }
+    }
+
+    private void updateHorizontalSidebarHighlight(int textColor, int bgColor) {
+        for (int i = 0; i < indexSidebarHorizontal.getChildCount(); i++) {
+            View child = indexSidebarHorizontal.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView tv = (TextView) child;
+                if (i == highlightedLetterIndex) {
+                    tv.setBackgroundColor(textColor);
+                    tv.setTextColor(bgColor);
+                } else {
+                    tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    tv.setTextColor(textColor);
+                }
+            }
+        }
+    }
+
+    private void navigateToLetterPage(String letter) {
+        if (filteredApps == null || filteredApps.isEmpty()) return;
+
+        char target = letter.charAt(0);
+        for (int i = 0; i < filteredApps.size(); i++) {
+            String label = filteredApps.get(i).label;
+            if (label != null && !label.isEmpty()
+                    && Character.toUpperCase(label.charAt(0)) == target) {
+                int targetPage = i / itemsPerPage;
+                int totalPages = (int) Math.ceil((double) filteredApps.size() / itemsPerPage);
+                if (targetPage >= totalPages) targetPage = totalPages - 1;
+                if (targetPage < 0) targetPage = 0;
+
+                currentPage = targetPage;
+                if (pageNavigator != null) {
+                    pageNavigator.setCurrentPage(targetPage);
+                }
+                adapter.notifyDataSetChanged();
+                updatePageIndicator();
+                EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                return;
+            }
+        }
+    }
+
+    private void scrollToLetter(String letter) {
+        if (filteredApps == null) return;
+        RecyclerView rv = findViewById(R.id.app_selector_list);
+        if (rv == null) return;
+
+        char target = letter.charAt(0);
+        for (int i = 0; i < filteredApps.size(); i++) {
+            String label = filteredApps.get(i).label;
+            if (label != null && !label.isEmpty()
+                    && Character.toUpperCase(label.charAt(0)) == target) {
+                rv.scrollToPosition(i);
+                return;
+            }
+        }
+    }
+
+    private void clearSidebarHighlight() {
+        highlightedLetterIndex = -1;
+        if (indexSidebar != null && indexSidebar.getVisibility() == View.VISIBLE) {
+            int textColor = ThemeUtils.getTextColor(theme, this);
+            updateVerticalSidebarHighlight(textColor);
+        } else if (indexSidebarHorizontal != null && indexSidebarHorizontal.getVisibility() == View.VISIBLE) {
+            int textColor = ThemeUtils.getTextColor(theme, this);
+            int bgColor = ThemeUtils.getBgColor(theme, this);
+            updateHorizontalSidebarHighlight(textColor, bgColor);
+        }
     }
 
     private class AppSelectorAdapter extends RecyclerView.Adapter<AppSelectorAdapter.ViewHolder> {

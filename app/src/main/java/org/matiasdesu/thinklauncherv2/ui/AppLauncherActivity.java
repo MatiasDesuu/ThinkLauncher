@@ -234,6 +234,7 @@ public class AppLauncherActivity extends AppCompatActivity {
         et.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         et.setSingleLine(true);
         et.setCursorVisible(false);
+        et.setMovementMethod(null);
 
         et.addTextChangedListener(new TextWatcher() {
             @Override
