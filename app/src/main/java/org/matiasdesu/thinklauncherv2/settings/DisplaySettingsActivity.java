@@ -233,6 +233,12 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             startActivity(intent);
             overridePendingTransition(0, 0);
         });
+
+        findViewById(R.id.font_sizes_button).setOnClickListener(v -> {
+            Intent intent = new Intent(this, FontSizesSettingsActivity.class);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+        });
     }
 
     private void refreshVisibility() {

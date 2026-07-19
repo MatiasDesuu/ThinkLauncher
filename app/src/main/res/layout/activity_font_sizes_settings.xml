@@ -37,7 +37,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:text="Text Settings"
+                android:text="Font Sizes"
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -81,7 +81,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/text_bold"
+                        android:src="@drawable/home"
                         android:layout_marginEnd="8dp"
                         android:tint="?attr/text_color" />
 
@@ -89,42 +89,13 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Bold Text:"
+                        android:text="Home:"
                         android:textColor="?attr/text_color"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <include layout="@layout/plus_minus_layout"
-                        android:id="@+id/bold_text_container" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/text_color_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_margin="16dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/colors"
-                        android:layout_marginEnd="8dp"
-                        android:tint="?attr/text_color" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Text Color:"
-                        android:textColor="?attr/text_color"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <include layout="@layout/plus_minus_layout"
-                        android:id="@+id/text_color_container" />
+                        android:id="@+id/home_font_size_container" />
 
                 </LinearLayout>
 
@@ -138,7 +109,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/style"
+                        android:src="@drawable/app_icons"
                         android:layout_marginEnd="8dp"
                         android:tint="?attr/text_color" />
 
@@ -146,18 +117,17 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Text Effect:"
+                        android:text="App Launcher:"
                         android:textColor="?attr/text_color"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <include layout="@layout/plus_minus_layout"
-                        android:id="@+id/text_effect_container" />
+                        android:id="@+id/app_launcher_font_size_container" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/effect_color_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -167,7 +137,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/colors"
+                        android:src="@drawable/date"
                         android:layout_marginEnd="8dp"
                         android:tint="?attr/text_color" />
 
@@ -175,16 +145,71 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Text Effect Color:"
+                        android:text="Calendar Screen:"
                         android:textColor="?attr/text_color"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <include layout="@layout/plus_minus_layout"
-                        android:id="@+id/effect_color_container" />
+                        android:id="@+id/calendar_font_size_container" />
 
                 </LinearLayout>
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_margin="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/koreader"
+                        android:layout_marginEnd="8dp"
+                        android:tint="?attr/text_color" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="KOReader History:"
+                        android:textColor="?attr/text_color"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <include layout="@layout/plus_minus_layout"
+                        android:id="@+id/koreader_history_font_size_container" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_margin="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/folder"
+                        android:layout_marginEnd="8dp"
+                        android:tint="?attr/text_color" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Folders:"
+                        android:textColor="?attr/text_color"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <include layout="@layout/plus_minus_layout"
+                        android:id="@+id/folder_font_size_container" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

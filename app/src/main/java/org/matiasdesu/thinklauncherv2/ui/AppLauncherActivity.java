@@ -129,7 +129,7 @@ public class AppLauncherActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
-        textSize = prefs.getInt("text_size", 32);
+        textSize = prefs.getInt("app_launcher_font_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
 

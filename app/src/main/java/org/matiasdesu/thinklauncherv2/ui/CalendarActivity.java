@@ -143,7 +143,7 @@ public class CalendarActivity extends AppCompatActivity {
         LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, calendarSurfaceColor,
                 topLayout, recyclerView, container);
 
-        textSize = prefs.getInt("text_size", 24);
+        textSize = prefs.getInt("calendar_font_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         loadCalendarOptions();

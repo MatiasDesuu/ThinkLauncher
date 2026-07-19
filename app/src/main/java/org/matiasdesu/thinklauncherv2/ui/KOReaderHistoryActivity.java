@@ -131,7 +131,7 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
         LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, historySurfaceColor,
                 topLayout, recyclerView, container);
 
-        textSize = prefs.getInt("text_size", 24);
+        textSize = prefs.getInt("koreader_history_font_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
 

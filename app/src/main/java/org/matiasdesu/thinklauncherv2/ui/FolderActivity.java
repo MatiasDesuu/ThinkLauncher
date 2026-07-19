@@ -189,7 +189,7 @@ public class FolderActivity extends AppCompatActivity {
             prefs.edit().remove(folderId + "_sort_by_name").apply();
         }
 
-        textSize = prefs.getInt("text_size", 32);
+        textSize = prefs.getInt("folder_font_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
 

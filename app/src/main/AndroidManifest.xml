@@ -101,6 +101,9 @@
             android:name=".settings.HomeScreenPaddingActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.FontSizesSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.AppLauncherActivity"
             android:exported="false" />
         <activity

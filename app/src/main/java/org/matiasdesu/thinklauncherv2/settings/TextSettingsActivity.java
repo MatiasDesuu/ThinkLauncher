@@ -30,7 +30,6 @@ public class TextSettingsActivity extends AppCompatActivity {
     private static final String[] EFFECT_COLOR_NAMES = { "Black", "White", "Dynamic Dark", "Dynamic White" };
     private static final String[] TEXT_COLOR_NAMES = { "Follow Theme", "Dark", "White", "Dynamic Dark", "Dynamic White" };
 
-    private int textSize;
     private boolean boldText;
     private int appTextColor;
     private int textEffect;
@@ -83,7 +82,6 @@ public class TextSettingsActivity extends AppCompatActivity {
         rootLayout.setBackgroundColor(bgColor);
         ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
 
-        textSize = prefs.getInt("text_size", 32);
         boldText = prefs.getBoolean("bold_text", true);
         appTextColor = prefs.getInt("app_text_color", 0);
         textEffect = prefs.getInt("text_effect", 0);
@@ -94,10 +92,6 @@ public class TextSettingsActivity extends AppCompatActivity {
             finish();
             overridePendingTransition(0, 0);
         });
-
-        View textSizeContainer = findViewById(R.id.text_size_container);
-        TextView textSizeValueTv = textSizeContainer.findViewById(R.id.value_text);
-        textSizeValueTv.setText(String.valueOf(textSize));
 
         View boldTextContainer = findViewById(R.id.bold_text_container);
         TextView boldTextValueTv = boldTextContainer.findViewById(R.id.value_text);
@@ -119,8 +113,6 @@ public class TextSettingsActivity extends AppCompatActivity {
         effectColorValueTv.setText(EFFECT_COLOR_NAMES[effectColor]);
         effectColorValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(effectColorValueTv, EFFECT_COLOR_NAMES));
 
-        TextView minusTextSizeBtn = textSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusTextSizeBtn = textSizeContainer.findViewById(R.id.btn_plus);
         TextView minusBoldBtn = boldTextContainer.findViewById(R.id.btn_minus);
         TextView plusBoldBtn = boldTextContainer.findViewById(R.id.btn_plus);
         TextView minusTextColorBtn = textColorContainer.findViewById(R.id.btn_minus);
@@ -129,22 +121,6 @@ public class TextSettingsActivity extends AppCompatActivity {
         TextView plusTextEffectBtn = textEffectContainer.findViewById(R.id.btn_plus);
         TextView minusEffectColorBtn = effectColorContainer.findViewById(R.id.btn_minus);
         TextView plusEffectColorBtn = effectColorContainer.findViewById(R.id.btn_plus);
-
-        minusTextSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
-            if (textSize > 10) {
-                textSize--;
-                textSizeValueTv.setText(String.valueOf(textSize));
-                prefs.edit().putInt("text_size", textSize).apply();
-            }
-        }));
-
-        plusTextSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
-            if (textSize < 50) {
-                textSize++;
-                textSizeValueTv.setText(String.valueOf(textSize));
-                prefs.edit().putInt("text_size", textSize).apply();
-            }
-        }));
 
         minusBoldBtn.setOnClickListener(v -> toggleBold(prefs, boldTextValueTv));
         plusBoldBtn.setOnClickListener(v -> toggleBold(prefs, boldTextValueTv));
