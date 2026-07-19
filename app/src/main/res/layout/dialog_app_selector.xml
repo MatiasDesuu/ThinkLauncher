@@ -15,6 +15,7 @@
         android:id="@+id/content_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipChildren="false"
         android:orientation="vertical">
 
         <LinearLayout
@@ -61,13 +62,15 @@
             android:gravity="center"
             android:orientation="horizontal"
             android:visibility="gone"
-            android:focusable="false" />
+            android:focusable="false"
+            android:translationZ="4dp" />
 
         <FrameLayout
             android:id="@+id/app_list_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:clipChildren="false">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/app_selector_list"

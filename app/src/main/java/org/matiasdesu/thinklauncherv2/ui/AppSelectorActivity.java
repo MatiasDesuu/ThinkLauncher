@@ -60,6 +60,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     private boolean showWallpaperBackdrop;
     private int selectorSurfaceColor;
     private int appIndexSidebar;
+    private int appIndexAnimation;
     private LinearLayout indexSidebar;
     private LinearLayout indexSidebarHorizontal;
     private SwipePageNavigator pageNavigator;
@@ -291,6 +292,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         });
 
         appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
+        appIndexAnimation = prefs.getInt("app_index_animation", 0);
         indexSidebar = findViewById(R.id.index_sidebar);
         indexSidebarHorizontal = findViewById(R.id.index_sidebar_horizontal);
         buildIndexSidebar();
@@ -580,6 +582,8 @@ public class AppSelectorActivity extends AppCompatActivity {
                     }
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
+                        highlightedLetterIndex = -1;
+                        updateHorizontalSidebarHighlight(textColor, bgColor);
                         return true;
                 }
                 return false;
@@ -589,18 +593,39 @@ public class AppSelectorActivity extends AppCompatActivity {
         }
     }
 
+    private float getDockScale(int i, int highlighted) {
+        if (highlighted < 0) return 1f;
+        int dist = Math.abs(i - highlighted);
+        if (dist == 0) return 1.8f;
+        if (dist == 1) return 1.3f;
+        if (dist == 2) return 1.1f;
+        return 1f;
+    }
+
     private void updateVerticalSidebarHighlight(int textColor) {
         int bgColor = ThemeUtils.getBgColor(theme, this);
         for (int i = 0; i < indexSidebar.getChildCount(); i++) {
             View child = indexSidebar.getChildAt(i);
             if (child instanceof TextView) {
                 TextView tv = (TextView) child;
-                if (i == highlightedLetterIndex) {
-                    tv.setBackgroundColor(textColor);
-                    tv.setTextColor(bgColor);
-                } else {
+                if (appIndexAnimation != 0) {
                     tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                     tv.setTextColor(textColor);
+                    float scale = getDockScale(i, highlightedLetterIndex);
+                    tv.setPivotX(tv.getWidth());
+                    tv.setPivotY(tv.getHeight() / 2f);
+                    tv.setScaleX(scale);
+                    tv.setScaleY(scale);
+                } else {
+                    if (i == highlightedLetterIndex) {
+                        tv.setBackgroundColor(textColor);
+                        tv.setTextColor(bgColor);
+                    } else {
+                        tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                        tv.setTextColor(textColor);
+                    }
+                    tv.setScaleX(1f);
+                    tv.setScaleY(1f);
                 }
             }
         }
@@ -611,12 +636,24 @@ public class AppSelectorActivity extends AppCompatActivity {
             View child = indexSidebarHorizontal.getChildAt(i);
             if (child instanceof TextView) {
                 TextView tv = (TextView) child;
-                if (i == highlightedLetterIndex) {
-                    tv.setBackgroundColor(textColor);
-                    tv.setTextColor(bgColor);
-                } else {
+                if (appIndexAnimation != 0) {
                     tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                     tv.setTextColor(textColor);
+                    float scale = getDockScale(i, highlightedLetterIndex);
+                    tv.setPivotX(tv.getWidth() / 2f);
+                    tv.setPivotY(0);
+                    tv.setScaleX(scale);
+                    tv.setScaleY(scale);
+                } else {
+                    if (i == highlightedLetterIndex) {
+                        tv.setBackgroundColor(textColor);
+                        tv.setTextColor(bgColor);
+                    } else {
+                        tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                        tv.setTextColor(textColor);
+                    }
+                    tv.setScaleX(1f);
+                    tv.setScaleY(1f);
                 }
             }
         }

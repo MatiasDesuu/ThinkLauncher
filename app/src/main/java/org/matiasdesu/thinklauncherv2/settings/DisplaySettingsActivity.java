@@ -28,6 +28,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
 
     private int scrollAppList;
     private int appIndexSidebar;
+    private int appIndexAnimation;
     private boolean autoFocusSearch;
     private int einkRefreshEnabled;
     private int einkRefreshDelay;
@@ -81,6 +82,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
 
         scrollAppList = prefs.getInt("scroll_app_list", 0);
         appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
+        appIndexAnimation = prefs.getInt("app_index_animation", 0);
         autoFocusSearch = prefs.getBoolean("auto_focus_search", true);
         einkRefreshEnabled = prefs.getInt("eink_refresh_enabled", 0);
         einkRefreshDelay = prefs.getInt("eink_refresh_delay", 100);
@@ -179,6 +181,27 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             if (paginationHelper != null) {
                 paginationHelper.initialize(this::refreshVisibility);
             }
+        });
+
+        View appIndexAnimationContainer = findViewById(R.id.app_index_animation_container);
+        TextView appIndexAnimationValueTv = appIndexAnimationContainer.findViewById(R.id.value_text);
+        appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
+        appIndexAnimationValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(appIndexAnimationValueTv, new String[]{"OFF", "ON"}));
+
+        TextView minusAppIndexAnimationBtn = appIndexAnimationContainer.findViewById(R.id.btn_minus);
+        TextView plusAppIndexAnimationBtn = appIndexAnimationContainer.findViewById(R.id.btn_plus);
+
+        minusAppIndexAnimationBtn.setOnClickListener(v -> {
+            appIndexAnimation = (appIndexAnimation - 1 + 2) % 2;
+            appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
+            prefs.edit().putInt("app_index_animation", appIndexAnimation).apply();
+        });
+
+        plusAppIndexAnimationBtn.setOnClickListener(v -> {
+            appIndexAnimation = (appIndexAnimation + 1) % 2;
+            appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
+            prefs.edit().putInt("app_index_animation", appIndexAnimation).apply();
         });
 
         minusEinkRefreshEnabledBtn.setOnClickListener(v -> {

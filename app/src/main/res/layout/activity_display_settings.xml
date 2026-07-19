@@ -213,6 +213,35 @@
 
     </LinearLayout>
 
+    <!-- App Index Animation ON/OFF -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_margin="16dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/scroll_list"
+            android:layout_marginEnd="8dp"
+            android:tint="?attr/text_color" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="App Index Animation:"
+            android:textColor="?attr/text_color"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <include layout="@layout/plus_minus_layout"
+            android:id="@+id/app_index_animation_container" />
+
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/settings_button_settings_button"
         android:layout_width="match_parent"
