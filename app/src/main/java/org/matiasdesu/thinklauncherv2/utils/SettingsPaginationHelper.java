@@ -2,6 +2,7 @@ package org.matiasdesu.thinklauncherv2.utils;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -34,6 +35,8 @@ public class SettingsPaginationHelper {
     private int itemsPerPage;
     private int currentPage = 0;
     private boolean scrollAppList;
+    private float touchDownX;
+    private static final int SWIPE_THRESHOLD = 100;
 
     public SettingsPaginationHelper(Activity activity, int theme,
             LinearLayout settingsItemsContainer,
@@ -80,7 +83,34 @@ public class SettingsPaginationHelper {
 
             setupNavigationButtons();
 
-            scrollView.setOnTouchListener((v, event) -> true);
+            scrollView.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        touchDownX = event.getX();
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        return true;
+                    case MotionEvent.ACTION_UP: {
+                        float diffX = event.getX() - touchDownX;
+                        int totalPages = (int) Math.ceil((double) settingItems.size() / itemsPerPage);
+                        if (totalPages > 1) {
+                            if (diffX > SWIPE_THRESHOLD) {
+                                currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
+                                updateVisibleItems();
+                                updatePageIndicator();
+                                EinkRefreshHelper.refreshEink(activity.getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                            } else if (diffX < -SWIPE_THRESHOLD) {
+                                currentPage = currentPage < totalPages - 1 ? currentPage + 1 : 0;
+                                updateVisibleItems();
+                                updatePageIndicator();
+                                EinkRefreshHelper.refreshEink(activity.getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                            }
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            });
 
             updateVisibleItems();
         } else {
