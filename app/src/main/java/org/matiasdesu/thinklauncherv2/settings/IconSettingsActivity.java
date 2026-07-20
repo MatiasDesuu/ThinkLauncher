@@ -36,6 +36,7 @@ public class IconSettingsActivity extends AppCompatActivity {
     private int appNamePosition;
     private boolean monochromeIcons;
     private boolean dynamicIcons;
+    private boolean forceMonochromeFallback;
     private boolean dynamicColors;
     private boolean iconBackground;
     private int iconShape;
@@ -98,6 +99,7 @@ public class IconSettingsActivity extends AppCompatActivity {
         appNamePosition = prefs.getInt("app_name_position", AppNamePositionHelper.POSITION_RIGHT);
         monochromeIcons = prefs.getBoolean("monochrome_icons", false);
         dynamicIcons = prefs.getBoolean("dynamic_icons", false);
+        forceMonochromeFallback = prefs.getBoolean("force_monochrome_fallback", false);
         dynamicColors = prefs.getBoolean("dynamic_colors", false);
         iconBackground = prefs.getBoolean("icon_background", true);
         iconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
@@ -145,6 +147,14 @@ public class IconSettingsActivity extends AppCompatActivity {
         dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
         dynamicIconsValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(dynamicIconsValueTv, new String[] { "ON", "OFF" }));
+
+        LinearLayout forceMonochromeFallbackLayout = findViewById(R.id.force_monochrome_fallback_layout);
+        View forceMonochromeFallbackContainer = findViewById(R.id.force_monochrome_fallback_container);
+        TextView forceMonochromeFallbackValueTv = forceMonochromeFallbackContainer.findViewById(R.id.value_text);
+        forceMonochromeFallbackValueTv.setText(forceMonochromeFallback ? "ON" : "OFF");
+        forceMonochromeFallbackValueTv
+                .setMinWidth(TextWidthHelper.getMaxTextWidthPx(forceMonochromeFallbackValueTv, new String[] { "ON", "OFF" }));
+        forceMonochromeFallbackLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
 
         LinearLayout dynamicColorsLayout = findViewById(R.id.dynamic_colors_layout);
         View dynamicColorsContainer = findViewById(R.id.dynamic_colors_container);
@@ -196,6 +206,8 @@ public class IconSettingsActivity extends AppCompatActivity {
         TextView plusMonochromeBtn = monochromeIconsContainer.findViewById(R.id.btn_plus);
         TextView minusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_minus);
         TextView plusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_plus);
+        TextView minusForceMonochromeFallbackBtn = forceMonochromeFallbackContainer.findViewById(R.id.btn_minus);
+        TextView plusForceMonochromeFallbackBtn = forceMonochromeFallbackContainer.findViewById(R.id.btn_plus);
         TextView minusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_minus);
         TextView plusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_plus);
         TextView minusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_minus);
@@ -292,6 +304,7 @@ public class IconSettingsActivity extends AppCompatActivity {
         minusDynamicBtn.setOnClickListener(v -> {
             dynamicIcons = !dynamicIcons;
             dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
+            forceMonochromeFallbackLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             // iconBackgroundLayout is always visible now
             // iconShapeLayout visibility depends only on iconBackground
@@ -303,12 +316,25 @@ public class IconSettingsActivity extends AppCompatActivity {
         plusDynamicBtn.setOnClickListener(v -> {
             dynamicIcons = !dynamicIcons;
             dynamicIconsValueTv.setText(dynamicIcons ? "ON" : "OFF");
+            forceMonochromeFallbackLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
             dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
              // iconBackgroundLayout is always visible now
             // iconShapeLayout visibility depends only on iconBackground
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
             if (paginationHelper != null)
                 paginationHelper.updateVisibleItemsList();
+        });
+
+        minusForceMonochromeFallbackBtn.setOnClickListener(v -> {
+            forceMonochromeFallback = !forceMonochromeFallback;
+            forceMonochromeFallbackValueTv.setText(forceMonochromeFallback ? "ON" : "OFF");
+            prefs.edit().putBoolean("force_monochrome_fallback", forceMonochromeFallback).apply();
+        });
+
+        plusForceMonochromeFallbackBtn.setOnClickListener(v -> {
+            forceMonochromeFallback = !forceMonochromeFallback;
+            forceMonochromeFallbackValueTv.setText(forceMonochromeFallback ? "ON" : "OFF");
+            prefs.edit().putBoolean("force_monochrome_fallback", forceMonochromeFallback).apply();
         });
 
         minusDynamicColorsBtn.setOnClickListener(v -> {
@@ -410,6 +436,9 @@ public class IconSettingsActivity extends AppCompatActivity {
 
         LinearLayout iconEffectColorLayout = findViewById(R.id.icon_effect_color_layout);
         iconEffectColorLayout.setVisibility(iconEffect > 0 ? View.VISIBLE : View.GONE);
+
+        LinearLayout forceMonochromeFallbackLayout = findViewById(R.id.force_monochrome_fallback_layout);
+        forceMonochromeFallbackLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);
 
         LinearLayout dynamicColorsLayout = findViewById(R.id.dynamic_colors_layout);
         dynamicColorsLayout.setVisibility(dynamicIcons ? View.VISIBLE : View.GONE);

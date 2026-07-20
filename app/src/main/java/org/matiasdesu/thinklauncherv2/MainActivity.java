@@ -90,6 +90,7 @@ public class MainActivity extends Activity {
     private int appNamePosition;
     private boolean monochromeIcons;
     private boolean dynamicIcons;
+    private boolean forceMonochromeFallback;
     private boolean dynamicColors;
     private boolean invertIconColors;
     private boolean invertHomeColors;
@@ -964,6 +965,7 @@ public class MainActivity extends Activity {
         appNamePosition = prefs.getInt("app_name_position", AppNamePositionHelper.POSITION_RIGHT);
         monochromeIcons = prefs.getBoolean("monochrome_icons", false);
         dynamicIcons = prefs.getBoolean("dynamic_icons", false);
+        forceMonochromeFallback = prefs.getBoolean("force_monochrome_fallback", false);
         dynamicColors = prefs.getBoolean("dynamic_colors", false);
         invertIconColors = prefs.getBoolean("invert_icon_colors", false);
         invertHomeColors = prefs.getBoolean("invert_home_colors", false);
@@ -1167,6 +1169,7 @@ public class MainActivity extends Activity {
             int newAppNamePosition = prefs.getInt("app_name_position", AppNamePositionHelper.POSITION_RIGHT);
             boolean newMonochromeIcons = prefs.getBoolean("monochrome_icons", false);
             boolean newDynamicIcons = prefs.getBoolean("dynamic_icons", false);
+            boolean newForceMonochromeFallback = prefs.getBoolean("force_monochrome_fallback", false);
             boolean newDynamicColors = prefs.getBoolean("dynamic_colors", false);
             boolean newInvertIconColors = prefs.getBoolean("invert_icon_colors", false);
             boolean newInvertHomeColors = prefs.getBoolean("invert_home_colors", false);
@@ -1211,7 +1214,7 @@ public class MainActivity extends Activity {
                     || newAppNamePosition != appNamePosition
                     || newTextEffect != textEffect || newEffectColor != effectColor || newIconEffect != iconEffect
                     || newIconEffectColor != iconEffectColor || newMonochromeIcons != monochromeIcons
-                    || newDynamicIcons != dynamicIcons || newDynamicColors != dynamicColors
+                    || newDynamicIcons != dynamicIcons || newForceMonochromeFallback != forceMonochromeFallback || newDynamicColors != dynamicColors
                     || newInvertIconColors != invertIconColors || newInvertHomeColors != invertHomeColors
                     || newIconBackground != iconBackground
                     || newIconShape != iconShape || newHidePagination != hidePagination
@@ -1304,6 +1307,7 @@ public class MainActivity extends Activity {
                 appNamePosition = newAppNamePosition;
                 monochromeIcons = newMonochromeIcons;
                 dynamicIcons = newDynamicIcons;
+                forceMonochromeFallback = newForceMonochromeFallback;
                 dynamicColors = newDynamicColors;
                 invertIconColors = newInvertIconColors;
                 invertHomeColors = newInvertHomeColors;
@@ -1329,6 +1333,7 @@ public class MainActivity extends Activity {
                 homeVerticalAlignment = newHomeVerticalAlignment;
                 monochromeIcons = newMonochromeIcons;
                 dynamicIcons = newDynamicIcons;
+                forceMonochromeFallback = newForceMonochromeFallback;
                 dynamicColors = newDynamicColors;
                 updateGravity();
             }
@@ -1610,7 +1615,8 @@ public class MainActivity extends Activity {
 
                         try {
                             Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, dynamicIcons, theme,
-                                    iconBackground, dynamicColors, invertIconColors, iconShape);
+                                    iconBackground, dynamicColors, invertIconColors, iconShape,
+                                    forceMonochromeFallback);
                             iconView.setImageDrawable(drawable);
                         } catch (Exception e) {
 
@@ -2185,7 +2191,8 @@ public class MainActivity extends Activity {
                 } else {
                     try {
                         Drawable drawable = DynamicIconHelper.getAppIcon(this, appPackages.get(position), dynamicIcons,
-                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape,
+                                forceMonochromeFallback);
                         iconView.setImageDrawable(drawable);
                         if (monochromeIcons && !dynamicIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
@@ -2292,7 +2299,8 @@ public class MainActivity extends Activity {
                 } else {
                     try {
                         Drawable drawable = DynamicIconHelper.getAppIcon(this, appPackages.get(position), dynamicIcons,
-                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape,
+                                forceMonochromeFallback);
                         iconView.setImageDrawable(drawable);
                         if (monochromeIcons && !dynamicIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
@@ -3106,7 +3114,8 @@ public class MainActivity extends Activity {
             } else {
                 try {
                     Drawable drawable = DynamicIconHelper.getAppIcon(this, appPackages.get(index), dynamicIcons, theme,
-                            iconBackground, dynamicColors, invertIconColors, iconShape);
+                            iconBackground, dynamicColors, invertIconColors, iconShape,
+                            forceMonochromeFallback);
                     iconView.setImageDrawable(drawable);
                     if (monochromeIcons && !dynamicIcons) {
                         iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());

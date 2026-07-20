@@ -3,12 +3,15 @@ package org.matiasdesu.thinklauncherv2.utils;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.graphics.BlendMode;
 import android.graphics.BlendModeColorFilter;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.LayerDrawable;
@@ -32,7 +35,7 @@ public class DynamicIconHelper {
     public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
             boolean iconBackground) throws PackageManager.NameNotFoundException {
         return getAppIcon(context, packageName, useDynamic, theme, iconBackground, false, false,
-                IconShapeHelper.SHAPE_SYSTEM);
+                IconShapeHelper.SHAPE_SYSTEM, false);
     }
 
     /**
@@ -51,38 +54,31 @@ public class DynamicIconHelper {
     public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
             boolean iconBackground, boolean dynamicColors) throws PackageManager.NameNotFoundException {
         return getAppIcon(context, packageName, useDynamic, theme, iconBackground, dynamicColors, false,
-                IconShapeHelper.SHAPE_SYSTEM);
+                IconShapeHelper.SHAPE_SYSTEM, false);
     }
 
     public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
             boolean iconBackground, boolean dynamicColors, int iconShape) throws PackageManager.NameNotFoundException {
-        return getAppIcon(context, packageName, useDynamic, theme, iconBackground, dynamicColors, false, iconShape);
+        return getAppIcon(context, packageName, useDynamic, theme, iconBackground, dynamicColors, false, iconShape, false);
     }
 
     public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
             boolean iconBackground, boolean dynamicColors, boolean invertIconColors)
             throws PackageManager.NameNotFoundException {
         return getAppIcon(context, packageName, useDynamic, theme, iconBackground, dynamicColors, invertIconColors,
-                IconShapeHelper.SHAPE_SYSTEM);
+                IconShapeHelper.SHAPE_SYSTEM, false);
     }
 
-    /**
-     * Get the app icon, preferring adaptive/dynamic icons if available and enabled
-     * 
-     * @param context        Application context
-     * @param packageName    Package name of the app
-     * @param useDynamic     Whether to use dynamic icons (Material You themed
-     *                       icons)
-     * @param theme          Current theme (0 = light, 1 = dark)
-     * @param iconBackground Whether to use background (true) or transparent (false)
-     * @param dynamicColors  Whether to use Android's Material You dynamic colors
-     * @param iconShape      The shape to apply to the icon (from IconShapeHelper)
-     * @return The app icon drawable
-     * @throws PackageManager.NameNotFoundException if package not found
-     */
     public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
             boolean iconBackground, boolean dynamicColors, boolean invertIconColors, int iconShape)
             throws PackageManager.NameNotFoundException {
+        return getAppIcon(context, packageName, useDynamic, theme, iconBackground, dynamicColors, invertIconColors,
+                iconShape, false);
+    }
+
+    public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
+            boolean iconBackground, boolean dynamicColors, boolean invertIconColors, int iconShape,
+            boolean forceMonochromeFallback) throws PackageManager.NameNotFoundException {
         PackageManager pm = context.getPackageManager();
 
         Drawable icon = pm.getApplicationIcon(packageName);
@@ -91,66 +87,87 @@ public class DynamicIconHelper {
             if (icon instanceof AdaptiveIconDrawable) {
                 AdaptiveIconDrawable adaptiveIcon = (AdaptiveIconDrawable) icon;
 
+                int[] colors = getDynamicColors(context, theme, iconBackground, invertIconColors, dynamicColors);
+                int iconColor = colors[0];
+                int backgroundColor = colors[1];
+
+                Drawable tintedIcon = null;
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     Drawable monochromeDrawable = adaptiveIcon.getMonochrome();
                     if (monochromeDrawable != null) {
-                        int[] colors = getDynamicColors(context, theme, iconBackground, invertIconColors, dynamicColors);
-                        int iconColor = colors[0];
-                        int backgroundColor = colors[1];
-
-                        Drawable tintedMonochrome;
-                        if (monochromeDrawable.getConstantState() != null) {
-                            tintedMonochrome = monochromeDrawable.getConstantState().newDrawable(context.getResources())
-                                    .mutate();
-                        } else {
-                            tintedMonochrome = monochromeDrawable.mutate();
-                        }
-
-                        if (tintedMonochrome.getIntrinsicWidth() > 0 && tintedMonochrome.getIntrinsicHeight() > 0) {
-                            tintedMonochrome.setBounds(0, 0, tintedMonochrome.getIntrinsicWidth(),
-                                    tintedMonochrome.getIntrinsicHeight());
-                        }
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            tintedMonochrome.setColorFilter(new BlendModeColorFilter(iconColor, BlendMode.SRC_IN));
-                        } else {
-                            tintedMonochrome.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
-                        }
-
-                        tintedMonochrome.setFilterBitmap(true);
-
-                        if (iconShape != IconShapeHelper.SHAPE_SYSTEM && iconBackground) {
-                            int size = 108;
-                            Drawable shapedIcon = IconShapeHelper.createShapedIcon(context, tintedMonochrome,
-                                    backgroundColor, iconShape, size, false);
-                            if (shapedIcon != null) {
-                                return shapedIcon;
-                            }
-                        }
-
-                        if (!iconBackground) {
-                            float expandFraction = -0.35f;
-                            InsetDrawable expandedIcon = new InsetDrawable(tintedMonochrome, expandFraction);
-                            return expandedIcon;
-                        }
-
-                        ColorDrawable themedBackground = new ColorDrawable(backgroundColor);
-
-                        AdaptiveIconDrawable monochromeIcon = new AdaptiveIconDrawable(
-                                themedBackground,
-                                tintedMonochrome);
-
-                        if (icon.getIntrinsicWidth() > 0 && icon.getIntrinsicHeight() > 0) {
-                            monochromeIcon.setBounds(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight());
-                        }
-
-                        return monochromeIcon;
+                        tintedIcon = createTintedDrawable(context, monochromeDrawable, iconColor);
                     }
+                }
+
+                if (tintedIcon == null && forceMonochromeFallback) {
+                    Drawable foreground = adaptiveIcon.getForeground();
+                    if (foreground != null) {
+                        tintedIcon = createTintedDrawable(context, foreground, iconColor);
+                    }
+                }
+
+                if (tintedIcon != null) {
+                    if (iconShape != IconShapeHelper.SHAPE_SYSTEM && iconBackground) {
+                        int size = 108;
+                        Drawable shapedIcon = IconShapeHelper.createShapedIcon(context, tintedIcon,
+                                backgroundColor, iconShape, size, false);
+                        if (shapedIcon != null) {
+                            return shapedIcon;
+                        }
+                    }
+
+                    if (!iconBackground) {
+                        float expandFraction = -0.35f;
+                        InsetDrawable expandedIcon = new InsetDrawable(tintedIcon, expandFraction);
+                        return expandedIcon;
+                    }
+
+                    ColorDrawable themedBackground = new ColorDrawable(backgroundColor);
+
+                    AdaptiveIconDrawable twoToneIcon = new AdaptiveIconDrawable(
+                            themedBackground,
+                            tintedIcon);
+
+                    if (icon.getIntrinsicWidth() > 0 && icon.getIntrinsicHeight() > 0) {
+                        twoToneIcon.setBounds(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight());
+                    }
+
+                    return twoToneIcon;
                 }
             }
         }
 
         return applyShapeIfNeeded(context, icon, iconShape, iconBackground);
+    }
+
+    private static Drawable createTintedDrawable(Context context, Drawable source, int iconColor) {
+        Drawable tinted;
+        if (source.getConstantState() != null) {
+            tinted = source.getConstantState().newDrawable(context.getResources()).mutate();
+        } else {
+            int w = Math.max(source.getIntrinsicWidth(), 1);
+            int h = Math.max(source.getIntrinsicHeight(), 1);
+            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            source.setBounds(0, 0, w, h);
+            source.draw(canvas);
+            source.setBounds(0, 0, source.getIntrinsicWidth(), source.getIntrinsicHeight());
+            tinted = new BitmapDrawable(context.getResources(), bitmap);
+        }
+
+        if (tinted.getIntrinsicWidth() > 0 && tinted.getIntrinsicHeight() > 0) {
+            tinted.setBounds(0, 0, tinted.getIntrinsicWidth(), tinted.getIntrinsicHeight());
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            tinted.setColorFilter(new BlendModeColorFilter(iconColor, BlendMode.SRC_IN));
+        } else {
+            tinted.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
+        }
+
+        tinted.setFilterBitmap(true);
+        return tinted;
     }
 
     private static Drawable applyShapeIfNeeded(Context context, Drawable drawable, int iconShape,
