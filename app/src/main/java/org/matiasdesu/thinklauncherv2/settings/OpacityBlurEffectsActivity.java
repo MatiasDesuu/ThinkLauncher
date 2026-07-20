@@ -110,7 +110,7 @@ public class OpacityBlurEffectsActivity extends AppCompatActivity {
         TextView blurStrengthValueTv = blurStrengthContainer.findViewById(R.id.value_text);
         blurStrengthValueTv.setText(String.valueOf(appLauncherBgBlurStrength));
         blurStrengthValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(blurStrengthValueTv,
-                new String[] { "1", "5" }));
+                new String[] { "1", "10" }));
 
         TextView minusEnabledBtn = enabledContainer.findViewById(R.id.btn_minus);
         TextView plusEnabledBtn = enabledContainer.findViewById(R.id.btn_plus);
@@ -182,7 +182,7 @@ public class OpacityBlurEffectsActivity extends AppCompatActivity {
         });
 
         plusBlurStrengthBtn.setOnClickListener(v -> {
-            if (appLauncherBgBlurStrength < 5) {
+            if (appLauncherBgBlurStrength < 10) {
                 appLauncherBgBlurStrength++;
                 blurStrengthValueTv.setText(String.valueOf(appLauncherBgBlurStrength));
                 prefs.edit().putInt("app_launcher_bg_blur_strength", appLauncherBgBlurStrength).apply();

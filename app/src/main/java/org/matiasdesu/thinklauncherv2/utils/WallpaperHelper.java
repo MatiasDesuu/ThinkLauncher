@@ -425,6 +425,16 @@ public class WallpaperHelper {
                 return 24;
             case 5:
                 return 30;
+            case 6:
+                return 36;
+            case 7:
+                return 42;
+            case 8:
+                return 48;
+            case 9:
+                return 54;
+            case 10:
+                return 60;
             default:
                 return 18;
         }
