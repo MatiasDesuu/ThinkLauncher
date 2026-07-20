@@ -98,7 +98,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
         });
 
         LinearLayout chooseWallpaperButton = findViewById(R.id.choose_wallpaper_button);
@@ -371,7 +371,7 @@ public class WallpaperSettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+        finish();
+        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

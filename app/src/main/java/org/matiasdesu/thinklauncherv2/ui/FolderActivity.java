@@ -621,7 +621,7 @@ public class FolderActivity extends AppCompatActivity {
             cancelReorderMode();
         } else {
             returnResult();
-            super.onBackPressed();
+            finish();
             overridePendingTransition(0, folderAnimations ? R.anim.dialog_fade_out : 0);
         }
     }

@@ -97,7 +97,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
         });
 
         View maxAppsContainer = findViewById(R.id.max_apps_container);
@@ -126,7 +126,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             }
             startActivity(intent);
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
         LinearLayout iconSettingsButton = findViewById(R.id.icon_settings_button);
@@ -136,7 +136,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             }
             startActivity(intent);
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
         LinearLayout wallpaperSettingsButton = findViewById(R.id.wallpaper_settings_button);
@@ -146,7 +146,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             }
             startActivity(intent);
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
         View homeAlignmentContainer = findViewById(R.id.home_alignment_container);
@@ -329,7 +329,7 @@ public class HomeSettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+        finish();
+        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

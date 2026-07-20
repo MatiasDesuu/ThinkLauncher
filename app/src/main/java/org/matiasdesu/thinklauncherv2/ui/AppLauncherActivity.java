@@ -517,8 +517,8 @@ public class AppLauncherActivity extends AppCompatActivity {
     }
 
     public void onBackPressed() {
+        finish();
         overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-        super.onBackPressed();
     }
 
     private void buildIndexSidebar() {

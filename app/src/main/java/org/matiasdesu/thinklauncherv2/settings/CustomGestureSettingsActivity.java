@@ -89,7 +89,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
         });
 
         findViewById(R.id.clear_all_button).setOnClickListener(v ->
@@ -200,8 +200,8 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             currentRecordingIndex = -1;
             return;
         }
-        super.onBackPressed();
-        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+        finish();
+        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 
     private void selectAppForGesture(int index) {

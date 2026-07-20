@@ -478,7 +478,7 @@ public class AppSelectorActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        finish();
         overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
     }
 

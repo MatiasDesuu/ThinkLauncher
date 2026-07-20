@@ -92,7 +92,7 @@ public class TextSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
         });
 
         View boldTextContainer = findViewById(R.id.bold_text_container);
@@ -213,7 +213,7 @@ public class TextSettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+        finish();
+        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

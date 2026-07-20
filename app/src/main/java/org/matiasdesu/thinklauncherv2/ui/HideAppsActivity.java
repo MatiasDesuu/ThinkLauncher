@@ -416,7 +416,7 @@ public class HideAppsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        finish();
         overridePendingTransition(0, 0);
     }
 

@@ -84,7 +84,7 @@ public class AnimationSettingsActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             finish();
-            overridePendingTransition(0, screenAnimations == 1 ? R.anim.dialog_fade_out : 0);
+            overridePendingTransition(R.anim.slide_in_left, screenAnimations == 1 ? R.anim.slide_out_right : 0);
         });
 
         View appIndexAnimationContainer = findViewById(R.id.app_index_animation_container);
@@ -195,7 +195,7 @@ public class AnimationSettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(0, screenAnimations == 1 ? R.anim.dialog_fade_out : 0);
+        finish();
+        overridePendingTransition(R.anim.slide_in_left, screenAnimations == 1 ? R.anim.slide_out_right : 0);
     }
 }
