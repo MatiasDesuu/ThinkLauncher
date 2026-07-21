@@ -150,7 +150,15 @@ public class GestureHandler {
         } else if (!packageName.isEmpty()) {
             Intent intent = activity.getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
+                SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+                boolean animate = prefs.getInt("app_launch_animation", 0) == 1;
+                if (animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 activity.startActivity(intent);
+                if (animate) {
+                    activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             }
         }
     }
