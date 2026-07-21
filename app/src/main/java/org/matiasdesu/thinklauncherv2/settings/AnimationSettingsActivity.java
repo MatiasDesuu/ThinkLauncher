@@ -29,6 +29,7 @@ public class AnimationSettingsActivity extends AppCompatActivity {
     private int appIndexSidebar;
     private int dialogAnimations;
     private int screenAnimations;
+    private int appLaunchAnimation;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
@@ -80,6 +81,7 @@ public class AnimationSettingsActivity extends AppCompatActivity {
         appIndexAnimation = prefs.getInt("app_index_animation", 0);
         screenAnimations = prefs.getInt("screen_animations", 0);
         dialogAnimations = prefs.getInt("dialog_animations", 0);
+        appLaunchAnimation = prefs.getInt("app_launch_animation", 0);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
@@ -142,6 +144,25 @@ public class AnimationSettingsActivity extends AppCompatActivity {
             dialogAnimations = (dialogAnimations + 1) % 2;
             dialogAnimationsValueTv.setText(getOnOffText(dialogAnimations));
             prefs.edit().putInt("dialog_animations", dialogAnimations).apply();
+        });
+
+        View appLaunchAnimationContainer = findViewById(R.id.app_launch_animation_container);
+        TextView appLaunchAnimationValueTv = appLaunchAnimationContainer.findViewById(R.id.value_text);
+        appLaunchAnimationValueTv.setText(getOnOffText(appLaunchAnimation));
+
+        TextView minusAppLaunchBtn = appLaunchAnimationContainer.findViewById(R.id.btn_minus);
+        TextView plusAppLaunchBtn = appLaunchAnimationContainer.findViewById(R.id.btn_plus);
+
+        minusAppLaunchBtn.setOnClickListener(v -> {
+            appLaunchAnimation = (appLaunchAnimation - 1 + 2) % 2;
+            appLaunchAnimationValueTv.setText(getOnOffText(appLaunchAnimation));
+            prefs.edit().putInt("app_launch_animation", appLaunchAnimation).apply();
+        });
+
+        plusAppLaunchBtn.setOnClickListener(v -> {
+            appLaunchAnimation = (appLaunchAnimation + 1) % 2;
+            appLaunchAnimationValueTv.setText(getOnOffText(appLaunchAnimation));
+            prefs.edit().putInt("app_launch_animation", appLaunchAnimation).apply();
         });
 
         LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);

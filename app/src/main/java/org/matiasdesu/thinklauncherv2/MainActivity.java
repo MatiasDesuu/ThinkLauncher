@@ -2027,7 +2027,15 @@ public class MainActivity extends Activity {
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
+                SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                boolean animate = prefs.getInt("app_launch_animation", 0) == 1;
+                if (animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 startActivity(intent);
+                if (animate) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
             }
         }
     }
