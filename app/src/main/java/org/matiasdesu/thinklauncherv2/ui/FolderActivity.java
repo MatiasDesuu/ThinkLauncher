@@ -409,7 +409,11 @@ public class FolderActivity extends AppCompatActivity {
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
+                SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                boolean animate = prefs.getInt("app_launch_animation", 0) == 1;
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
+                overridePendingTransition(animate ? R.anim.dialog_fade_in : 0, 0);
                 new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
                 return;
             }
