@@ -152,9 +152,13 @@ public class GestureHandler {
             if (intent != null) {
                 SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
                 boolean animate = prefs.getInt("app_launch_animation", 0) == 1;
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                if (!animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
                 activity.startActivity(intent);
-                activity.overridePendingTransition(animate ? R.anim.dialog_fade_in : 0, 0);
+                if (!animate) {
+                    activity.overridePendingTransition(0, 0);
+                }
             }
         }
     }
