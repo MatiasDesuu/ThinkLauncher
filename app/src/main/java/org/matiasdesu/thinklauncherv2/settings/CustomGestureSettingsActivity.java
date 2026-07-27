@@ -5,12 +5,10 @@ import android.content.SharedPreferences;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
-import android.gesture.GestureOverlayView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
+import org.matiasdesu.thinklauncherv2.ui.ClearAllGesturesDialog;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -30,6 +29,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
     private static final int GESTURE_COUNT = 4;
     private static final int REQUEST_CODE_APP_SELECT = 1000;
+    private static final int REQUEST_CODE_RECORD_GESTURE = 1001;
 
     private int theme;
     private SharedPreferences prefs;
@@ -37,10 +37,6 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
     private LinearLayout gestureListContainer;
     private boolean screenAnimations;
     private final String[] gestureNames = {"custom_1", "custom_2", "custom_3", "custom_4"};
-    private int currentRecordingIndex = -1;
-    private FrameLayout recordingOverlay;
-    private GestureOverlayView recordingGestureOverlay;
-    private TextView recordingHint;
     private final ArrayList<GestureSlot> slots = new ArrayList<>();
     private int currentGestureIndex;
 
@@ -48,7 +44,6 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         int index;
         TextView recordButton;
         TextView appButton;
-        ImageView deleteButton;
 
         GestureSlot(int index) {
             this.index = index;
@@ -95,37 +90,17 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
         });
 
-
+        ImageView clearAllButton = findViewById(R.id.clear_all_button);
+        clearAllButton.setOnClickListener(v -> {
+            ClearAllGesturesDialog dialog = new ClearAllGesturesDialog(this, this::clearAllGestures);
+            dialog.show();
+        });
 
         gestureListContainer = findViewById(R.id.gesture_list_container);
 
         File gestureFile = new File(getFilesDir(), "custom_gestures");
         gestureLibrary = GestureLibraries.fromFile(gestureFile);
         gestureLibrary.load();
-
-        recordingOverlay = findViewById(R.id.recording_overlay);
-        recordingOverlay.setBackgroundColor(bgColor);
-        recordingGestureOverlay = findViewById(R.id.recording_gesture_overlay);
-        int accentColor = ThemeUtils.getTextColor(theme, this);
-        recordingGestureOverlay.setGestureColor(accentColor);
-        recordingGestureOverlay.setUncertainGestureColor(accentColor);
-        recordingGestureOverlay.setFadeEnabled(false);
-        recordingHint = findViewById(R.id.recording_hint);
-
-        recordingGestureOverlay.addOnGesturePerformedListener((overlay, gesture) -> {
-            if (currentRecordingIndex >= 0 && currentRecordingIndex < GESTURE_COUNT) {
-                String name = gestureNames[currentRecordingIndex];
-                gestureLibrary.removeEntry(name);
-                gestureLibrary.addGesture(name, gesture);
-                gestureLibrary.save();
-
-                slots.get(currentRecordingIndex).recordButton.setText("Recorded");
-
-                recordingOverlay.setVisibility(View.GONE);
-                currentRecordingIndex = -1;
-                Toast.makeText(this, "Gesture recorded", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         setupGestureSlots();
         loadGestureData();
@@ -143,12 +118,10 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
             slot.recordButton = row.findViewById(R.id.gesture_record_button);
             slot.appButton = row.findViewById(R.id.gesture_app_button);
-            slot.deleteButton = row.findViewById(R.id.gesture_delete_button);
 
             int index = i;
-            slot.recordButton.setOnClickListener(v -> startRecording(index));
+            slot.recordButton.setOnClickListener(v -> openRecordScreen(index));
             slot.appButton.setOnClickListener(v -> selectAppForGesture(index));
-            slot.deleteButton.setOnClickListener(v -> clearGesture(index));
 
             gestureListContainer.addView(row);
             slots.add(slot);
@@ -175,33 +148,39 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         }
     }
 
-    private void clearGesture(int index) {
-        String name = gestureNames[index];
-        gestureLibrary.removeEntry(name);
-        prefs.edit()
-            .remove("custom_gesture_" + name + "_app")
-            .remove("custom_gesture_" + name + "_app_label")
-            .apply();
+    private void clearAllGestures() {
+        for (int i = 0; i < GESTURE_COUNT; i++) {
+            gestureLibrary.removeEntry(gestureNames[i]);
+        }
+        for (int i = 0; i < GESTURE_COUNT; i++) {
+            String name = gestureNames[i];
+            prefs.edit()
+                .remove("custom_gesture_" + name + "_app")
+                .remove("custom_gesture_" + name + "_app_label")
+                .apply();
+            slots.get(i).recordButton.setText("Tap to record");
+            slots.get(i).appButton.setText("App: None");
+        }
         gestureLibrary.save();
-        slots.get(index).recordButton.setText("Tap to record");
-        slots.get(index).appButton.setText("App: None");
-        Toast.makeText(this, "Gesture " + (index + 1) + " cleared", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "All gestures cleared", Toast.LENGTH_SHORT).show();
     }
 
-    private void startRecording(int index) {
-        currentRecordingIndex = index;
-        recordingGestureOverlay.clear(false);
-        recordingHint.setText("Draw gesture for Gesture " + (index + 1));
-        recordingOverlay.setVisibility(View.VISIBLE);
+    private void openRecordScreen(int index) {
+        currentGestureIndex = index;
+        Intent intent = new Intent(this, RecordGestureActivity.class);
+        intent.putExtra(RecordGestureActivity.EXTRA_GESTURE_INDEX, index);
+        intent.putExtra(RecordGestureActivity.EXTRA_GESTURE_NAME, gestureNames[index]);
+        if (!screenAnimations) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
+        startActivityForResult(intent, REQUEST_CODE_RECORD_GESTURE);
+        if (screenAnimations) {
+            overridePendingTransition(R.anim.slide_in_right, 0);
+        }
     }
 
     @Override
     public void onBackPressed() {
-        if (recordingOverlay.getVisibility() == View.VISIBLE) {
-            recordingOverlay.setVisibility(View.GONE);
-            currentRecordingIndex = -1;
-            return;
-        }
         finish();
         overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
@@ -244,6 +223,13 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
                 slots.get(index).appButton.setText("App: None");
             } else {
                 slots.get(index).appButton.setText(label);
+            }
+        } else if (requestCode == REQUEST_CODE_RECORD_GESTURE && resultCode == RESULT_OK && data != null) {
+            boolean gestureDeleted = data.getBooleanExtra(RecordGestureActivity.RESULT_GESTURE_DELETED, false);
+            if (gestureDeleted) {
+                loadGestureData();
+            } else {
+                loadGestureData();
             }
         }
     }

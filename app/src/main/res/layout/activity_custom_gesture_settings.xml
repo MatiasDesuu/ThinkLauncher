@@ -52,6 +52,17 @@
 
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/clear_all_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/delete"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:padding="12dp"
+            android:tint="?attr/text_color"
+        />
+
     </RelativeLayout>
 
     <View
@@ -79,34 +90,5 @@
         </LinearLayout>
 
     </ScrollView>
-
-    <FrameLayout
-        android:id="@+id/recording_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-    >
-
-        <android.gesture.GestureOverlayView
-            android:id="@+id/recording_gesture_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gestureStrokeType="single"
-            android:gestureStrokeLengthThreshold="50.0"
-        />
-
-        <TextView
-            android:id="@+id/recording_hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="80dp"
-            android:gravity="center"
-            android:text="Draw a gesture"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold"
-        />
-
-    </FrameLayout>
 
 </LinearLayout>
