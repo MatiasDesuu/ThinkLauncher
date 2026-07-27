@@ -57,6 +57,9 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            currentGestureIndex = savedInstanceState.getInt("currentGestureIndex", 0);
+        }
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         int bgColor = ThemeUtils.getBgColor(theme, this);
@@ -216,6 +219,12 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         if (animate) {
             overridePendingTransition(R.anim.dialog_fade_in, 0);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("currentGestureIndex", currentGestureIndex);
     }
 
     @Override
