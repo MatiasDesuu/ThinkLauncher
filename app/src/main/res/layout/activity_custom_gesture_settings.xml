@@ -52,17 +52,6 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/clear_all_button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/clean"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:padding="12dp"
-            android:tint="?attr/text_color"
-        />
-
     </RelativeLayout>
 
     <View

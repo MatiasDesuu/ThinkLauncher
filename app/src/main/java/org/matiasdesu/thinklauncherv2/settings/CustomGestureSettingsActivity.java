@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
-import org.matiasdesu.thinklauncherv2.ui.ClearAllGesturesDialog;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -49,6 +48,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         int index;
         TextView recordButton;
         TextView appButton;
+        ImageView deleteButton;
 
         GestureSlot(int index) {
             this.index = index;
@@ -95,8 +95,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
         });
 
-        findViewById(R.id.clear_all_button).setOnClickListener(v ->
-                new ClearAllGesturesDialog(this, this::clearAllGestures).show());
+
 
         gestureListContainer = findViewById(R.id.gesture_list_container);
 
@@ -144,10 +143,12 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
             slot.recordButton = row.findViewById(R.id.gesture_record_button);
             slot.appButton = row.findViewById(R.id.gesture_app_button);
+            slot.deleteButton = row.findViewById(R.id.gesture_delete_button);
 
             int index = i;
             slot.recordButton.setOnClickListener(v -> startRecording(index));
             slot.appButton.setOnClickListener(v -> selectAppForGesture(index));
+            slot.deleteButton.setOnClickListener(v -> clearGesture(index));
 
             gestureListContainer.addView(row);
             slots.add(slot);
@@ -174,19 +175,17 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         }
     }
 
-    private void clearAllGestures() {
-        for (int i = 0; i < GESTURE_COUNT; i++) {
-            String name = gestureNames[i];
-            gestureLibrary.removeEntry(name);
-            prefs.edit()
-                .remove("custom_gesture_" + name + "_app")
-                .remove("custom_gesture_" + name + "_app_label")
-                .apply();
-            slots.get(i).recordButton.setText("Tap to record");
-            slots.get(i).appButton.setText("App: None");
-        }
+    private void clearGesture(int index) {
+        String name = gestureNames[index];
+        gestureLibrary.removeEntry(name);
+        prefs.edit()
+            .remove("custom_gesture_" + name + "_app")
+            .remove("custom_gesture_" + name + "_app_label")
+            .apply();
         gestureLibrary.save();
-        Toast.makeText(this, "All custom gestures cleared", Toast.LENGTH_SHORT).show();
+        slots.get(index).recordButton.setText("Tap to record");
+        slots.get(index).appButton.setText("App: None");
+        Toast.makeText(this, "Gesture " + (index + 1) + " cleared", Toast.LENGTH_SHORT).show();
     }
 
     private void startRecording(int index) {
