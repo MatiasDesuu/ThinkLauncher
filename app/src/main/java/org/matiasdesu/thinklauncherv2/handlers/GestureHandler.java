@@ -156,7 +156,9 @@ public class GestureHandler {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 }
                 activity.startActivity(intent);
-                if (!animate) {
+                if (animate) {
+                    activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+                } else {
                     activity.overridePendingTransition(0, 0);
                 }
             }

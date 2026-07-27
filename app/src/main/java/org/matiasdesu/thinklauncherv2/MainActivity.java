@@ -2033,7 +2033,9 @@ public class MainActivity extends Activity {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 }
                 startActivity(intent);
-                if (!animate) {
+                if (animate) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                } else {
                     overridePendingTransition(0, 0);
                 }
             }
