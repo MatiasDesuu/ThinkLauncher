@@ -1999,6 +1999,7 @@ public class MainActivity extends Activity {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String url = prefs.getString(packageName + "_url", "");
             if (!url.isEmpty()) {
+                boolean animate = prefs.getInt("app_launch_animation", 0) == 1;
                 int pwaMode = prefs.getInt("webapp_pwa_mode", 0);
                 if (pwaMode == 1) {
                     try {
@@ -2008,19 +2009,37 @@ public class MainActivity extends Activity {
                         Intent ctIntent = customTabsIntent.intent;
                         ctIntent.setData(android.net.Uri.parse(url));
                         ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        if (!animate) {
+                            ctIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        }
                         startActivity(ctIntent);
+                        if (!animate) {
+                            overridePendingTransition(0, 0);
+                        }
                     } catch (Exception e) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(android.net.Uri.parse(url));
+                        if (!animate) {
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        }
                         try {
                             startActivity(intent);
+                            if (!animate) {
+                                overridePendingTransition(0, 0);
+                            }
                         } catch (Exception e2) { }
                     }
                 } else {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setData(android.net.Uri.parse(url));
+                    if (!animate) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    }
                     try {
                         startActivity(intent);
+                        if (!animate) {
+                            overridePendingTransition(0, 0);
+                        }
                     } catch (Exception e) { }
                 }
             }
