@@ -404,7 +404,7 @@ public class FolderActivity extends AppCompatActivity {
                                 .build();
                         Intent ctIntent = customTabsIntent.intent;
                         ctIntent.setData(android.net.Uri.parse(url));
-                        ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+                        ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(ctIntent);
                         new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
                         return;

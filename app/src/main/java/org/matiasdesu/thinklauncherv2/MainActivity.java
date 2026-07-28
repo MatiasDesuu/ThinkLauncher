@@ -2007,7 +2007,7 @@ public class MainActivity extends Activity {
                                 .build();
                         Intent ctIntent = customTabsIntent.intent;
                         ctIntent.setData(android.net.Uri.parse(url));
-                        ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+                        ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(ctIntent);
                     } catch (Exception e) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
