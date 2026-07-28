@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -392,19 +393,27 @@ public class FolderActivity extends AppCompatActivity {
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
         } else if (packageName != null && packageName.startsWith("webapp_")) {
-            // Launch web app in default browser
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String url = prefs.getString(packageName + "_url", "");
             if (!url.isEmpty()) {
+                int pwaMode = prefs.getInt("webapp_pwa_mode", 0);
+                if (pwaMode == 1) {
+                    try {
+                        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
+                                .setShowTitle(true)
+                                .build();
+                        customTabsIntent.launchUrl(this, android.net.Uri.parse(url));
+                        new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+                        return;
+                    } catch (Exception e) { }
+                }
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(android.net.Uri.parse(url));
                 try {
                     startActivity(intent);
                     new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
                     return;
-                } catch (Exception e) {
-                    // Log or ignore if no browser available
-                }
+                } catch (Exception e) { }
             }
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);

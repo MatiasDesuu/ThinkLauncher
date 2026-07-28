@@ -37,6 +37,7 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import androidx.core.view.WindowCompat;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -1998,12 +1999,26 @@ public class MainActivity extends Activity {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String url = prefs.getString(packageName + "_url", "");
             if (!url.isEmpty()) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(android.net.Uri.parse(url));
-                try {
-                    startActivity(intent);
-                } catch (Exception e) {
-                    // Log or ignore if no browser available
+                int pwaMode = prefs.getInt("webapp_pwa_mode", 0);
+                if (pwaMode == 1) {
+                    try {
+                        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
+                                .setShowTitle(true)
+                                .build();
+                        customTabsIntent.launchUrl(this, android.net.Uri.parse(url));
+                    } catch (Exception e) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(android.net.Uri.parse(url));
+                        try {
+                            startActivity(intent);
+                        } catch (Exception e2) { }
+                    }
+                } else {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(android.net.Uri.parse(url));
+                    try {
+                        startActivity(intent);
+                    } catch (Exception e) { }
                 }
             }
         } else if (packageName != null && packageName.startsWith("folder_")) {

@@ -32,6 +32,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
     private boolean autoFocusSearch;
     private int einkRefreshEnabled;
     private int einkRefreshDelay;
+    private int webappPwaMode;
     private LinearLayout rootLayout;
     private SettingsPaginationHelper paginationHelper;
     private int theme;
@@ -87,6 +88,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         autoFocusSearch = prefs.getBoolean("auto_focus_search", true);
         einkRefreshEnabled = prefs.getInt("eink_refresh_enabled", 0);
         einkRefreshDelay = prefs.getInt("eink_refresh_delay", 100);
+        webappPwaMode = prefs.getInt("webapp_pwa_mode", 0);
         screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         ImageView backButton = findViewById(R.id.back_button);
@@ -183,6 +185,27 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             if (paginationHelper != null) {
                 paginationHelper.initialize(this::refreshVisibility);
             }
+        });
+
+        View webappPwaContainer = findViewById(R.id.webapp_pwa_container);
+        TextView webappPwaValueTv = webappPwaContainer.findViewById(R.id.value_text);
+        webappPwaValueTv.setText(getOnOffText(webappPwaMode));
+        webappPwaValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(webappPwaValueTv, new String[]{"OFF", "ON"}));
+
+        TextView minusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_minus);
+        TextView plusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_plus);
+
+        minusWebappPwaBtn.setOnClickListener(v -> {
+            webappPwaMode = (webappPwaMode - 1 + 2) % 2;
+            webappPwaValueTv.setText(getOnOffText(webappPwaMode));
+            prefs.edit().putInt("webapp_pwa_mode", webappPwaMode).apply();
+        });
+
+        plusWebappPwaBtn.setOnClickListener(v -> {
+            webappPwaMode = (webappPwaMode + 1) % 2;
+            webappPwaValueTv.setText(getOnOffText(webappPwaMode));
+            prefs.edit().putInt("webapp_pwa_mode", webappPwaMode).apply();
         });
 
         LinearLayout animationSettingsButton = findViewById(R.id.animation_settings_button);
