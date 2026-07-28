@@ -37,7 +37,6 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import androidx.core.view.WindowCompat;
-import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -2001,19 +2000,13 @@ public class MainActivity extends Activity {
             if (!url.isEmpty()) {
                 int pwaMode = prefs.getInt("webapp_pwa_mode", 0);
                 if (pwaMode == 1) {
+                    Intent intent = new Intent(this, org.matiasdesu.thinklauncherv2.ui.WebAppActivity.class);
+                    intent.setData(android.net.Uri.parse(url));
+                    intent.putExtra(org.matiasdesu.thinklauncherv2.ui.WebAppActivity.EXTRA_URL, url);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
                     try {
-                        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
-                                .setShowTitle(true)
-                                .build();
-                        customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
-                        customTabsIntent.launchUrl(this, android.net.Uri.parse(url));
-                    } catch (Exception e) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(android.net.Uri.parse(url));
-                        try {
-                            startActivity(intent);
-                        } catch (Exception e2) { }
-                    }
+                        startActivity(intent);
+                    } catch (Exception e) { }
                 } else {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setData(android.net.Uri.parse(url));

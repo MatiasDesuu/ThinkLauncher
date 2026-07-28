@@ -131,6 +131,10 @@
         <activity
             android:name=".ui.FolderActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.WebAppActivity"
+            android:documentLaunchMode="intoExisting"
+            android:exported="false" />
     </application>
 
 </manifest>
