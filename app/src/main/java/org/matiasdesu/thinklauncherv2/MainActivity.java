@@ -28,7 +28,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
-import androidx.browser.customtabs.CustomTabsIntent;
 import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -2001,21 +2000,12 @@ public class MainActivity extends Activity {
             if (!url.isEmpty()) {
                 int pwaMode = prefs.getInt("webapp_pwa_mode", 0);
                 if (pwaMode == 1) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(android.net.Uri.parse(url));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
                     try {
-                        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
-                                .setShowTitle(true)
-                                .build();
-                        Intent ctIntent = customTabsIntent.intent;
-                        ctIntent.setData(android.net.Uri.parse(url));
-                        ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(ctIntent);
-                    } catch (Exception e) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(android.net.Uri.parse(url));
-                        try {
-                            startActivity(intent);
-                        } catch (Exception e2) { }
-                    }
+                        startActivity(intent);
+                    } catch (Exception e) { }
                 } else {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setData(android.net.Uri.parse(url));
