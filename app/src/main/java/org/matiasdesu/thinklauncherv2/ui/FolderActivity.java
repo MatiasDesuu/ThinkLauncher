@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -397,11 +398,14 @@ public class FolderActivity extends AppCompatActivity {
             if (!url.isEmpty()) {
                 int pwaMode = prefs.getInt("webapp_pwa_mode", 0);
                 if (pwaMode == 1) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(android.net.Uri.parse(url));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
                     try {
-                        startActivity(intent);
+                        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
+                                .setShowTitle(true)
+                                .build();
+                        Intent ctIntent = customTabsIntent.intent;
+                        ctIntent.setData(android.net.Uri.parse(url));
+                        ctIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(ctIntent);
                         new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
                         return;
                     } catch (Exception e) { }
