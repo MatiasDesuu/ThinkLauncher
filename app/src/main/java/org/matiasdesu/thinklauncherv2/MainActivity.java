@@ -2005,6 +2005,7 @@ public class MainActivity extends Activity {
                         CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
                                 .setShowTitle(true)
                                 .build();
+                        customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         customTabsIntent.launchUrl(this, android.net.Uri.parse(url));
                     } catch (Exception e) {
                         Intent intent = new Intent(Intent.ACTION_VIEW);

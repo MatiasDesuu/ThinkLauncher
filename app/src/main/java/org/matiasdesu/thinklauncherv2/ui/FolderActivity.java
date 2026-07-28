@@ -402,6 +402,7 @@ public class FolderActivity extends AppCompatActivity {
                         CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
                                 .setShowTitle(true)
                                 .build();
+                        customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         customTabsIntent.launchUrl(this, android.net.Uri.parse(url));
                         new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
                         return;
