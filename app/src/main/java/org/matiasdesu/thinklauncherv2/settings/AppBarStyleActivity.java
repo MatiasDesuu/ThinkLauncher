@@ -20,6 +20,7 @@ public class AppBarStyleActivity extends AppCompatActivity {
 
     private static final String[] EFFECT_NAMES = { "Nothing", "Shadow", "Outline" };
     private static final String[] EFFECT_COLOR_NAMES = { "Black", "White", "Dynamic Dark", "Dynamic White" };
+    private static final String[] COLOR_SOURCE_NAMES = { "Follow Theme", "Dark", "White", "Dynamic Dark", "Dynamic Light" };
 
     private SharedPreferences prefs;
     private int theme;
@@ -33,6 +34,8 @@ public class AppBarStyleActivity extends AppCompatActivity {
     private int iconShape;
     private int iconEffect;
     private int iconEffectColor;
+    private int borderColor;
+    private int backgroundColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +81,8 @@ public class AppBarStyleActivity extends AppCompatActivity {
         iconShape = prefs.getInt("app_bar_icon_shape", IconShapeHelper.SHAPE_SYSTEM);
         iconEffect = prefs.getInt("app_bar_icon_effect", 0);
         iconEffectColor = prefs.getInt("app_bar_icon_effect_color", 0);
+        borderColor = prefs.getInt("app_bar_border_color", 0);
+        backgroundColor = prefs.getInt("app_bar_background_color", 0);
 
         View monochromeContainer = findViewById(R.id.monochrome_icons_container);
         TextView monochromeValueTv = monochromeContainer.findViewById(R.id.value_text);
@@ -244,6 +249,42 @@ public class AppBarStyleActivity extends AppCompatActivity {
             iconEffectColor = (iconEffectColor + 1) % EFFECT_COLOR_NAMES.length;
             iconEffectColorValueTv.setText(EFFECT_COLOR_NAMES[iconEffectColor]);
             prefs.edit().putInt("app_bar_icon_effect_color", iconEffectColor).apply();
+        });
+
+        View borderColorContainer = findViewById(R.id.border_color_container);
+        TextView borderColorValueTv = borderColorContainer.findViewById(R.id.value_text);
+        borderColorValueTv.setText(COLOR_SOURCE_NAMES[borderColor]);
+        borderColorValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(borderColorValueTv, COLOR_SOURCE_NAMES));
+        TextView minusBorderColor = borderColorContainer.findViewById(R.id.btn_minus);
+        TextView plusBorderColor = borderColorContainer.findViewById(R.id.btn_plus);
+        minusBorderColor.setOnClickListener(v -> {
+            borderColor = (borderColor - 1 + COLOR_SOURCE_NAMES.length) % COLOR_SOURCE_NAMES.length;
+            borderColorValueTv.setText(COLOR_SOURCE_NAMES[borderColor]);
+            prefs.edit().putInt("app_bar_border_color", borderColor).apply();
+        });
+        plusBorderColor.setOnClickListener(v -> {
+            borderColor = (borderColor + 1) % COLOR_SOURCE_NAMES.length;
+            borderColorValueTv.setText(COLOR_SOURCE_NAMES[borderColor]);
+            prefs.edit().putInt("app_bar_border_color", borderColor).apply();
+        });
+
+        View backgroundColorContainer = findViewById(R.id.background_color_container);
+        TextView backgroundColorValueTv = backgroundColorContainer.findViewById(R.id.value_text);
+        backgroundColorValueTv.setText(COLOR_SOURCE_NAMES[backgroundColor]);
+        backgroundColorValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(backgroundColorValueTv, COLOR_SOURCE_NAMES));
+        TextView minusBackgroundColor = backgroundColorContainer.findViewById(R.id.btn_minus);
+        TextView plusBackgroundColor = backgroundColorContainer.findViewById(R.id.btn_plus);
+        minusBackgroundColor.setOnClickListener(v -> {
+            backgroundColor = (backgroundColor - 1 + COLOR_SOURCE_NAMES.length) % COLOR_SOURCE_NAMES.length;
+            backgroundColorValueTv.setText(COLOR_SOURCE_NAMES[backgroundColor]);
+            prefs.edit().putInt("app_bar_background_color", backgroundColor).apply();
+        });
+        plusBackgroundColor.setOnClickListener(v -> {
+            backgroundColor = (backgroundColor + 1) % COLOR_SOURCE_NAMES.length;
+            backgroundColorValueTv.setText(COLOR_SOURCE_NAMES[backgroundColor]);
+            prefs.edit().putInt("app_bar_background_color", backgroundColor).apply();
         });
     }
 

@@ -33,6 +33,8 @@ public class AppBarSettingsActivity extends AppCompatActivity {
     private int orientation;
     private int iconSize;
     private int numApps;
+    private int border;
+    private int background;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +76,8 @@ public class AppBarSettingsActivity extends AppCompatActivity {
         orientation = prefs.getInt("app_bar_orientation", 0);
         iconSize = prefs.getInt("app_bar_icon_size", 24);
         numApps = prefs.getInt("app_bar_num_apps", 4);
+        border = prefs.getInt("app_bar_border", 0);
+        background = prefs.getInt("app_bar_background", 0);
 
         View enabledContainer = findViewById(R.id.enabled_container);
         TextView enabledValueTv = enabledContainer.findViewById(R.id.value_text);
@@ -115,6 +119,18 @@ public class AppBarSettingsActivity extends AppCompatActivity {
         TextView numAppsValueTv = numAppsContainer.findViewById(R.id.value_text);
         numAppsValueTv.setText(String.valueOf(numApps));
 
+        View borderContainer = findViewById(R.id.border_container);
+        TextView borderValueTv = borderContainer.findViewById(R.id.value_text);
+        borderValueTv.setText(border == 1 ? "ON" : "OFF");
+        borderValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(borderValueTv, new String[] { "ON", "OFF" }));
+
+        View backgroundContainer = findViewById(R.id.background_container);
+        TextView backgroundValueTv = backgroundContainer.findViewById(R.id.value_text);
+        backgroundValueTv.setText(background == 1 ? "ON" : "OFF");
+        backgroundValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(backgroundValueTv, new String[] { "ON", "OFF" }));
+
         TextView minusEnabled = enabledContainer.findViewById(R.id.btn_minus);
         TextView plusEnabled = enabledContainer.findViewById(R.id.btn_plus);
         TextView minusOrientation = orientationContainer.findViewById(R.id.btn_minus);
@@ -123,6 +139,10 @@ public class AppBarSettingsActivity extends AppCompatActivity {
         TextView plusIconSize = iconSizeContainer.findViewById(R.id.btn_plus);
         TextView minusNumApps = numAppsContainer.findViewById(R.id.btn_minus);
         TextView plusNumApps = numAppsContainer.findViewById(R.id.btn_plus);
+        TextView minusBorder = borderContainer.findViewById(R.id.btn_minus);
+        TextView plusBorder = borderContainer.findViewById(R.id.btn_plus);
+        TextView minusBackground = backgroundContainer.findViewById(R.id.btn_minus);
+        TextView plusBackground = backgroundContainer.findViewById(R.id.btn_plus);
 
         minusEnabled.setOnClickListener(v -> {
             enabled = enabled == 1 ? 0 : 1;
@@ -176,6 +196,28 @@ public class AppBarSettingsActivity extends AppCompatActivity {
                 prefs.edit().putInt("app_bar_num_apps", numApps).apply();
             }
         }));
+
+        minusBorder.setOnClickListener(v -> {
+            border = border == 1 ? 0 : 1;
+            borderValueTv.setText(border == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_border", border).apply();
+        });
+        plusBorder.setOnClickListener(v -> {
+            border = border == 1 ? 0 : 1;
+            borderValueTv.setText(border == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_border", border).apply();
+        });
+
+        minusBackground.setOnClickListener(v -> {
+            background = background == 1 ? 0 : 1;
+            backgroundValueTv.setText(background == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_background", background).apply();
+        });
+        plusBackground.setOnClickListener(v -> {
+            background = background == 1 ? 0 : 1;
+            backgroundValueTv.setText(background == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_background", background).apply();
+        });
 
         LinearLayout selectAppsButton = findViewById(R.id.select_apps_button);
         selectAppsButton.setOnClickListener(v -> {

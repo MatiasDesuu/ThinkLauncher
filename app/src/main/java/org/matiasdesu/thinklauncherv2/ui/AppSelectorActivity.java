@@ -248,6 +248,18 @@ public class AppSelectorActivity extends AppCompatActivity {
             }
         }
 
+        if (position == -5) {
+            int barSpecialIndex = 1;
+            installedAppLabels.add(barSpecialIndex, "Launcher Settings");
+            installedAppPackages.add(barSpecialIndex, "launcher_settings");
+
+            installedAppLabels.add(barSpecialIndex + 1, "KOReader History");
+            installedAppPackages.add(barSpecialIndex + 1, "koreader_history");
+
+            instComalledAppLabels.add(barSpecialIndex + 2, "Calendar Screen");
+            installedAppPackages.add(barSpecialIndex + 2, "calendar");
+        }
+
         originalApps = new ArrayList<>();
         for (int i = 0; i < installedAppLabels.size(); i++) {
             originalApps.add(new AppSearchHelper.AppItem(installedAppLabels.get(i), installedAppPackages.get(i)));

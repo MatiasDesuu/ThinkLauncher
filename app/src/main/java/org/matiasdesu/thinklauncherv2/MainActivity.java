@@ -664,6 +664,23 @@ public class MainActivity extends Activity {
         return prefs.getBoolean("app_bar_icon_background", true);
     }
 
+private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
+        switch (colorSource) {
+            case 1: // Dark
+                return ThemeUtils.getBgColor(ThemeUtils.THEME_LIGHT, this);
+            case 2: // White
+                return ThemeUtils.getBgColor(ThemeUtils.THEME_DARK, this);
+            case 3: // Dynamic Dark
+                return ThemeUtils.getBgColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
+            case 4: // Dynamic Light
+                return ThemeUtils.getBgColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
+            default: // Follow Theme
+                return isBackground
+                        ? ThemeUtils.getBgColor(theme, this)
+                        : ThemeUtils.getTextColor(theme, this);
+        }
+    }
+
     private void createTimeViews(int bgColor, int textColor) {
         boolean showTime = timePosition == 1;
         boolean showDate = datePosition != 0;
@@ -963,18 +980,34 @@ public class MainActivity extends Activity {
                 lp.rightMargin = slotMargin;
             }
             iv.setLayoutParams(lp);
-            try {
-                Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, appDynamicIcons, theme,
-                        appIconBackground, appDynamicColors, appInvertIconColors, appIconShape, appForceMonochromeFallback);
-                iv.setImageDrawable(drawable);
-                if (appMonochrome) {
-                    iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
-                } else {
-                    iv.clearColorFilter();
-                }
+            boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
+                    || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
+                    || "calendar".equals(pkg);
+            if (appIsSpecial) {
+                int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
+                        : "app_launcher".equals(pkg) ? R.drawable.search
+                                : "notification_panel".equals(pkg) ? R.drawable.notifications
+                                        : "koreader_history".equals(pkg) ? R.drawable.koreader
+                                                : R.drawable.date;
+                Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
+                        appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
+                iv.setImageDrawable(specialIcon);
+                iv.clearColorFilter();
                 applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
-            } catch (Exception e) {
-                continue;
+            } else {
+                try {
+                    Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, appDynamicIcons, theme,
+                            appIconBackground, appDynamicColors, appInvertIconColors, appIconShape, appForceMonochromeFallback);
+                    iv.setImageDrawable(drawable);
+                    if (appMonochrome) {
+                        iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                    } else {
+                        iv.clearColorFilter();
+                    }
+                    applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                } catch (Exception e) {
+                    continue;
+                }
             }
             final String fpkg = pkg;
             iv.setOnClickListener(v -> launchApp(fpkg));
@@ -1028,10 +1061,30 @@ public class MainActivity extends Activity {
 
         boolean topAnchored = (position == 0 || position == 1 || position == 6);
         boolean bottomAnchored = (position == 2 || position == 3 || position == 7);
+        updatePaddingPx();
         params.leftMargin = margin + homePaddingLeftPx;
         params.rightMargin = margin + homePaddingRightPx;
         params.topMargin = margin + homePaddingTopPx + (topAnchored ? statusBarInset : 0);
         params.bottomMargin = margin + homePaddingBottomPx + (bottomAnchored ? navBarInset : 0);
+
+        boolean appBarBorderEnabled = prefs.getInt("app_bar_border", 0) == 1;
+        boolean appBarBgEnabled = prefs.getInt("app_bar_background", 0) == 1;
+        if (appBarBorderEnabled || appBarBgEnabled) {
+            android.graphics.drawable.GradientDrawable barBg = new android.graphics.drawable.GradientDrawable();
+            barBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+            if (appBarBorderEnabled) {
+                barBg.setStroke((int) (2 * density),
+                        resolveAppBarThemeColor(prefs.getInt("app_bar_border_color", 0), false));
+            }
+            barBg.setColor(appBarBgEnabled
+                    ? resolveAppBarThemeColor(prefs.getInt("app_bar_background_color", 0), true)
+                    : android.graphics.Color.TRANSPARENT);
+            barBg.setCornerRadius(0);
+            bar.setBackground(barBg);
+            int barPad = (int) (6 * density);
+            bar.setPadding(barPad, barPad, barPad, barPad);
+            bar.setClipToPadding(true);
+        }
 
         rootLayout.addView(bar, params);
         appBarView = bar;
@@ -3089,6 +3142,20 @@ public class MainActivity extends Activity {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) searchButton.getLayoutParams();
             params.rightMargin = homePaddingRightPx + 16;
             searchButton.setLayoutParams(params);
+        }
+
+        if (appBarView != null && appBarView.getParent() == rootLayout) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) appBarView.getLayoutParams();
+            int appBarPosition = getSharedPreferences("prefs", MODE_PRIVATE).getInt("app_bar_position", 0);
+            boolean topAnchored = (appBarPosition == 0 || appBarPosition == 1 || appBarPosition == 6);
+            boolean bottomAnchored = (appBarPosition == 2 || appBarPosition == 3 || appBarPosition == 7);
+            float density = getResources().getDisplayMetrics().density;
+            int appbarMargin = (int) (8 * density);
+            params.leftMargin = appbarMargin + homePaddingLeftPx;
+            params.rightMargin = appbarMargin + homePaddingRightPx;
+            params.topMargin = appbarMargin + homePaddingTopPx + (topAnchored ? topInset : 0);
+            params.bottomMargin = appbarMargin + homePaddingBottomPx + (bottomAnchored ? bottomInset : 0);
+            appBarView.setLayoutParams(params);
         }
 
         if (mainLayout != null) {
