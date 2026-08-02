@@ -22,6 +22,8 @@ import java.util.ArrayList;
 
 public class AppBarAppsActivity extends AppCompatActivity {
 
+    public static final String EXTRA_PREFIX = "prefix";
+
     private static final int REQUEST_CODE_APP_SELECT = 1000;
 
     private int theme;
@@ -30,6 +32,11 @@ public class AppBarAppsActivity extends AppCompatActivity {
     private LinearLayout appListContainer;
     private final ArrayList<Slot> slots = new ArrayList<>();
     private int currentSlotIndex;
+    private String prefix = "app_bar";
+
+    private String p(String key) {
+        return prefix + "_" + key;
+    }
 
     private static class Slot {
         int index;
@@ -44,6 +51,10 @@ public class AppBarAppsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             currentSlotIndex = savedInstanceState.getInt("currentSlotIndex", 0);
+        }
+        prefix = getIntent().getStringExtra(EXTRA_PREFIX);
+        if (prefix == null || prefix.isEmpty()) {
+            prefix = "app_bar";
         }
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
@@ -86,7 +97,7 @@ public class AppBarAppsActivity extends AppCompatActivity {
     }
 
     private void setupSlots() {
-        int count = prefs.getInt("app_bar_num_apps", 4);
+        int count = prefs.getInt(p("num_apps"), 4);
         if (count < 1) count = 1;
         appListContainer.removeAllViews();
         slots.clear();
@@ -110,7 +121,7 @@ public class AppBarAppsActivity extends AppCompatActivity {
 
     private void loadSlotData() {
         for (Slot slot : slots) {
-            String label = prefs.getString("app_bar_app_label_" + slot.index, "");
+            String label = prefs.getString(p("app_label_") + slot.index, "");
             if (label == null || label.isEmpty()) {
                 slot.appButton.setText("None");
             } else {
@@ -147,8 +158,8 @@ public class AppBarAppsActivity extends AppCompatActivity {
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
 
             prefs.edit()
-                    .putString("app_bar_app_package_" + index, pkg)
-                    .putString("app_bar_app_label_" + index, label)
+                    .putString(p("app_package_") + index, pkg)
+                    .putString(p("app_label_") + index, label)
                     .apply();
 
             if (pkg == null || pkg.isEmpty()) {

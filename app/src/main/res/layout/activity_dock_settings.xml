@@ -30,14 +30,14 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/floating_dock"
+                android:src="@drawable/bottom_dock"
                 android:layout_marginEnd="8dp"
                 android:tint="?attr/text_color" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:text="Floating Dock"
+                android:text="Bottom Dock"
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -89,42 +89,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Enable App Bar:"
+                    android:text="Enable Dock:"
                     android:textColor="?attr/text_color"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <include layout="@layout/plus_minus_layout"
                     android:id="@+id/enabled_container" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/orientation_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/columns"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Orientation:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/orientation_container" />
 
             </LinearLayout>
 
@@ -287,48 +258,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/position_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp"
-                android:clickable="true">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/adjust_position"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Position:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <RelativeLayout
-                    android:layout_width="160dp"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/forward_arrow"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:padding="12dp"
-                        android:tint="?attr/text_color" />
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/select_apps_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -370,7 +299,7 @@
 
             </LinearLayout>
 
-        </LinearLayout>
+            </LinearLayout>
 
         </ScrollView>
 

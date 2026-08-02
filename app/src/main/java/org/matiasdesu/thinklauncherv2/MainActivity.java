@@ -155,6 +155,7 @@ public class MainActivity extends Activity {
     private ImageView searchButton;
     private ImageView wallpaperView;
     private LinearLayout appBarView;
+    private LinearLayout dockView;
     private int statusBarInset = 0;
     private int navBarInset = 0;
     private int homePaddingTop;
@@ -1099,6 +1100,128 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         createAppBar();
     }
 
+    private void createDock() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (prefs.getInt("dock_enabled", 0) != 1) {
+            return;
+        }
+        int iconSizeDp = prefs.getInt("dock_icon_size", 24);
+        int numApps = prefs.getInt("dock_num_apps", 4);
+
+        boolean appDynamicIcons = prefs.getBoolean("dock_dynamic_icons", false);
+        boolean appIconBackground = prefs.getBoolean("dock_icon_background", true);
+        boolean appDynamicColors = prefs.getBoolean("dock_dynamic_colors", false);
+        boolean appInvertIconColors = prefs.getBoolean("dock_invert_icon_colors", false);
+        int appIconShape = prefs.getInt("dock_icon_shape", IconShapeHelper.SHAPE_SYSTEM);
+        boolean appForceMonochromeFallback = prefs.getBoolean("dock_force_monochrome_fallback", false);
+        boolean appMonochrome = prefs.getBoolean("dock_monochrome_icons", false);
+        int appIconEffect = prefs.getInt("dock_icon_effect", 0);
+        int appIconEffectColor = prefs.getInt("dock_icon_effect_color", 0);
+
+        LinearLayout bar = new LinearLayout(this);
+        bar.setId(View.generateViewId());
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER);
+        bar.setClipChildren(false);
+        bar.setClipToPadding(false);
+
+        float density = getResources().getDisplayMetrics().density;
+        int iconSizePx = (int) (iconSizeDp * density);
+        int slotMargin = (int) (4 * density);
+
+        for (int i = 0; i < numApps; i++) {
+            String pkg = prefs.getString("dock_app_package_" + i, "");
+            if (pkg == null || pkg.isEmpty()) {
+                continue;
+            }
+            ImageView iv = new ImageView(this);
+            iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(iconSizePx, iconSizePx);
+            lp.leftMargin = slotMargin;
+            lp.rightMargin = slotMargin;
+            iv.setLayoutParams(lp);
+            boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
+                    || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
+                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"));
+            if (appIsSpecial) {
+                int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
+                        : "app_launcher".equals(pkg) ? R.drawable.search
+                                : "notification_panel".equals(pkg) ? R.drawable.notifications
+                                        : "koreader_history".equals(pkg) ? R.drawable.koreader
+                                                : "calendar".equals(pkg) ? R.drawable.date
+                                                        : R.drawable.folder;
+                Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
+                        appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
+                iv.setImageDrawable(specialIcon);
+                iv.clearColorFilter();
+                applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+            } else {
+                try {
+                    Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, appDynamicIcons, theme,
+                            appIconBackground, appDynamicColors, appInvertIconColors, appIconShape, appForceMonochromeFallback);
+                    iv.setImageDrawable(drawable);
+                    if (appMonochrome) {
+                        iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                    } else {
+                        iv.clearColorFilter();
+                    }
+                    applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                } catch (Exception e) {
+                    continue;
+                }
+            }
+            final String fpkg = pkg;
+            iv.setOnClickListener(v -> launchApp(fpkg));
+            bar.addView(iv);
+        }
+
+        if (bar.getChildCount() == 0) {
+            return;
+        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+
+        int margin = (int) (8 * density);
+        updatePaddingPx();
+        params.leftMargin = margin + homePaddingLeftPx;
+        params.rightMargin = margin + homePaddingRightPx;
+        params.topMargin = margin;
+        params.bottomMargin = margin + homePaddingBottomPx + navBarInset;
+
+        boolean appBarBorderEnabled = prefs.getInt("dock_border", 0) == 1;
+        boolean appBarBgEnabled = prefs.getInt("dock_background", 0) == 1;
+        if (appBarBorderEnabled || appBarBgEnabled) {
+            android.graphics.drawable.GradientDrawable barBg = new android.graphics.drawable.GradientDrawable();
+            barBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+            if (appBarBorderEnabled) {
+                barBg.setStroke((int) (2 * density),
+                        resolveAppBarThemeColor(prefs.getInt("dock_border_color", 0), false));
+            }
+            barBg.setColor(appBarBgEnabled
+                    ? resolveAppBarThemeColor(prefs.getInt("dock_background_color", 0), true)
+                    : android.graphics.Color.TRANSPARENT);
+            barBg.setCornerRadius(0);
+            bar.setBackground(barBg);
+            int barPad = (int) (6 * density);
+            bar.setPadding(barPad, barPad, barPad, barPad);
+            bar.setClipToPadding(true);
+        }
+
+        rootLayout.addView(bar, params);
+        dockView = bar;
+    }
+
+    private void refreshDock() {
+        if (dockView != null && dockView.getParent() == rootLayout) {
+            rootLayout.removeView(dockView);
+        }
+        dockView = null;
+        createDock();
+    }
+
     private void adjustMainLayoutPosition() {
         RelativeLayout.LayoutParams mainParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -1312,6 +1435,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         createSearchButton(bgColor, textColor);
 
         createAppBar();
+        createDock();
 
         adjustMainLayoutPosition();
 
@@ -1596,6 +1720,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
         updateDateText();
         refreshAppBar();
+        refreshDock();
+        applyWindowInsetsToUI(statusBarInset, navBarInset);
     }
 
     @Override
@@ -2105,6 +2231,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         createSettingsButton(bgColor, textColor);
         createSearchButton(bgColor, textColor);
         refreshAppBar();
+        refreshDock();
         adjustMainLayoutPosition();
     }
 
@@ -3159,6 +3286,17 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             appBarView.setLayoutParams(params);
         }
 
+        if (dockView != null && dockView.getParent() == rootLayout) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) dockView.getLayoutParams();
+            float density = getResources().getDisplayMetrics().density;
+            int dockMargin = (int) (8 * density);
+            params.leftMargin = dockMargin + homePaddingLeftPx;
+            params.rightMargin = dockMargin + homePaddingRightPx;
+            params.topMargin = dockMargin;
+            params.bottomMargin = dockMargin + homePaddingBottomPx + bottomInset;
+            dockView.setLayoutParams(params);
+        }
+
         if (mainLayout != null) {
             boolean hasTopAnchor = (timePosition == 1 && timeView != null) ||
                     (datePosition != 0 && dateView != null) ||
@@ -3179,6 +3317,21 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                             getResources().getDisplayMetrics())
                     : 0;
             int effectiveBottomPx = homePaddingBottomPx + bottomBarHeight + bottomInset;
+
+            if (dockView != null && dockView.getParent() == rootLayout) {
+                SharedPreferences dockPrefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                boolean dockBorderEnabled = dockPrefs.getInt("dock_border", 0) == 1;
+                boolean dockBgEnabled = dockPrefs.getInt("dock_background", 0) == 1;
+                float density = getResources().getDisplayMetrics().density;
+                int dockIconPx = (int) (dockPrefs.getInt("dock_icon_size", 24) * density);
+                int dockSlotMargin = (int) (4 * density);
+                int dockHeight = dockIconPx + 2 * dockSlotMargin;
+                if (dockBorderEnabled || dockBgEnabled) {
+                    int dockPad = (int) (6 * density);
+                    dockHeight += 2 * dockPad;
+                }
+                effectiveBottomPx += dockHeight + (int) (8 * density);
+            }
 
             if (mainLayout.getPaddingLeft() != homePaddingLeftPx ||
                     mainLayout.getPaddingTop() != effectiveTopPx ||

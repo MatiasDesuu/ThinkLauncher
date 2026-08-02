@@ -163,9 +163,9 @@ public class SettingsActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
-        LinearLayout appBarSettingsButton = findViewById(R.id.app_bar_settings_button);
-        appBarSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AppBarSettingsActivity.class);
+        LinearLayout docksSettingsButton = findViewById(R.id.docks_settings_button);
+        docksSettingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, DocksSettingsActivity.class);
             if (!screenAnimations) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             }

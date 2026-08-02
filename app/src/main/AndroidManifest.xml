@@ -78,6 +78,12 @@
             android:name=".settings.AppBarStyleActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.DockSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.DocksSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.RecordGestureActivity"
             android:exported="false" />
         <activity
