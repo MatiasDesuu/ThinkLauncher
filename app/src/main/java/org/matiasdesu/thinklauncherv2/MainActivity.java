@@ -35,6 +35,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import androidx.core.view.WindowCompat;
@@ -1012,7 +1013,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
             }
             final String fpkg = pkg;
-            iv.setOnClickListener(v -> launchApp(fpkg));
+            setupDockItemTap(iv, fpkg);
             bar.addView(iv);
         }
 
@@ -1171,7 +1172,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
             }
             final String fpkg = pkg;
-            iv.setOnClickListener(v -> launchApp(fpkg));
+            setupDockItemTap(iv, fpkg);
             bar.addView(iv);
         }
 
@@ -2287,6 +2288,70 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
         if (launcherApps != null) {
             launcherApps.startShortcut(shortcut, null, null);
+        }
+    }
+
+    private void showDockShortcuts(String pkg) {
+        if (pkg == null || pkg.isEmpty() || pkg.startsWith("folder_")
+                || pkg.startsWith("webapp_") || "launcher_settings".equals(pkg)
+                || "app_launcher".equals(pkg) || "notification_panel".equals(pkg)
+                || "koreader_history".equals(pkg) || "calendar".equals(pkg)) {
+            return;
+        }
+        java.util.List<ShortcutInfo> shortcuts = ShortcutHelper.getShortcuts(this, pkg);
+        if (shortcuts != null && !shortcuts.isEmpty()) {
+            new AppShortcutsDialog(this, shortcuts, "Edit", null,
+                    shortcut -> launchShortcut(shortcut)).show();
+        }
+    }
+
+    private void setupDockItemTap(ImageView iv, String pkg) {
+        iv.setClickable(true);
+        iv.setFocusable(true);
+        final float[] down = new float[2];
+        final boolean[] longPressed = { false };
+        final Runnable[] longPressTask = { null };
+        final int slop = ViewConfiguration.get(this).getScaledTouchSlop();
+        final int longPressMs = 200;
+        iv.setOnTouchListener((v, ev) -> {
+            switch (ev.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    down[0] = ev.getX();
+                    down[1] = ev.getY();
+                    longPressed[0] = false;
+                    lpTaskCancel(longPressTask);
+                    longPressTask[0] = () -> {
+                        longPressed[0] = true;
+                        v.setPressed(false);
+                        showDockShortcuts(pkg);
+                    };
+                    handler.postDelayed(longPressTask[0], longPressMs);
+                    v.setPressed(true);
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    if (Math.abs(ev.getX() - down[0]) > slop || Math.abs(ev.getY() - down[1]) > slop) {
+                        lpTaskCancel(longPressTask);
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    lpTaskCancel(longPressTask);
+                    if (!longPressed[0]) launchApp(pkg);
+                    v.setPressed(false);
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    lpTaskCancel(longPressTask);
+                    v.setPressed(false);
+                    return true;
+                default:
+                    return false;
+            }
+        });
+    }
+
+    private void lpTaskCancel(Runnable[] holder) {
+        if (holder[0] != null) {
+            handler.removeCallbacks(holder[0]);
+            holder[0] = null;
         }
     }
 
