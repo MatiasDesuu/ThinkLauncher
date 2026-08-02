@@ -210,39 +210,41 @@ public class AppSelectorActivity extends AppCompatActivity {
             installedAppPackages.add(1, "system_default");
         }
 
-        int specialIndex;
-        if (position >= 0) {
-            specialIndex = 5;
-        } else if (position == -2) {
-            specialIndex = 2;
-        } else if (position == -3) {
-            specialIndex = 2;
-        } else {
-            specialIndex = 1;
-        }
+        if (position != -5) {
+            int specialIndex;
+            if (position >= 0) {
+                specialIndex = 5;
+            } else if (position == -2) {
+                specialIndex = 2;
+            } else if (position == -3) {
+                specialIndex = 2;
+            } else {
+                specialIndex = 1;
+            }
 
-        installedAppLabels.add(specialIndex, "Launcher Settings");
-        installedAppPackages.add(specialIndex, "launcher_settings");
+            installedAppLabels.add(specialIndex, "Launcher Settings");
+            installedAppPackages.add(specialIndex, "launcher_settings");
 
-        if (position != -2) {
-            installedAppLabels.add(specialIndex + 1, "Notification Panel");
-            installedAppPackages.add(specialIndex + 1, "notification_panel");
+            if (position != -2) {
+                installedAppLabels.add(specialIndex + 1, "Notification Panel");
+                installedAppPackages.add(specialIndex + 1, "notification_panel");
 
-            installedAppLabels.add(specialIndex + 2, "App Launcher");
-            installedAppPackages.add(specialIndex + 2, "app_launcher");
+                installedAppLabels.add(specialIndex + 2, "App Launcher");
+                installedAppPackages.add(specialIndex + 2, "app_launcher");
 
-            installedAppLabels.add(specialIndex + 3, "KOReader History");
-            installedAppPackages.add(specialIndex + 3, "koreader_history");
+                installedAppLabels.add(specialIndex + 3, "KOReader History");
+                installedAppPackages.add(specialIndex + 3, "koreader_history");
 
-            installedAppLabels.add(specialIndex + 4, "Calendar Screen");
-            installedAppPackages.add(specialIndex + 4, "calendar");
+                installedAppLabels.add(specialIndex + 4, "Calendar Screen");
+                installedAppPackages.add(specialIndex + 4, "calendar");
 
-            if (position == -1) {
-                installedAppLabels.add(specialIndex + 5, "Next Home Page");
-                installedAppPackages.add(specialIndex + 5, "next_home_page");
+                if (position == -1) {
+                    installedAppLabels.add(specialIndex + 5, "Next Home Page");
+                    installedAppPackages.add(specialIndex + 5, "next_home_page");
 
-                installedAppLabels.add(specialIndex + 6, "Previous Home Page");
-                installedAppPackages.add(specialIndex + 6, "previous_home_page");
+                    installedAppLabels.add(specialIndex + 6, "Previous Home Page");
+                    installedAppPackages.add(specialIndex + 6, "previous_home_page");
+                }
             }
         }
 

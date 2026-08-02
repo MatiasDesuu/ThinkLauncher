@@ -163,6 +163,16 @@ public class SettingsActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
+        LinearLayout appBarSettingsButton = findViewById(R.id.app_bar_settings_button);
+        appBarSettingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AppBarSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
+        });
+
         LinearLayout defaultLauncherButton = findViewById(R.id.default_launcher_button);
         defaultLauncherButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_HOME_SETTINGS);

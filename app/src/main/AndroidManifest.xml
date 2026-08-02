@@ -66,6 +66,15 @@
             android:name=".settings.CustomGestureSettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.AppBarSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppBarAppsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppBarPositionActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.RecordGestureActivity"
             android:exported="false" />
         <activity

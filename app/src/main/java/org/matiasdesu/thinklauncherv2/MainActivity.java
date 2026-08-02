@@ -154,6 +154,7 @@ public class MainActivity extends Activity {
     private ImageView settingsButton;
     private ImageView searchButton;
     private ImageView wallpaperView;
+    private LinearLayout appBarView;
     private int statusBarInset = 0;
     private int navBarInset = 0;
     private int homePaddingTop;
@@ -865,6 +866,124 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void createAppBar() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (prefs.getInt("app_bar_enabled", 0) != 1) {
+            return;
+        }
+        int position = prefs.getInt("app_bar_position", 0);
+        int iconSizeDp = prefs.getInt("app_bar_icon_size", 24);
+        int numApps = prefs.getInt("app_bar_num_apps", 4);
+        boolean vertical = prefs.getInt("app_bar_orientation", 0) == 1;
+
+        LinearLayout bar = new LinearLayout(this);
+        bar.setId(View.generateViewId());
+        bar.setOrientation(vertical ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER);
+        bar.setClipChildren(false);
+        bar.setClipToPadding(false);
+
+        float density = getResources().getDisplayMetrics().density;
+        int iconSizePx = (int) (iconSizeDp * density);
+        int slotMargin = (int) (4 * density);
+
+        for (int i = 0; i < numApps; i++) {
+            String pkg = prefs.getString("app_bar_app_package_" + i, "");
+            if (pkg == null || pkg.isEmpty()) {
+                continue;
+            }
+            ImageView iv = new ImageView(this);
+            iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(iconSizePx, iconSizePx);
+            if (vertical) {
+                lp.topMargin = slotMargin;
+                lp.bottomMargin = slotMargin;
+            } else {
+                lp.leftMargin = slotMargin;
+                lp.rightMargin = slotMargin;
+            }
+            iv.setLayoutParams(lp);
+            try {
+                Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, dynamicIcons, theme,
+                        iconBackground, dynamicColors, invertIconColors, iconShape, forceMonochromeFallback);
+                iv.setImageDrawable(drawable);
+                if (monochromeIcons) {
+                    iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                } else {
+                    iv.clearColorFilter();
+                }
+            } catch (Exception e) {
+                continue;
+            }
+            final String fpkg = pkg;
+            iv.setOnClickListener(v -> launchApp(fpkg));
+            bar.addView(iv);
+        }
+
+        if (bar.getChildCount() == 0) {
+            return;
+        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        int margin = (int) (8 * density);
+        switch (position) {
+            case 0:
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case 1:
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            case 2:
+                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case 3:
+                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            case 4:
+                params.addRule(RelativeLayout.CENTER_VERTICAL);
+                params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case 5:
+                params.addRule(RelativeLayout.CENTER_VERTICAL);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            case 6:
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                break;
+            case 8:
+                params.addRule(RelativeLayout.CENTER_IN_PARENT);
+                break;
+            default:
+                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                break;
+        }
+
+        boolean topAnchored = (position == 0 || position == 1 || position == 6);
+        boolean bottomAnchored = (position == 2 || position == 3 || position == 7);
+        params.leftMargin = margin + homePaddingLeftPx;
+        params.rightMargin = margin + homePaddingRightPx;
+        params.topMargin = margin + homePaddingTopPx + (topAnchored ? statusBarInset : 0);
+        params.bottomMargin = margin + homePaddingBottomPx + (bottomAnchored ? navBarInset : 0);
+
+        rootLayout.addView(bar, params);
+        appBarView = bar;
+    }
+
+    private void refreshAppBar() {
+        if (appBarView != null && appBarView.getParent() == rootLayout) {
+            rootLayout.removeView(appBarView);
+        }
+        appBarView = null;
+        createAppBar();
+    }
+
     private void adjustMainLayoutPosition() {
         RelativeLayout.LayoutParams mainParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -1076,6 +1195,8 @@ public class MainActivity extends Activity {
 
         createSettingsButton(bgColor, textColor);
         createSearchButton(bgColor, textColor);
+
+        createAppBar();
 
         adjustMainLayoutPosition();
 
@@ -1359,6 +1480,7 @@ public class MainActivity extends Activity {
             timeView.setText(timeSdf.format(new Date()));
         }
         updateDateText();
+        refreshAppBar();
     }
 
     @Override
@@ -1867,6 +1989,7 @@ public class MainActivity extends Activity {
         createHomeLayout();
         createSettingsButton(bgColor, textColor);
         createSearchButton(bgColor, textColor);
+        refreshAppBar();
         adjustMainLayoutPosition();
     }
 
