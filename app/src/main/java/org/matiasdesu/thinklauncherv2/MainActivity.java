@@ -35,7 +35,8 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import androidx.core.view.WindowCompat;
@@ -2306,53 +2307,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     }
 
     private void setupDockItemTap(ImageView iv, String pkg) {
-        iv.setClickable(true);
-        iv.setFocusable(true);
-        final float[] down = new float[2];
-        final boolean[] longPressed = { false };
-        final Runnable[] longPressTask = { null };
-        final int slop = ViewConfiguration.get(this).getScaledTouchSlop();
-        final int longPressMs = 200;
-        iv.setOnTouchListener((v, ev) -> {
-            switch (ev.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    down[0] = ev.getX();
-                    down[1] = ev.getY();
-                    longPressed[0] = false;
-                    lpTaskCancel(longPressTask);
-                    longPressTask[0] = () -> {
-                        longPressed[0] = true;
-                        v.setPressed(false);
-                        showDockShortcuts(pkg);
-                    };
-                    handler.postDelayed(longPressTask[0], longPressMs);
-                    v.setPressed(true);
-                    return true;
-                case MotionEvent.ACTION_MOVE:
-                    if (Math.abs(ev.getX() - down[0]) > slop || Math.abs(ev.getY() - down[1]) > slop) {
-                        lpTaskCancel(longPressTask);
-                    }
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    lpTaskCancel(longPressTask);
-                    if (!longPressed[0]) launchApp(pkg);
-                    v.setPressed(false);
-                    return true;
-                case MotionEvent.ACTION_CANCEL:
-                    lpTaskCancel(longPressTask);
-                    v.setPressed(false);
-                    return true;
-                default:
-                    return false;
-            }
-        });
-    }
-
-    private void lpTaskCancel(Runnable[] holder) {
-        if (holder[0] != null) {
-            handler.removeCallbacks(holder[0]);
-            holder[0] = null;
-        }
+        iv.setTag("dock_pkg:" + pkg);
     }
 
     public void launchApp(String packageName) {
@@ -2930,6 +2885,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         private boolean touchedClock = false;
         private boolean touchedDate = false;
         private boolean isLongPress = false;
+        private String touchedDockPkg = null;
 
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final java.util.ArrayList<GesturePoint> touchPoints = new java.util.ArrayList<>();
@@ -2988,12 +2944,15 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     touchPoints.add(new GesturePoint(event.getX(), event.getY(), event.getEventTime()));
 
                     touchedSlotIndex = findTouchedSlot(event.getX(), event.getY());
+                    touchedDockPkg = findDockPkg(event.getX(), event.getY());
                     touchedClock = isPointInsideView(event.getX(), event.getY(), timeView);
                     touchedDate = isPointInsideView(event.getX(), event.getY(), dateView);
 
                     longPressRunnable = () -> {
                         isLongPress = true;
-                        if (touchedSlotIndex >= 0) {
+                        if (touchedDockPkg != null) {
+                            showDockShortcuts(touchedDockPkg);
+                        } else if (touchedSlotIndex >= 0) {
                             String pkg = appPackages.get(touchedSlotIndex);
                             java.util.List<ShortcutInfo> shortcuts = null;
                             if (!pkg.isEmpty() && !pkg.equals("blank")) {
@@ -3065,7 +3024,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
 
         private void handleTap() {
-            if (touchedSlotIndex >= 0) {
+            if (touchedDockPkg != null) {
+                launchApp(touchedDockPkg);
+            } else if (touchedSlotIndex >= 0) {
                 String pkg = appPackages.get(touchedSlotIndex);
                 if (!pkg.isEmpty()) {
                     launchApp(pkg);
@@ -3142,6 +3103,26 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
             }
             return -1;
+        }
+
+        private String findDockPkg(float x, float y) {
+            View[] docks = { appBarView, dockView };
+            for (View dock : docks) {
+                if (dock == null || dock.getParent() != rootLayout) continue;
+                if (dock instanceof ViewGroup) {
+                    ViewGroup vg = (ViewGroup) dock;
+                    for (int i = 0; i < vg.getChildCount(); i++) {
+                        View item = vg.getChildAt(i);
+                        if (item.getVisibility() != View.VISIBLE) continue;
+                        Object tag = item.getTag();
+                        if (tag instanceof String && ((String) tag).startsWith("dock_pkg:")
+                                && isPointInsideView(x, y, item)) {
+                            return ((String) tag).substring("dock_pkg:".length());
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         private boolean isPointInsideView(float x, float y, View view) {
