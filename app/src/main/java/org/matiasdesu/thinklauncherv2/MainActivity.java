@@ -1623,7 +1623,7 @@ public class MainActivity extends Activity {
 
                         }
 
-                        if (monochromeIcons && !dynamicIcons) {
+                        if (monochromeIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                         } else {
                             iconView.clearColorFilter();
@@ -2242,7 +2242,7 @@ public class MainActivity extends Activity {
                                 theme, iconBackground, dynamicColors, invertIconColors, iconShape,
                                 forceMonochromeFallback);
                         iconView.setImageDrawable(drawable);
-                        if (monochromeIcons && !dynamicIcons) {
+                        if (monochromeIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                         } else {
                             iconView.clearColorFilter();
@@ -2350,7 +2350,7 @@ public class MainActivity extends Activity {
                                 theme, iconBackground, dynamicColors, invertIconColors, iconShape,
                                 forceMonochromeFallback);
                         iconView.setImageDrawable(drawable);
-                        if (monochromeIcons && !dynamicIcons) {
+                        if (monochromeIcons) {
                             iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                         } else {
                             iconView.clearColorFilter();
@@ -3164,7 +3164,7 @@ public class MainActivity extends Activity {
                             iconBackground, dynamicColors, invertIconColors, iconShape,
                             forceMonochromeFallback);
                     iconView.setImageDrawable(drawable);
-                    if (monochromeIcons && !dynamicIcons) {
+                    if (monochromeIcons) {
                         iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                     } else {
                         iconView.clearColorFilter();
