@@ -75,6 +75,9 @@
             android:name=".settings.AppBarPositionActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.AppBarStyleActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.RecordGestureActivity"
             android:exported="false" />
         <activity

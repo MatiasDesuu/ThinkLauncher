@@ -30,14 +30,14 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/app_icons"
+                android:src="@drawable/style"
                 android:layout_marginEnd="8dp"
                 android:tint="?attr/text_color" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:text="App Bar"
+                android:text="App Bar Style"
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -48,7 +48,6 @@
     </RelativeLayout>
 
     <View
-        android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="?attr/text_color" />
@@ -83,13 +82,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Enable App Bar:"
+                    android:text="Monochrome Icons:"
                     android:textColor="?attr/text_color"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/enabled_container" />
+                    android:id="@+id/monochrome_icons_container" />
 
             </LinearLayout>
 
@@ -99,92 +98,6 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_margin="16dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/columns"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Orientation:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/orientation_container" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/app_icons"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Icon Size:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/icon_size_container" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/columns"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Number of Apps:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <include layout="@layout/plus_minus_layout"
-                    android:id="@+id/num_apps_container" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/style_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp"
-                android:clickable="true">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -197,78 +110,23 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Style:"
+                    android:text="Dynamic Icons:"
                     android:textColor="?attr/text_color"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <RelativeLayout
-                    android:layout_width="160dp"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/forward_arrow"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:padding="12dp"
-                        android:tint="?attr/text_color" />
-
-                </RelativeLayout>
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/dynamic_icons_container" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/position_button"
+                android:id="@+id/force_monochrome_fallback_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_margin="16dp"
-                android:clickable="true">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/adjust_position"
-                    android:layout_marginEnd="8dp"
-                    android:tint="?attr/text_color" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Position:"
-                    android:textColor="?attr/text_color"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <RelativeLayout
-                    android:layout_width="160dp"
-                    android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/forward_arrow"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:padding="12dp"
-                        android:tint="?attr/text_color" />
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/select_apps_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_margin="16dp"
-                android:clickable="true">
+                android:layout_margin="16dp">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -281,25 +139,157 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Select Apps:"
+                    android:text="Force Two-Tone Icons (Experimental):"
                     android:textColor="?attr/text_color"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <RelativeLayout
-                    android:layout_width="160dp"
-                    android:layout_height="wrap_content">
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/force_monochrome_fallback_container" />
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/forward_arrow"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:padding="12dp"
-                        android:tint="?attr/text_color" />
+            </LinearLayout>
 
-                </RelativeLayout>
+            <LinearLayout
+                android:id="@+id/dynamic_colors_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/columns"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Dynamic Colors:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/dynamic_colors_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/icon_background_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/app_icons"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Icon Background:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/icon_background_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/icon_shape_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/adjust_position"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Icon Shape:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/icon_shape_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/style"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Icon Effect:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/icon_effect_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/icon_effect_color_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/columns"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Icon Effect Color:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/icon_effect_color_container" />
 
             </LinearLayout>
 

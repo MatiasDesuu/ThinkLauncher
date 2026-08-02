@@ -614,6 +614,56 @@ public class MainActivity extends Activity {
         }
     }
 
+    private int getAppBarIconEffectColorValue(int effectColor, int theme) {
+        if (theme == ThemeUtils.THEME_CUSTOM) {
+            return ThemeUtils.getBgColor(theme, this);
+        }
+        switch (effectColor) {
+            case 0:
+                return android.graphics.Color.BLACK;
+            case 1:
+                return android.graphics.Color.WHITE;
+            case 2:
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_LIGHT, this);
+            case 3:
+                return ThemeUtils.getTextColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
+            default:
+                return android.graphics.Color.BLACK;
+        }
+    }
+
+    private void applyAppBarIconEffect(ImageView iv, int effect, int effectColor) {
+        if (iv == null)
+            return;
+        if (effect == 0) {
+            return;
+        }
+        Drawable original = iv.getDrawable();
+        if (original == null)
+            return;
+        if (original instanceof ShadowOutlineDrawable) {
+            original = ((ShadowOutlineDrawable) original).getInnerDrawable();
+        }
+        float offset = android.util.TypedValue.applyDimension(
+                android.util.TypedValue.COMPLEX_UNIT_DIP, 1.5f, getResources().getDisplayMetrics());
+        float adjustedOffset = offset * 1.5f;
+        if (!(original instanceof InsetDrawable) && !appBarUsesBackground()) {
+            original = new InsetDrawable(original, 0.15f);
+        }
+        int p = (int) (adjustedOffset * 1.5f);
+        iv.setPadding(p, p, p, p);
+        iv.setImageDrawable(new ShadowOutlineDrawable(original, effect,
+                getAppBarIconEffectColorValue(effectColor, theme), adjustedOffset));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            iv.setElevation(0);
+        }
+    }
+
+    private boolean appBarUsesBackground() {
+        android.content.SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        return prefs.getBoolean("app_bar_icon_background", true);
+    }
+
     private void createTimeViews(int bgColor, int textColor) {
         boolean showTime = timePosition == 1;
         boolean showDate = datePosition != 0;
@@ -876,6 +926,16 @@ public class MainActivity extends Activity {
         int numApps = prefs.getInt("app_bar_num_apps", 4);
         boolean vertical = prefs.getInt("app_bar_orientation", 0) == 1;
 
+        boolean appDynamicIcons = prefs.getBoolean("app_bar_dynamic_icons", false);
+        boolean appIconBackground = prefs.getBoolean("app_bar_icon_background", true);
+        boolean appDynamicColors = prefs.getBoolean("app_bar_dynamic_colors", false);
+        boolean appInvertIconColors = prefs.getBoolean("app_bar_invert_icon_colors", false);
+        int appIconShape = prefs.getInt("app_bar_icon_shape", IconShapeHelper.SHAPE_SYSTEM);
+        boolean appForceMonochromeFallback = prefs.getBoolean("app_bar_force_monochrome_fallback", false);
+        boolean appMonochrome = prefs.getBoolean("app_bar_monochrome_icons", false);
+        int appIconEffect = prefs.getInt("app_bar_icon_effect", 0);
+        int appIconEffectColor = prefs.getInt("app_bar_icon_effect_color", 0);
+
         LinearLayout bar = new LinearLayout(this);
         bar.setId(View.generateViewId());
         bar.setOrientation(vertical ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
@@ -904,14 +964,15 @@ public class MainActivity extends Activity {
             }
             iv.setLayoutParams(lp);
             try {
-                Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, dynamicIcons, theme,
-                        iconBackground, dynamicColors, invertIconColors, iconShape, forceMonochromeFallback);
+                Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, appDynamicIcons, theme,
+                        appIconBackground, appDynamicColors, appInvertIconColors, appIconShape, appForceMonochromeFallback);
                 iv.setImageDrawable(drawable);
-                if (monochromeIcons) {
+                if (appMonochrome) {
                     iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
                 } else {
                     iv.clearColorFilter();
                 }
+                applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
             } catch (Exception e) {
                 continue;
             }

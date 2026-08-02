@@ -212,6 +212,7 @@ public class ThemeUtils {
                     id == R.id.select_button_text || id == R.id.remove_button_text ||
                     id == R.id.custom_bg_color_text || id == R.id.custom_accent_color_text ||
                     id == R.id.gesture_record_button || id == R.id.gesture_app_button ||
+                    id == R.id.app_button ||
                     id == R.id.reset_button_text) {
                     applyButtonTheme(tv, theme, context);
                 }

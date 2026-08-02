@@ -91,6 +91,16 @@ public class AppBarSettingsActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
+        View styleButton = findViewById(R.id.style_button);
+        styleButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AppBarStyleActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
+        });
+
         View orientationContainer = findViewById(R.id.orientation_container);
         TextView orientationValueTv = orientationContainer.findViewById(R.id.value_text);
         orientationValueTv.setText(orientation == 1 ? "Vertical" : "Horizontal");
