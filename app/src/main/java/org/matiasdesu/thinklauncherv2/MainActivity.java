@@ -1680,6 +1680,7 @@ public class MainActivity extends Activity {
                 if (tv != null) {
                     tv.setTextSize(textSize);
                     tv.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
+                    tv.setTextColor(getAppTextColorValue());
                     applyTextEffect(tv);
                 }
                 ImageView iv = getSlotImageView(slot);
