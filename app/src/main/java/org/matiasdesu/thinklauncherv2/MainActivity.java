@@ -2112,7 +2112,8 @@ public class MainActivity extends Activity {
         if (appNamePosition == AppNamePositionHelper.POSITION_LEFT && showIcons && showAppNames) {
             slot.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT));
-            tv.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
         } else {
             slot.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -3002,9 +3003,8 @@ public class MainActivity extends Activity {
         tv.setBackgroundColor(0);
 
         if (appNamePosition == AppNamePositionHelper.POSITION_LEFT && showIcons && showAppNames) {
-            LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-            tv.setLayoutParams(tvParams);
+            tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
         } else {
             tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT));
