@@ -48,6 +48,13 @@ public class ThemeUtils {
         button.setTextColor(getTextColor(theme, context));
     }
 
+    public static void applyButtonBorder(ImageView imageView, int strokeColor, int fillColor, Context context) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(fillColor);
+        drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density), strokeColor);
+        imageView.setBackground(drawable);
+    }
+
     public static void applyTextColor(TextView textView, int theme) {
         textView.setTextColor(isDarkTheme(theme) ? Color.WHITE : Color.BLACK);
     }
@@ -204,11 +211,18 @@ public class ThemeUtils {
                     id == R.id.clock_app || id == R.id.date_app ||
                     id == R.id.select_button_text || id == R.id.remove_button_text ||
                     id == R.id.custom_bg_color_text || id == R.id.custom_accent_color_text ||
-                    id == R.id.gesture_record_button || id == R.id.gesture_app_button) {
+                    id == R.id.gesture_record_button || id == R.id.gesture_app_button ||
+                    id == R.id.reset_button_text) {
                     applyButtonTheme(tv, theme, context);
                 }
             } else if (child instanceof ImageView) {
-                ((ImageView) child).setColorFilter(textColor);
+                ImageView iv = (ImageView) child;
+                iv.setColorFilter(textColor);
+                int ivId = iv.getId();
+                if (ivId == R.id.btn_move_up || ivId == R.id.btn_move_down
+                        || ivId == R.id.btn_move_left || ivId == R.id.btn_move_right) {
+                    applyButtonBorder(iv, textColor, bgColor, context);
+                }
             }
             // Also apply to dividers (View with height 2dp used as separator)
             if (child.getClass() == View.class) {
