@@ -148,11 +148,13 @@ public class AppBarSettingsActivity extends AppCompatActivity {
             enabled = enabled == 1 ? 0 : 1;
             enabledValueTv.setText(enabled == 1 ? "ON" : "OFF");
             prefs.edit().putInt("app_bar_enabled", enabled).apply();
+            refreshVisibility();
         });
         plusEnabled.setOnClickListener(v -> {
             enabled = enabled == 1 ? 0 : 1;
             enabledValueTv.setText(enabled == 1 ? "ON" : "OFF");
             prefs.edit().putInt("app_bar_enabled", enabled).apply();
+            refreshVisibility();
         });
 
         // Position is selected via the visual picker (AppBarPositionActivity)
@@ -228,6 +230,25 @@ public class AppBarSettingsActivity extends AppCompatActivity {
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
+
+        refreshVisibility();
+    }
+
+    private void refreshVisibility() {
+        View[] views = {
+                findViewById(R.id.orientation_layout),
+                findViewById(R.id.icon_size_layout),
+                findViewById(R.id.num_apps_layout),
+                findViewById(R.id.border_layout),
+                findViewById(R.id.background_layout),
+                findViewById(R.id.style_button),
+                findViewById(R.id.position_button),
+                findViewById(R.id.select_apps_button)
+        };
+        int visibility = enabled == 1 ? View.VISIBLE : View.GONE;
+        for (View v : views) {
+            v.setVisibility(visibility);
+        }
     }
 
     @Override

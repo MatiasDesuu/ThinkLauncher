@@ -94,6 +94,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/orientation_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -122,6 +123,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/icon_size_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -150,6 +152,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/num_apps_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -178,6 +181,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/border_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -206,6 +210,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/background_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"

@@ -146,7 +146,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Scroll App List:"
+            android:text="Disable Pagination:"
             android:textColor="?attr/text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
