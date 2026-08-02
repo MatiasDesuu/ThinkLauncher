@@ -982,13 +982,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg);
+                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"));
             if (appIsSpecial) {
                 int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
                         : "app_launcher".equals(pkg) ? R.drawable.search
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
-                                                : R.drawable.date;
+                                                : "calendar".equals(pkg) ? R.drawable.date
+                                                        : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);

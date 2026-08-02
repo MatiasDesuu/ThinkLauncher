@@ -249,15 +249,17 @@ public class AppSelectorActivity extends AppCompatActivity {
         }
 
         if (position == -5) {
-            int barSpecialIndex = 1;
-            installedAppLabels.add(barSpecialIndex, "Launcher Settings");
-            installedAppPackages.add(barSpecialIndex, "launcher_settings");
+            installedAppLabels.add(1, "Launcher Settings");
+            installedAppPackages.add(1, "launcher_settings");
 
-            installedAppLabels.add(barSpecialIndex + 1, "KOReader History");
-            installedAppPackages.add(barSpecialIndex + 1, "koreader_history");
+            installedAppLabels.add(2, "KOReader History");
+            installedAppPackages.add(2, "koreader_history");
 
-            instComalledAppLabels.add(barSpecialIndex + 2, "Calendar Screen");
-            installedAppPackages.add(barSpecialIndex + 2, "calendar");
+            installedAppLabels.add(3, "Calendar Screen");
+            installedAppPackages.add(3, "calendar");
+
+            installedAppLabels.add(4, "Folder");
+            installedAppPackages.add(4, "folder");
         }
 
         originalApps = new ArrayList<>();
@@ -402,6 +404,18 @@ public class AppSelectorActivity extends AppCompatActivity {
                 finish();
                 overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             }
+        } else if ("folder".equals(pkg)) {
+            new RenameDialog(this, "New Folder", newLabel -> {
+                String folderName = newLabel.isEmpty() ? "New Folder" : newLabel;
+                String folderId = "folder_" + System.currentTimeMillis();
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(EXTRA_LABEL, folderName);
+                resultIntent.putExtra(EXTRA_PACKAGE, folderId);
+                resultIntent.putExtra(EXTRA_POSITION, position);
+                setResult(RESULT_OK, resultIntent);
+                finish();
+                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
+            }).show();
         } else {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(EXTRA_LABEL, label);
