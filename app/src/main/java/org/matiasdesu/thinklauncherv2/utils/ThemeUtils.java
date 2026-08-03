@@ -203,6 +203,7 @@ public class ThemeUtils {
             if (child instanceof TextView) {
                 TextView tv = (TextView) child;
                 tv.setTextColor(textColor);
+                FontHelper.applyFont(context, tv);
                 // Check if it's a button (plus/minus or gesture button)
                 int id = tv.getId();
                 if (id == R.id.btn_minus || id == R.id.btn_plus ||

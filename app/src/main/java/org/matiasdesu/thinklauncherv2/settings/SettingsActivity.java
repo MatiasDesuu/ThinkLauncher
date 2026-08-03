@@ -24,6 +24,7 @@ import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
 import android.os.Build;
 
@@ -254,6 +255,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }
+        FontHelper.applyToViewTree(this, rootLayout);
     }
 
     private void restartActivity() {

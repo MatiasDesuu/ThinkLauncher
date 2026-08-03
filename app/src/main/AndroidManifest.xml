@@ -126,6 +126,9 @@
             android:name=".settings.FontSizesSettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.FontSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.AnimationSettingsActivity"
             android:exported="false" />
         <activity

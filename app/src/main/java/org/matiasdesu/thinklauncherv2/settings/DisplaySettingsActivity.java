@@ -20,6 +20,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 
 import android.os.Build;
@@ -326,6 +327,15 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
+
+        findViewById(R.id.custom_font_button).setOnClickListener(v -> {
+            Intent intent = new Intent(this, FontSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
+        });
     }
 
     private void refreshVisibility() {
@@ -360,6 +370,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }
+        FontHelper.applyToViewTree(this, rootLayout);
     }
 
     @Override

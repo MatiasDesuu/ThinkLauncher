@@ -36,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -575,6 +576,7 @@ public class CalendarActivity extends AppCompatActivity {
                     activity.calendarSurfaceColor);
             ThemeUtils.applyTextColor(holder.titleView, theme, activity);
             ThemeUtils.applyTextColor(holder.timeView, theme, activity);
+            FontHelper.applyToViewTree(activity, holder.itemView);
             holder.todayDot.getBackground().setTint(ThemeUtils.getTextColor(theme, activity));
             holder.itemView.setOnClickListener(v -> activity.openEvent(event));
         }

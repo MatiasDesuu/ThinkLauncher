@@ -39,6 +39,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.util.ArrayList;
@@ -444,6 +445,7 @@ public class HideAppsActivity extends AppCompatActivity {
             AppSearchHelper.AppItem app = apps.get(globalPosition);
             holder.textView.setText(app.label);
             holder.textView.setTypeface(null, Typeface.BOLD);
+            FontHelper.applyFont(activity, holder.textView);
             ThemeUtils.applyBackgroundColor(holder.itemView, theme, activity);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
             boolean isHidden = hiddenApps.contains(app.packageName);

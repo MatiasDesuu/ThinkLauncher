@@ -33,6 +33,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.ui.RenameDialog;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -223,7 +224,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         if (position != -5) {
             int specialIndex;
             if (position >= 0) {
-                specialIndex = 5;
+                specialIndex = getIntent().getBooleanExtra(EXTRA_NO_BLANK, false) ? 4 : 5;
             } else if (position == -2) {
                 specialIndex = 2;
             } else if (position == -3) {
@@ -478,6 +479,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        FontHelper.applyToViewTree(this, findViewById(android.R.id.content));
     }
 
     @Override
@@ -789,6 +791,7 @@ public class AppSelectorActivity extends AppCompatActivity {
             holder.textView.setText(app.label);
             holder.textView.setTextSize(activity.textSize);
             holder.textView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
+            FontHelper.applyFont(activity, holder.textView);
             LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop,
                     activity.selectorSurfaceColor);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);

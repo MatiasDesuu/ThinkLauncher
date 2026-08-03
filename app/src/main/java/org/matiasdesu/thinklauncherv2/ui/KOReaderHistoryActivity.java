@@ -29,6 +29,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.KOReaderHistoryHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -403,6 +404,7 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
             LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop,
                     activity.historySurfaceColor);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
+            FontHelper.applyFont(activity, holder.textView);
             holder.itemView.setOnClickListener(v -> activity.openBook(book));
         }
 

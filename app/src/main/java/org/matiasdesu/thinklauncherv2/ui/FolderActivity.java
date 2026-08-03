@@ -33,6 +33,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.AppListSizeHelper;
 import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -700,6 +701,7 @@ public class FolderActivity extends AppCompatActivity {
             LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop,
                     activity.folderSurfaceColor);
             ThemeUtils.applyTextColor(holder.textView, theme, activity);
+            FontHelper.applyFont(activity, holder.textView);
 
             if (isReordering) {
                 holder.reorderButtons.setVisibility(View.VISIBLE);
