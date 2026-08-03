@@ -9,8 +9,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.io.InputStream;
@@ -31,6 +34,7 @@ public class FontSettingsActivity extends AppCompatActivity {
     private LinearLayout rootLayout;
     private int theme;
     private boolean screenAnimations;
+    private SettingsPaginationHelper paginationHelper;
 
     private ActivityResultLauncher<Intent> fontPickerLauncher;
 
@@ -100,6 +104,13 @@ public class FontSettingsActivity extends AppCompatActivity {
         ThemeUtils.applyButtonTheme(resetButtonText, theme, this);
 
         updateFontStatus();
+
+        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
+        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
+        FrameLayout container = findViewById(R.id.settings_container);
+
+        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
+        paginationHelper.initialize(null);
     }
 
     private void setupPickerLauncher() {
@@ -157,6 +168,10 @@ public class FontSettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
+        FontHelper.applyToViewTree(this, rootLayout);
+        if (paginationHelper != null) {
+            paginationHelper.updateVisibleItemsList();
+        }
     }
 
     @Override
