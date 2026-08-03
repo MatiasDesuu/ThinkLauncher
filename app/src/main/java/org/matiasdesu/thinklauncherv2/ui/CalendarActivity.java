@@ -464,6 +464,7 @@ public class CalendarActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        FontHelper.applyToViewTree(this, findViewById(android.R.id.content));
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)
                 == PackageManager.PERMISSION_GRANTED && calendarAdapter != null) {
             loadEvents();

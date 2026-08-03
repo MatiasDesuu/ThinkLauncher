@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 public class WebAppDialog extends Dialog {
@@ -29,6 +30,7 @@ public class WebAppDialog extends Dialog {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_webapp);
+        FontHelper.applyToViewTree(getContext(), findViewById(android.R.id.content));
         int surfaceColor = DialogEffectHelper.setup(this, theme);
 
         View root = findViewById(android.R.id.content);

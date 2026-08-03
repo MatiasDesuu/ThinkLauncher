@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.views.ColorPickerView;
 
@@ -38,6 +39,7 @@ public class ColorPickerDialog extends Dialog {
         theme = prefs.getInt("theme", 0);
         
         setContentView(R.layout.dialog_color_picker);
+        FontHelper.applyToViewTree(getContext(), findViewById(R.id.root_layout));
         int surfaceColor = DialogEffectHelper.setup(this, theme);
 
         View root = findViewById(R.id.root_layout);

@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class AppShortcutsDialog extends Dialog {
 
     private void init() {
         setContentView(R.layout.dialog_app_shortcuts);
+        FontHelper.applyToViewTree(getContext(), findViewById(android.R.id.content));
 
         int theme = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("theme", 0);
         int surfaceColor = DialogEffectHelper.setup(this, theme);

@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
 public class RenameDialog extends Dialog {
 
@@ -28,6 +29,7 @@ public class RenameDialog extends Dialog {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_rename_app);
+        FontHelper.applyToViewTree(getContext(), findViewById(android.R.id.content));
         int surfaceColor = DialogEffectHelper.setup(this, theme);
 
         View root = findViewById(android.R.id.content);

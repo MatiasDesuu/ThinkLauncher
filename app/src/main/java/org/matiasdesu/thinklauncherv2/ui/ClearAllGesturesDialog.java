@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
 public class ClearAllGesturesDialog extends Dialog {
 
@@ -24,6 +25,7 @@ public class ClearAllGesturesDialog extends Dialog {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_clear_all_gestures);
+        FontHelper.applyToViewTree(getContext(), findViewById(android.R.id.content));
         int surfaceColor = DialogEffectHelper.setup(this, theme);
 
         View root = findViewById(android.R.id.content);

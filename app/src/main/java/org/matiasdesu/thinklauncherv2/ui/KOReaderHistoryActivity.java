@@ -252,6 +252,7 @@ public class KOReaderHistoryActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        FontHelper.applyToViewTree(this, findViewById(android.R.id.content));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
                 requestManageStoragePermission();

@@ -377,6 +377,7 @@ public class HideAppsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        FontHelper.applyToViewTree(this, findViewById(android.R.id.content));
     }
 
     @Override
