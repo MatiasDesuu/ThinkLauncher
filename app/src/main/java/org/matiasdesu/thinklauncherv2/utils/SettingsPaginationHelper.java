@@ -38,8 +38,10 @@ public class SettingsPaginationHelper {
     private int currentPage = 0;
     private boolean scrollAppList;
     private float touchDownX;
+    private float touchDownY;
     private static final int SWIPE_THRESHOLD = 100;
     private boolean layoutReady = false;
+    private boolean swiping;
 
     private List<Integer> pageStarts = new ArrayList<>();
     private int fallbackItemsPerPage = 1;
@@ -93,30 +95,26 @@ public class SettingsPaginationHelper {
                 switch (event.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
                         touchDownX = event.getX();
+                        touchDownY = event.getY();
+                        swiping = false;
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         return true;
                     case MotionEvent.ACTION_UP: {
                         float diffX = event.getX() - touchDownX;
-                        int totalPages = getTotalPages();
-                        if (totalPages > 1) {
-                            if (diffX > SWIPE_THRESHOLD) {
-                                currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
-                                updateVisibleItems();
-                                updatePageIndicator();
-                                EinkRefreshHelper.refreshEink(activity.getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                            } else if (diffX < -SWIPE_THRESHOLD) {
-                                currentPage = currentPage < totalPages - 1 ? currentPage + 1 : 0;
-                                updateVisibleItems();
-                                updatePageIndicator();
-                                EinkRefreshHelper.refreshEink(activity.getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                            }
+                        if (handleHorizontalSwipe(diffX)) {
+                            return true;
                         }
                         return true;
                     }
+                    case MotionEvent.ACTION_CANCEL:
+                        swiping = false;
+                        return true;
                 }
                 return false;
             });
+
+            attachItemSwipeListeners();
 
             if (layoutReady) {
                 rebuildPages();
@@ -139,6 +137,74 @@ public class SettingsPaginationHelper {
 
     private boolean canMeasure() {
         return container.getWidth() > 0 && container.getHeight() > 0;
+    }
+
+    /**
+     * Process a completed horizontal swipe gesture. Returns true if the swipe
+     * was handled (page changed) so callers know to consume the touch event.
+     */
+    private boolean handleHorizontalSwipe(float diffX) {
+        int totalPages = getTotalPages();
+        if (totalPages <= 1) {
+            return false;
+        }
+        if (diffX > SWIPE_THRESHOLD) {
+            currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
+            updateVisibleItems();
+            updatePageIndicator();
+            EinkRefreshHelper.refreshEink(activity.getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            return true;
+        } else if (diffX < -SWIPE_THRESHOLD) {
+            currentPage = currentPage < totalPages - 1 ? currentPage + 1 : 0;
+            updateVisibleItems();
+            updatePageIndicator();
+            EinkRefreshHelper.refreshEink(activity.getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Attach a swipe detector to every page item so a horizontal swipe that
+     * starts on a clickable item still flips the page instead of activating
+     * the item's click listener. Taps keep working normally.
+     */
+    private void attachItemSwipeListeners() {
+        if (settingItems == null) {
+            return;
+        }
+        for (View item : settingItems) {
+            item.setOnTouchListener((v, event) -> {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        touchDownX = event.getX();
+                        touchDownY = event.getY();
+                        swiping = false;
+                        return false;
+                    case MotionEvent.ACTION_MOVE: {
+                        float diffX = event.getX() - touchDownX;
+                        float diffY = event.getY() - touchDownY;
+                        if (!swiping && Math.abs(diffX) > SWIPE_THRESHOLD
+                                && Math.abs(diffX) > Math.abs(diffY) * 2) {
+                            swiping = true;
+                        }
+                        return swiping;
+                    }
+                    case MotionEvent.ACTION_UP:
+                        if (swiping) {
+                            float diffX = event.getX() - touchDownX;
+                            handleHorizontalSwipe(diffX);
+                            swiping = false;
+                            return true;
+                        }
+                        return false;
+                    case MotionEvent.ACTION_CANCEL:
+                        swiping = false;
+                        return false;
+                }
+                return false;
+            });
+        }
     }
 
     private int getContainerContentHeight() {
