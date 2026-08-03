@@ -7,8 +7,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.util.ArrayList;
@@ -33,6 +37,8 @@ public class AppBarAppsActivity extends AppCompatActivity {
     private final ArrayList<Slot> slots = new ArrayList<>();
     private int currentSlotIndex;
     private String prefix = "app_bar";
+    private View rootLayout;
+    private SettingsPaginationHelper paginationHelper;
 
     private String p(String key) {
         return prefix + "_" + key;
@@ -67,6 +73,7 @@ public class AppBarAppsActivity extends AppCompatActivity {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_bar_apps);
+        rootLayout = findViewById(android.R.id.content);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(bgColor);
@@ -94,6 +101,13 @@ public class AppBarAppsActivity extends AppCompatActivity {
 
         setupSlots();
         loadSlotData();
+
+        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
+        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
+        FrameLayout container = findViewById(R.id.settings_container);
+
+        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
+        paginationHelper.initialize(null);
     }
 
     private void setupSlots() {
@@ -167,6 +181,15 @@ public class AppBarAppsActivity extends AppCompatActivity {
             } else {
                 slots.get(index).appButton.setText(label);
             }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FontHelper.applyToViewTree(this, rootLayout);
+        if (paginationHelper != null) {
+            paginationHelper.updateVisibleItemsList();
         }
     }
 

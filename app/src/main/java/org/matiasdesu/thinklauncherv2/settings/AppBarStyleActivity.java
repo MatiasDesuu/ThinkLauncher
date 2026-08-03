@@ -4,15 +4,19 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
+import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -44,6 +48,9 @@ public class AppBarStyleActivity extends AppCompatActivity {
     private int borderColor;
     private int backgroundColor;
 
+    private SettingsPaginationHelper paginationHelper;
+    private View rootLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
@@ -61,6 +68,7 @@ public class AppBarStyleActivity extends AppCompatActivity {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_bar_style);
+        rootLayout = findViewById(android.R.id.content);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(bgColor);
@@ -180,16 +188,14 @@ public class AppBarStyleActivity extends AppCompatActivity {
         minusDynamic.setOnClickListener(v -> {
             dynamic = !dynamic;
             dynamicValueTv.setText(dynamic ? "ON" : "OFF");
-            forceFallbackLayout.setVisibility(dynamic ? View.VISIBLE : View.GONE);
-            dynamicColorsLayout.setVisibility(dynamic ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean(p("dynamic_icons"), dynamic).apply();
+            paginationHelper.updateVisibleItemsList();
         });
         plusDynamic.setOnClickListener(v -> {
             dynamic = !dynamic;
             dynamicValueTv.setText(dynamic ? "ON" : "OFF");
-            forceFallbackLayout.setVisibility(dynamic ? View.VISIBLE : View.GONE);
-            dynamicColorsLayout.setVisibility(dynamic ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean(p("dynamic_icons"), dynamic).apply();
+            paginationHelper.updateVisibleItemsList();
         });
 
         minusForceFallback.setOnClickListener(v -> {
@@ -217,14 +223,14 @@ public class AppBarStyleActivity extends AppCompatActivity {
         minusIconBackground.setOnClickListener(v -> {
             iconBackground = !iconBackground;
             iconBackgroundValueTv.setText(iconBackground ? "ON" : "OFF");
-            iconShapeLayout.setVisibility(iconBackground ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean(p("icon_background"), iconBackground).apply();
+            paginationHelper.updateVisibleItemsList();
         });
         plusIconBackground.setOnClickListener(v -> {
             iconBackground = !iconBackground;
             iconBackgroundValueTv.setText(iconBackground ? "ON" : "OFF");
-            iconShapeLayout.setVisibility(iconBackground ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean(p("icon_background"), iconBackground).apply();
+            paginationHelper.updateVisibleItemsList();
         });
 
         minusIconShape.setOnClickListener(v -> {
@@ -241,14 +247,14 @@ public class AppBarStyleActivity extends AppCompatActivity {
         minusIconEffect.setOnClickListener(v -> {
             iconEffect = (iconEffect - 1 + EFFECT_NAMES.length) % EFFECT_NAMES.length;
             iconEffectValueTv.setText(EFFECT_NAMES[iconEffect]);
-            iconEffectColorLayout.setVisibility(iconEffect > 0 ? View.VISIBLE : View.GONE);
             prefs.edit().putInt(p("icon_effect"), iconEffect).apply();
+            paginationHelper.updateVisibleItemsList();
         });
         plusIconEffect.setOnClickListener(v -> {
             iconEffect = (iconEffect + 1) % EFFECT_NAMES.length;
             iconEffectValueTv.setText(EFFECT_NAMES[iconEffect]);
-            iconEffectColorLayout.setVisibility(iconEffect > 0 ? View.VISIBLE : View.GONE);
             prefs.edit().putInt(p("icon_effect"), iconEffect).apply();
+            paginationHelper.updateVisibleItemsList();
         });
 
         minusIconEffectColor.setOnClickListener(v -> {
@@ -297,6 +303,39 @@ public class AppBarStyleActivity extends AppCompatActivity {
             backgroundColorValueTv.setText(COLOR_SOURCE_NAMES[backgroundColor]);
             prefs.edit().putInt(p("background_color"), backgroundColor).apply();
         });
+
+        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
+        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
+        FrameLayout container = findViewById(R.id.settings_container);
+
+        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
+        paginationHelper.initialize(this::refreshVisibility);
+        refreshVisibility();
+    }
+
+    private void refreshVisibility() {
+        if (paginationHelper == null) {
+            return;
+        }
+        LinearLayout forceFallbackLayout = findViewById(R.id.force_monochrome_fallback_layout);
+        LinearLayout dynamicColorsLayout = findViewById(R.id.dynamic_colors_layout);
+        LinearLayout iconBackgroundLayout = findViewById(R.id.icon_background_layout);
+        LinearLayout iconShapeLayout = findViewById(R.id.icon_shape_layout);
+        LinearLayout iconEffectColorLayout = findViewById(R.id.icon_effect_color_layout);
+        forceFallbackLayout.setVisibility(dynamic ? View.VISIBLE : View.GONE);
+        dynamicColorsLayout.setVisibility(dynamic ? View.VISIBLE : View.GONE);
+        iconBackgroundLayout.setVisibility(View.VISIBLE);
+        iconShapeLayout.setVisibility(iconBackground ? View.VISIBLE : View.GONE);
+        iconEffectColorLayout.setVisibility(iconEffect > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FontHelper.applyToViewTree(this, rootLayout);
+        if (paginationHelper != null) {
+            paginationHelper.updateVisibleItemsList();
+        }
     }
 
     @Override

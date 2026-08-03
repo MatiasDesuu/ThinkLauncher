@@ -9,8 +9,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +22,8 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
 import org.matiasdesu.thinklauncherv2.ui.ClearAllGesturesDialog;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.io.File;
@@ -39,6 +43,8 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
     private final String[] gestureNames = {"custom_1", "custom_2", "custom_3", "custom_4"};
     private final ArrayList<GestureSlot> slots = new ArrayList<>();
     private int currentGestureIndex;
+    private View rootLayout;
+    private SettingsPaginationHelper paginationHelper;
 
     private static class GestureSlot {
         int index;
@@ -65,6 +71,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_gesture_settings);
+        rootLayout = findViewById(android.R.id.content);
 
         screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
@@ -104,6 +111,13 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
 
         setupGestureSlots();
         loadGestureData();
+
+        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
+        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
+        FrameLayout container = findViewById(R.id.settings_container);
+
+        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
+        paginationHelper.initialize(null);
     }
 
     private void setupGestureSlots() {
@@ -231,6 +245,15 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
             } else {
                 loadGestureData();
             }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FontHelper.applyToViewTree(this, rootLayout);
+        if (paginationHelper != null) {
+            paginationHelper.updateVisibleItemsList();
         }
     }
 
