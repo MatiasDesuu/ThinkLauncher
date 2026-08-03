@@ -1,26 +1,16 @@
 package org.matiasdesu.thinklauncherv2.settings;
 
-import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import org.matiasdesu.thinklauncherv2.R;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class AppBarStyleActivity extends AppCompatActivity {
+public class AppBarStyleActivity extends BaseSettingsActivity {
 
     public static final String EXTRA_PREFIX = "prefix";
 
@@ -28,9 +18,6 @@ public class AppBarStyleActivity extends AppCompatActivity {
     private static final String[] EFFECT_COLOR_NAMES = { "Black", "White", "Dynamic Black", "Dynamic White" };
     private static final String[] COLOR_SOURCE_NAMES = { "Follow Theme", "Dark", "White", "Dynamic Dark", "Dynamic Light" };
 
-    private SharedPreferences prefs;
-    private int theme;
-    private boolean screenAnimations;
     private String prefix = "app_bar";
 
     private String p(String key) {
@@ -48,49 +35,23 @@ public class AppBarStyleActivity extends AppCompatActivity {
     private int borderColor;
     private int backgroundColor;
 
-    private SettingsPaginationHelper paginationHelper;
-    private View rootLayout;
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_app_bar_style;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
         prefix = getIntent().getStringExtra(EXTRA_PREFIX);
         if (prefix == null || prefix.isEmpty()) {
             prefix = "app_bar";
         }
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_app_bar_style);
-        rootLayout = findViewById(android.R.id.content);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        LinearLayout rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         monochrome = prefs.getBoolean(p("monochrome_icons"), false);
         dynamic = prefs.getBoolean(p("dynamic_icons"), false);
@@ -189,13 +150,13 @@ public class AppBarStyleActivity extends AppCompatActivity {
             dynamic = !dynamic;
             dynamicValueTv.setText(dynamic ? "ON" : "OFF");
             prefs.edit().putBoolean(p("dynamic_icons"), dynamic).apply();
-            paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
         plusDynamic.setOnClickListener(v -> {
             dynamic = !dynamic;
             dynamicValueTv.setText(dynamic ? "ON" : "OFF");
             prefs.edit().putBoolean(p("dynamic_icons"), dynamic).apply();
-            paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusForceFallback.setOnClickListener(v -> {
@@ -224,13 +185,13 @@ public class AppBarStyleActivity extends AppCompatActivity {
             iconBackground = !iconBackground;
             iconBackgroundValueTv.setText(iconBackground ? "ON" : "OFF");
             prefs.edit().putBoolean(p("icon_background"), iconBackground).apply();
-            paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
         plusIconBackground.setOnClickListener(v -> {
             iconBackground = !iconBackground;
             iconBackgroundValueTv.setText(iconBackground ? "ON" : "OFF");
             prefs.edit().putBoolean(p("icon_background"), iconBackground).apply();
-            paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusIconShape.setOnClickListener(v -> {
@@ -248,13 +209,13 @@ public class AppBarStyleActivity extends AppCompatActivity {
             iconEffect = (iconEffect - 1 + EFFECT_NAMES.length) % EFFECT_NAMES.length;
             iconEffectValueTv.setText(EFFECT_NAMES[iconEffect]);
             prefs.edit().putInt(p("icon_effect"), iconEffect).apply();
-            paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
         plusIconEffect.setOnClickListener(v -> {
             iconEffect = (iconEffect + 1) % EFFECT_NAMES.length;
             iconEffectValueTv.setText(EFFECT_NAMES[iconEffect]);
             prefs.edit().putInt(p("icon_effect"), iconEffect).apply();
-            paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusIconEffectColor.setOnClickListener(v -> {
@@ -304,19 +265,10 @@ public class AppBarStyleActivity extends AppCompatActivity {
             prefs.edit().putInt(p("background_color"), backgroundColor).apply();
         });
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(this::refreshVisibility);
-        refreshVisibility();
+        initPagination(this::refreshVisibility);
     }
 
     private void refreshVisibility() {
-        if (paginationHelper == null) {
-            return;
-        }
         LinearLayout forceFallbackLayout = findViewById(R.id.force_monochrome_fallback_layout);
         LinearLayout dynamicColorsLayout = findViewById(R.id.dynamic_colors_layout);
         LinearLayout iconBackgroundLayout = findViewById(R.id.icon_background_layout);
@@ -327,28 +279,5 @@ public class AppBarStyleActivity extends AppCompatActivity {
         iconBackgroundLayout.setVisibility(View.VISIBLE);
         iconShapeLayout.setVisibility(iconBackground ? View.VISIBLE : View.GONE);
         iconEffectColorLayout.setVisibility(iconEffect > 0 ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        FontHelper.applyToViewTree(this, rootLayout);
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

@@ -1,7 +1,6 @@
 package org.matiasdesu.thinklauncherv2.settings;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
@@ -9,42 +8,30 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
 import org.matiasdesu.thinklauncherv2.ui.ClearAllGesturesDialog;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.FontHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class CustomGestureSettingsActivity extends AppCompatActivity {
+public class CustomGestureSettingsActivity extends BaseSettingsActivity {
 
     private static final int GESTURE_COUNT = 4;
     private static final int REQUEST_CODE_APP_SELECT = 1000;
     private static final int REQUEST_CODE_RECORD_GESTURE = 1001;
 
-    private int theme;
-    private SharedPreferences prefs;
     private GestureLibrary gestureLibrary;
     private LinearLayout gestureListContainer;
-    private boolean screenAnimations;
     private final String[] gestureNames = {"custom_1", "custom_2", "custom_3", "custom_4"};
     private final ArrayList<GestureSlot> slots = new ArrayList<>();
     private int currentGestureIndex;
-    private View rootLayout;
-    private SettingsPaginationHelper paginationHelper;
 
     private static class GestureSlot {
         int index;
@@ -57,45 +44,21 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
     }
 
     @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_custom_gesture_settings;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             currentGestureIndex = savedInstanceState.getInt("currentGestureIndex", 0);
         }
-        prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_custom_gesture_settings);
-        rootLayout = findViewById(android.R.id.content);
 
-        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        LinearLayout rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         ImageView clearAllButton = findViewById(R.id.clear_all_button);
         clearAllButton.setOnClickListener(v -> {
@@ -112,12 +75,7 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         setupGestureSlots();
         loadGestureData();
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(null);
+        initPagination(null);
     }
 
     private void setupGestureSlots() {
@@ -248,20 +206,4 @@ public class CustomGestureSettingsActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        FontHelper.applyToViewTree(this, rootLayout);
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
-    }
 }

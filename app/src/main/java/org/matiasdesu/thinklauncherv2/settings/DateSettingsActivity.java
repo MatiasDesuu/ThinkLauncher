@@ -4,27 +4,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 
-import android.os.Build;
-
-public class DateSettingsActivity extends AppCompatActivity {
+public class DateSettingsActivity extends BaseSettingsActivity {
 
     private int timePosition;
     private int datePosition;
@@ -39,10 +29,6 @@ public class DateSettingsActivity extends AppCompatActivity {
     private int calendarEventFontSize;
     private int batteryInfo;
     private int batteryPosition;
-    private LinearLayout rootLayout;
-    private SettingsPaginationHelper paginationHelper;
-    private int theme;
-    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -60,33 +46,18 @@ public class DateSettingsActivity extends AppCompatActivity {
     };
 
     @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_date_settings;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_date_settings);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         timePosition = prefs.getInt("time_position", 0);
         datePosition = prefs.getInt("date_position", 0);
@@ -102,13 +73,6 @@ public class DateSettingsActivity extends AppCompatActivity {
         calendarEventFontSize = prefs.getInt("calendar_event_font_size", 16);
         batteryInfo = prefs.getInt("battery_info", 0);
         batteryPosition = prefs.getInt("battery_position", 1); // Default to Right
-        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
 
         View dateContainer = findViewById(R.id.date_container);
         TextView dateValueTv = dateContainer.findViewById(R.id.value_text);
@@ -211,9 +175,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateValueTv.setText(getOnOffText(datePosition));
             prefs.edit().putInt("date_position", datePosition).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         plusDateBtn.setOnClickListener(v -> {
@@ -221,9 +183,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateValueTv.setText(getOnOffText(datePosition));
             prefs.edit().putInt("date_position", datePosition).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         minusDateFontSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
@@ -295,9 +255,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateEffectValueTv.setText(getDateEffectText(dateEffect));
             prefs.edit().putInt("date_effect", dateEffect).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         plusDateEffectBtn.setOnClickListener(v -> {
@@ -305,9 +263,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateEffectValueTv.setText(getDateEffectText(dateEffect));
             prefs.edit().putInt("date_effect", dateEffect).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         minusDateEffectColorBtn.setOnClickListener(v -> {
@@ -327,9 +283,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
             prefs.edit().putInt("date_calendar_events", dateCalendarEvents).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         plusDateCalendarEventsBtn.setOnClickListener(v -> {
@@ -337,9 +291,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             dateCalendarEventsValueTv.setText(getOnOffText(dateCalendarEvents));
             prefs.edit().putInt("date_calendar_events", dateCalendarEvents).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         minusCalendarEventFontSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
@@ -363,9 +315,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             batteryInfoValueTv.setText(getOnOffText(batteryInfo));
             prefs.edit().putInt("battery_info", batteryInfo).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         plusBatteryInfoBtn.setOnClickListener(v -> {
@@ -373,9 +323,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             batteryInfoValueTv.setText(getOnOffText(batteryInfo));
             prefs.edit().putInt("battery_info", batteryInfo).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         minusBatteryPositionBtn.setOnClickListener(v -> {
@@ -390,12 +338,7 @@ public class DateSettingsActivity extends AppCompatActivity {
             prefs.edit().putInt("battery_position", batteryPosition).apply();
         });
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(this::refreshVisibility);
+        initPagination(this::refreshVisibility);
     }
 
     private void refreshVisibility() {
@@ -545,34 +488,13 @@ public class DateSettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
-
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         timePosition = prefs.getInt("time_position", 0);
         refreshVisibility();
-
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(homeButtonReceiver);
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

@@ -4,27 +4,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 
-import android.os.Build;
-
-public class SettingsButtonSettingsActivity extends AppCompatActivity {
+public class SettingsButtonSettingsActivity extends BaseSettingsActivity {
 
     private static final String[] EFFECT_NAMES = { "Nothing", "Shadow", "Outline" };
     private static final String[] EFFECT_COLOR_NAMES = { "Dark", "White", "Dynamic Dark", "Dynamic Light" };
@@ -34,10 +24,6 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
     private int settingsButtonColor;
     private int settingsButtonEffect;
     private int settingsButtonEffectColor;
-    private LinearLayout rootLayout;
-    private SettingsPaginationHelper paginationHelper;
-    private int theme;
-    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -55,33 +41,18 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
     };
 
     @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_settings_button_settings;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings_button_settings);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         showSettingsButton = prefs.getInt("show_settings_button", 0);
         settingsButtonSize = prefs.getInt("settings_button_size", 42);
@@ -89,12 +60,6 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
         settingsButtonEffect = prefs.getInt("settings_button_effect", 0);
         settingsButtonEffectColor = prefs.getInt("settings_button_effect_color", 0);
         screenAnimations = prefs.getInt("screen_animations", 0) == 1;
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
 
         View showSettingsButtonContainer = findViewById(R.id.show_settings_button_container);
         TextView showSettingsButtonValueTv = showSettingsButtonContainer.findViewById(R.id.value_text);
@@ -139,9 +104,7 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
             showSettingsButtonValueTv.setText(getOnOffText(showSettingsButton));
             prefs.edit().putInt("show_settings_button", showSettingsButton).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         plusShowSettingsBtn.setOnClickListener(v -> {
@@ -149,9 +112,7 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
             showSettingsButtonValueTv.setText(getOnOffText(showSettingsButton));
             prefs.edit().putInt("show_settings_button", showSettingsButton).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         minusSettingsButtonSizeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
@@ -187,9 +148,7 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
             settingsButtonEffectValueTv.setText(EFFECT_NAMES[settingsButtonEffect]);
             prefs.edit().putInt("settings_button_effect", settingsButtonEffect).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         plusSettingsButtonEffectBtn.setOnClickListener(v -> {
@@ -197,9 +156,7 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
             settingsButtonEffectValueTv.setText(EFFECT_NAMES[settingsButtonEffect]);
             prefs.edit().putInt("settings_button_effect", settingsButtonEffect).apply();
             refreshVisibility();
-            if (paginationHelper != null) {
-                paginationHelper.updateVisibleItemsList();
-            }
+            refreshPagination();
         });
 
         minusSettingsButtonEffectColorBtn.setOnClickListener(v -> {
@@ -214,12 +171,7 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
             prefs.edit().putInt("settings_button_effect_color", settingsButtonEffectColor).apply();
         });
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(this::refreshVisibility);
+        initPagination(this::refreshVisibility);
     }
 
     private void refreshVisibility() {
@@ -267,29 +219,11 @@ public class SettingsButtonSettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(homeButtonReceiver);
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

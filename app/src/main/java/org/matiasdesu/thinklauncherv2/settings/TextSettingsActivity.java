@@ -7,24 +7,15 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 
-import android.os.Build;
-
-public class TextSettingsActivity extends AppCompatActivity {
+public class TextSettingsActivity extends BaseSettingsActivity {
 
     private static final String[] EFFECT_NAMES = { "Nothing", "Shadow", "Outline" };
     private static final String[] EFFECT_COLOR_NAMES = { "Black", "White", "Dynamic Dark", "Dynamic White" };
@@ -34,10 +25,6 @@ public class TextSettingsActivity extends AppCompatActivity {
     private int appTextColor;
     private int textEffect;
     private int effectColor;
-    private LinearLayout rootLayout;
-    private SettingsPaginationHelper paginationHelper;
-    private int theme;
-    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -55,45 +42,23 @@ public class TextSettingsActivity extends AppCompatActivity {
     };
 
     @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_text_settings;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_text_settings);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         boldText = prefs.getBoolean("bold_text", true);
         appTextColor = prefs.getInt("app_text_color", 0);
         textEffect = prefs.getInt("text_effect", 0);
         effectColor = prefs.getInt("effect_color", 0);
-        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
 
         View boldTextContainer = findViewById(R.id.bold_text_container);
         TextView boldTextValueTv = boldTextContainer.findViewById(R.id.value_text);
@@ -143,16 +108,14 @@ public class TextSettingsActivity extends AppCompatActivity {
             textEffect = (textEffect - 1 + EFFECT_NAMES.length) % EFFECT_NAMES.length;
             textEffectValueTv.setText(EFFECT_NAMES[textEffect]);
             prefs.edit().putInt("text_effect", textEffect).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         plusTextEffectBtn.setOnClickListener(v -> {
             textEffect = (textEffect + 1) % EFFECT_NAMES.length;
             textEffectValueTv.setText(EFFECT_NAMES[textEffect]);
             prefs.edit().putInt("text_effect", textEffect).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusEffectColorBtn.setOnClickListener(v -> {
@@ -167,12 +130,7 @@ public class TextSettingsActivity extends AppCompatActivity {
             prefs.edit().putInt("effect_color", effectColor).apply();
         });
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(this::refreshVisibility);
+        initPagination(this::refreshVisibility);
     }
 
     private void toggleBold(SharedPreferences prefs, TextView valueTv) {
@@ -191,29 +149,11 @@ public class TextSettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(homeButtonReceiver);
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

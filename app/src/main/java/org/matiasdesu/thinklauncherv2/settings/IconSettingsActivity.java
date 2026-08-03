@@ -4,16 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
@@ -21,12 +15,8 @@ import org.matiasdesu.thinklauncherv2.utils.AppNamePositionHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 
-import android.os.Build;
-
-public class IconSettingsActivity extends AppCompatActivity {
+public class IconSettingsActivity extends BaseSettingsActivity {
 
     private static final String[] EFFECT_NAMES = { "Nothing", "Shadow", "Outline" };
     private static final String[] EFFECT_COLOR_NAMES = { "Black", "White", "Dynamic Dark", "Dynamic White" };
@@ -43,10 +33,6 @@ public class IconSettingsActivity extends AppCompatActivity {
     private int iconSize;
     private int iconEffect;
     private int iconEffectColor;
-    private LinearLayout rootLayout;
-    private SettingsPaginationHelper paginationHelper;
-    private int theme;
-    private boolean screenAnimations;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -64,33 +50,18 @@ public class IconSettingsActivity extends AppCompatActivity {
     };
 
     @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_icon_settings;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_icon_settings);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         showIcons = prefs.getBoolean("show_icons", false);
         showAppNames = prefs.getBoolean("show_app_names", true);
@@ -107,12 +78,6 @@ public class IconSettingsActivity extends AppCompatActivity {
         iconEffect = prefs.getInt("icon_effect", 0);
         iconEffectColor = prefs.getInt("icon_effect_color", 0);
         screenAnimations = prefs.getInt("screen_animations", 0) == 1;
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
 
         View showIconsContainer = findViewById(R.id.show_icons_container);
         TextView showIconsValueTv = showIconsContainer.findViewById(R.id.value_text);
@@ -231,8 +196,7 @@ public class IconSettingsActivity extends AppCompatActivity {
             }
             iconOptionsLayout.setVisibility(showIcons ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean("show_icons", showIcons).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         plusShowIconsBtn.setOnClickListener(v -> {
@@ -245,8 +209,7 @@ public class IconSettingsActivity extends AppCompatActivity {
             }
             iconOptionsLayout.setVisibility(showIcons ? View.VISIBLE : View.GONE);
             prefs.edit().putBoolean("show_icons", showIcons).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusShowAppNamesBtn.setOnClickListener(v -> {
@@ -259,8 +222,7 @@ public class IconSettingsActivity extends AppCompatActivity {
                 prefs.edit().putInt("app_name_position", appNamePosition).apply();
             }
             prefs.edit().putBoolean("show_app_names", showAppNames).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         plusShowAppNamesBtn.setOnClickListener(v -> {
@@ -273,8 +235,7 @@ public class IconSettingsActivity extends AppCompatActivity {
                 prefs.edit().putInt("app_name_position", appNamePosition).apply();
             }
             prefs.edit().putBoolean("show_app_names", showAppNames).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusAppNamePositionBtn.setOnClickListener(v -> {
@@ -309,8 +270,7 @@ public class IconSettingsActivity extends AppCompatActivity {
             // iconBackgroundLayout is always visible now
             // iconShapeLayout visibility depends only on iconBackground
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         plusDynamicBtn.setOnClickListener(v -> {
@@ -321,8 +281,7 @@ public class IconSettingsActivity extends AppCompatActivity {
              // iconBackgroundLayout is always visible now
             // iconShapeLayout visibility depends only on iconBackground
             prefs.edit().putBoolean("dynamic_icons", dynamicIcons).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusForceMonochromeFallbackBtn.setOnClickListener(v -> {
@@ -367,16 +326,14 @@ public class IconSettingsActivity extends AppCompatActivity {
             iconEffect = (iconEffect - 1 + EFFECT_NAMES.length) % EFFECT_NAMES.length;
             iconEffectValueTv.setText(EFFECT_NAMES[iconEffect]);
             prefs.edit().putInt("icon_effect", iconEffect).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         plusIconEffectBtn.setOnClickListener(v -> {
             iconEffect = (iconEffect + 1) % EFFECT_NAMES.length;
             iconEffectValueTv.setText(EFFECT_NAMES[iconEffect]);
             prefs.edit().putInt("icon_effect", iconEffect).apply();
-            if (paginationHelper != null)
-                paginationHelper.updateVisibleItemsList();
+            refreshPagination();
         });
 
         minusIconEffectColorBtn.setOnClickListener(v -> {
@@ -419,12 +376,7 @@ public class IconSettingsActivity extends AppCompatActivity {
             }
         }));
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(this::refreshVisibility);
+        initPagination(this::refreshVisibility);
     }
 
     private void refreshVisibility() {
@@ -455,29 +407,11 @@ public class IconSettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(homeButtonReceiver);
-    }
-
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
     }
 }

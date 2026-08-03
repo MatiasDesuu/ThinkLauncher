@@ -4,17 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.services.LockAccessibilityService;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
@@ -22,18 +16,11 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
-import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
 
-import android.os.Build;
+public class GestureSettingsActivity extends BaseSettingsActivity {
 
-public class GestureSettingsActivity extends AppCompatActivity {
-
-    private LinearLayout rootLayout;
     private int doubleTapLock;
-    private SettingsPaginationHelper paginationHelper;
-    private int theme;
-    private boolean screenAnimations;
+    private String currentGestureDirection;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -51,42 +38,21 @@ public class GestureSettingsActivity extends AppCompatActivity {
     };
 
     @Override
+    protected int getLayoutResId() {
+        return R.layout.activity_gesture_settings;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             currentGestureDirection = savedInstanceState.getString("currentGestureDirection");
         }
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
-        int bgColor = ThemeUtils.getBgColor(theme, this);
-        if (ThemeUtils.isDarkTheme(theme, this)) {
-            setTheme(R.style.AppTheme_Dark);
-        } else {
-            setTheme(R.style.AppTheme);
-        }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gesture_settings);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(bgColor);
-            getWindow().setNavigationBarColor(bgColor);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!ThemeUtils.isDarkTheme(theme, this)) {
-                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-            } else {
-                getWindow().getDecorView().setSystemUiVisibility(0);
-            }
-        }
-
-        rootLayout = findViewById(R.id.root_layout);
-        rootLayout.setBackgroundColor(bgColor);
-        ThemeUtils.applyThemeToViewGroup(rootLayout, theme, this);
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-        });
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        LinearLayout root = findViewById(R.id.root_layout);
+        root.setBackgroundColor(bgColor);
+        ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         TextView swipeLeftTv = findViewById(R.id.swipe_left_app);
         TextView swipeRightTv = findViewById(R.id.swipe_right_app);
@@ -119,7 +85,6 @@ public class GestureSettingsActivity extends AppCompatActivity {
         }
 
         doubleTapLock = prefs.getInt("double_tap_lock", 0);
-        screenAnimations = prefs.getInt("screen_animations", 0) == 1;
 
         swipeLeftTv.setText(leftLabel);
         swipeRightTv.setText(rightLabel);
@@ -174,19 +139,11 @@ public class GestureSettingsActivity extends AppCompatActivity {
             }
         });
 
-        LinearLayout settingsItemsContainer = findViewById(R.id.settings_items_container);
-        ScrollView scrollView = findViewById(R.id.settings_scroll_view);
-        FrameLayout container = findViewById(R.id.settings_container);
-
-        paginationHelper = new SettingsPaginationHelper(this, theme, settingsItemsContainer, scrollView, container);
-        paginationHelper.initialize(null);
+        initPagination(null);
     }
-
-    private String currentGestureDirection;
 
     private void selectAppForGesture(String direction) {
         currentGestureDirection = direction;
-        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         boolean animate = prefs.getInt("screen_animations", 0) == 1;
         Intent intent = new Intent(this, AppSelectorActivity.class);
         intent.putExtra(AppSelectorActivity.EXTRA_POSITION,
@@ -217,7 +174,6 @@ public class GestureSettingsActivity extends AppCompatActivity {
             String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
 
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             TextView tv;
             int resId;
             String appKey, labelKey;
@@ -265,12 +221,6 @@ public class GestureSettingsActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        finish();
-        overridePendingTransition(R.anim.slide_in_left, screenAnimations ? R.anim.slide_out_right : 0);
-    }
-
     private String getDoubleTapLockText(int pos) {
         switch (pos) {
             case 0:
@@ -287,18 +237,6 @@ public class GestureSettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
-        if (paginationHelper != null) {
-            paginationHelper.updateVisibleItemsList();
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            SharedPreferences prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-        }
     }
 
     @Override
