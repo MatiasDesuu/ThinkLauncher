@@ -367,10 +367,10 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         super.onResume();
         registerReceiver(homeButtonReceiver, new IntentFilter("android.intent.action.CLOSE_SYSTEM_DIALOGS"),
                 Context.RECEIVER_NOT_EXPORTED);
+        FontHelper.applyToViewTree(this, rootLayout);
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }
-        FontHelper.applyToViewTree(this, rootLayout);
     }
 
     @Override

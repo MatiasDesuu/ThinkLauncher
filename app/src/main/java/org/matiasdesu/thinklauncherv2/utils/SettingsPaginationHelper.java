@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,7 +19,9 @@ import java.util.List;
 /**
  * Reusable helper class for managing pagination in Settings screens.
  * Handles showing/hiding items per page, navigation buttons, and page
- * indicators.
+ * indicators. Page boundaries are computed from the real measured height
+ * of each item, so they adapt automatically to the font size (including a
+ * custom font) and any other layout that changes row height.
  */
 public class SettingsPaginationHelper {
 
@@ -32,11 +35,14 @@ public class SettingsPaginationHelper {
     private List<View> settingItems;
     private List<View> allChildren;
     private Runnable visibilityUpdater;
-    private int itemsPerPage;
     private int currentPage = 0;
     private boolean scrollAppList;
     private float touchDownX;
     private static final int SWIPE_THRESHOLD = 100;
+    private boolean layoutReady = false;
+
+    private List<Integer> pageStarts = new ArrayList<>();
+    private int fallbackItemsPerPage = 1;
 
     public SettingsPaginationHelper(Activity activity, int theme,
             LinearLayout settingsItemsContainer,
@@ -78,9 +84,9 @@ public class SettingsPaginationHelper {
             collectVisibleItems(child, settingItems);
         }
 
-        if (!scrollAppList) {
-            itemsPerPage = SettingsListSizeHelper.calculateItemsPerPage(activity);
+        fallbackItemsPerPage = SettingsListSizeHelper.calculateItemsPerPage(activity);
 
+        if (!scrollAppList) {
             setupNavigationButtons();
 
             scrollView.setOnTouchListener((v, event) -> {
@@ -92,7 +98,7 @@ public class SettingsPaginationHelper {
                         return true;
                     case MotionEvent.ACTION_UP: {
                         float diffX = event.getX() - touchDownX;
-                        int totalPages = (int) Math.ceil((double) settingItems.size() / itemsPerPage);
+                        int totalPages = getTotalPages();
                         if (totalPages > 1) {
                             if (diffX > SWIPE_THRESHOLD) {
                                 currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
@@ -112,12 +118,121 @@ public class SettingsPaginationHelper {
                 return false;
             });
 
-            updateVisibleItems();
+            if (layoutReady) {
+                rebuildPages();
+            } else {
+                buildFallbackPages();
+                container.addOnLayoutChangeListener((v, left, top, right, bottom,
+                        oldLeft, oldTop, oldRight, oldBottom) -> {
+                    if (!layoutReady && v.getHeight() > 0 && canMeasure()) {
+                        layoutReady = true;
+                        rebuildPages();
+                    }
+                });
+            }
+            updatePageIndicator();
         } else {
             scrollView.setOnTouchListener(null);
+            updatePageIndicator();
+        }
+    }
+
+    private boolean canMeasure() {
+        return container.getWidth() > 0 && container.getHeight() > 0;
+    }
+
+    private int getContainerContentHeight() {
+        return container.getHeight() - container.getPaddingTop() - container.getPaddingBottom();
+    }
+
+    private int getContainerContentWidth() {
+        return container.getWidth() - container.getPaddingLeft() - container.getPaddingRight();
+    }
+
+    /**
+     * Measure the real height of each visible item and compute page boundaries.
+     * Each page holds as many consecutive items as fit within the container
+     * height, so pages stay perfectly aligned even with different fonts.
+     */
+    public void rebuildPages() {
+        if (scrollAppList || settingItems == null || settingItems.isEmpty()) {
+            pageStarts = new ArrayList<>();
+            pageStarts.add(0);
+            pageStarts.add(settingItems == null ? 0 : settingItems.size());
+            return;
         }
 
+        int contentHeight = getContainerContentHeight();
+        int contentWidth = getContainerContentWidth();
+        if (contentHeight <= 0 || contentWidth <= 0) {
+            buildFallbackPages();
+            return;
+        }
+
+        int widthSpec = View.MeasureSpec.makeMeasureSpec(contentWidth, View.MeasureSpec.EXACTLY);
+        int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+
+        List<Integer> heights = new ArrayList<>();
+        for (View item : settingItems) {
+            item.measure(widthSpec, heightSpec);
+            int itemHeight = item.getMeasuredHeight();
+            ViewGroup.LayoutParams lp = item.getLayoutParams();
+            if (lp instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+                itemHeight += mlp.topMargin + mlp.bottomMargin;
+            }
+            heights.add(itemHeight);
+        }
+
+        List<Integer> newPageStarts = new ArrayList<>();
+        newPageStarts.add(0);
+        int used = 0;
+        for (int i = 0; i < heights.size(); i++) {
+            int h = heights.get(i);
+            if (used > 0 && used + h > contentHeight) {
+                newPageStarts.add(i);
+                used = 0;
+            }
+            used += h;
+        }
+        if (newPageStarts.get(newPageStarts.size() - 1) != settingItems.size()) {
+            newPageStarts.add(settingItems.size());
+        }
+
+        pageStarts = newPageStarts;
+
+        if (currentPage >= getTotalPages()) {
+            currentPage = Math.max(0, getTotalPages() - 1);
+        }
+
+        updateVisibleItems();
         updatePageIndicator();
+    }
+
+    private void buildFallbackPages() {
+        int pageSize = fallbackItemsPerPage < 1 ? 1 : fallbackItemsPerPage;
+        pageStarts = new ArrayList<>();
+        for (int start = 0; start < settingItems.size(); start += pageSize) {
+            pageStarts.add(start);
+        }
+        if (pageStarts.isEmpty()) {
+            pageStarts.add(0);
+        }
+        pageStarts.add(settingItems.size());
+
+        if (currentPage >= getTotalPages()) {
+            currentPage = Math.max(0, getTotalPages() - 1);
+        }
+        updateVisibleItems();
+        updatePageIndicator();
+    }
+
+    private int getTotalPages() {
+        if (pageStarts == null || pageStarts.size() < 2) {
+            return 1;
+        }
+        int pages = pageStarts.size() - 1;
+        return pages < 1 ? 1 : pages;
     }
 
     private void collectVisibleItems(View view, List<View> items) {
@@ -186,13 +301,12 @@ public class SettingsPaginationHelper {
             }
         }
 
-        int totalPages = (int) Math.ceil((double) settingItems.size() / itemsPerPage);
-        if (currentPage >= totalPages && totalPages > 0) {
-            currentPage = totalPages - 1;
+        if (layoutReady && canMeasure()) {
+            rebuildPages();
+        } else {
+            updateVisibleItems();
+            updatePageIndicator();
         }
-
-        updateVisibleItems();
-        updatePageIndicator();
     }
 
     private void setupNavigationButtons() {
@@ -202,7 +316,7 @@ public class SettingsPaginationHelper {
         if (prevButton != null) {
             prevButton.setColorFilter(ThemeUtils.getTextColor(theme, activity));
             prevButton.setOnClickListener(v -> {
-                int totalPages = (int) Math.ceil((double) settingItems.size() / itemsPerPage);
+                int totalPages = getTotalPages();
                 currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
                 updateVisibleItems();
                 updatePageIndicator();
@@ -213,7 +327,7 @@ public class SettingsPaginationHelper {
         if (nextButton != null) {
             nextButton.setColorFilter(ThemeUtils.getTextColor(theme, activity));
             nextButton.setOnClickListener(v -> {
-                int totalPages = (int) Math.ceil((double) settingItems.size() / itemsPerPage);
+                int totalPages = getTotalPages();
                 currentPage = currentPage < totalPages - 1 ? currentPage + 1 : 0;
                 updateVisibleItems();
                 updatePageIndicator();
@@ -234,10 +348,15 @@ public class SettingsPaginationHelper {
             item.setVisibility(View.GONE);
         }
 
-        int start = currentPage * itemsPerPage;
-        int end = Math.min(start + itemsPerPage, settingItems.size());
+        if (pageStarts == null || pageStarts.isEmpty()) {
+            return;
+        }
 
-        for (int i = start; i < end; i++) {
+        int pageIndex = Math.max(0, Math.min(currentPage, pageStarts.size() - 1));
+        int start = pageStarts.get(pageIndex);
+        int end = pageIndex + 1 < pageStarts.size() ? pageStarts.get(pageIndex + 1) : settingItems.size();
+
+        for (int i = start; i < end && i < settingItems.size(); i++) {
             settingItems.get(i).setVisibility(View.VISIBLE);
         }
     }
@@ -266,7 +385,7 @@ public class SettingsPaginationHelper {
         if (bottomBar != null)
             bottomBar.setVisibility(View.VISIBLE);
 
-        int totalPages = (int) Math.ceil((double) settingItems.size() / itemsPerPage);
+        int totalPages = getTotalPages();
         if (totalPages == 0)
             totalPages = 1;
 

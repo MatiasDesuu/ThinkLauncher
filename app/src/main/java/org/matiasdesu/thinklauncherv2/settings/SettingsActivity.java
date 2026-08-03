@@ -252,10 +252,10 @@ public class SettingsActivity extends AppCompatActivity {
             return;
         }
 
+        FontHelper.applyToViewTree(this, rootLayout);
         if (paginationHelper != null) {
             paginationHelper.updateVisibleItemsList();
         }
-        FontHelper.applyToViewTree(this, rootLayout);
     }
 
     private void restartActivity() {
