@@ -45,6 +45,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     public static final String EXTRA_POSITION = "position";
     public static final String EXTRA_LABEL = "label";
     public static final String EXTRA_PACKAGE = "package";
+    public static final String EXTRA_NO_BLANK = "no_blank";
 
     private int position;
     private int textSize;
@@ -190,14 +191,23 @@ public class AppSelectorActivity extends AppCompatActivity {
         installedAppPackages.add(0, "");
 
         if (position >= 0) {
-            installedAppLabels.add(1, "Blank");
-            installedAppPackages.add(1, "blank");
-            installedAppLabels.add(2, "Folder");
-            installedAppPackages.add(2, "folder");
-            installedAppLabels.add(3, "Web App");
-            installedAppPackages.add(3, "web_apps");
-            installedAppLabels.add(4, "Hidden App");
-            installedAppPackages.add(4, "hidden_app");
+            if (!getIntent().getBooleanExtra(EXTRA_NO_BLANK, false)) {
+                installedAppLabels.add(1, "Blank");
+                installedAppPackages.add(1, "blank");
+                installedAppLabels.add(2, "Folder");
+                installedAppPackages.add(2, "folder");
+                installedAppLabels.add(3, "Web App");
+                installedAppPackages.add(3, "web_apps");
+                installedAppLabels.add(4, "Hidden App");
+                installedAppPackages.add(4, "hidden_app");
+            } else {
+                installedAppLabels.add(1, "Folder");
+                installedAppPackages.add(1, "folder");
+                installedAppLabels.add(2, "Web App");
+                installedAppPackages.add(2, "web_apps");
+                installedAppLabels.add(3, "Hidden App");
+                installedAppPackages.add(3, "hidden_app");
+            }
         }
 
         if (position == -2) {

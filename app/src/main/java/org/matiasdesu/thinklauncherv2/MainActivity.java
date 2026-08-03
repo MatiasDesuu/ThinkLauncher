@@ -158,6 +158,8 @@ public class MainActivity extends Activity {
     private ImageView wallpaperView;
     private LinearLayout appBarView;
     private LinearLayout dockView;
+    private static final int REQUEST_EDIT_DOCK_BASE = 10000;
+    private String pendingDockPrefix = null;
     private int statusBarInset = 0;
     private int navBarInset = 0;
     private int homePaddingTop;
@@ -985,19 +987,23 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"));
+                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"))
+                    || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
                 int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
                         : "app_launcher".equals(pkg) ? R.drawable.search
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
-                                                        : R.drawable.folder;
+                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
                 iv.clearColorFilter();
                 applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+            } else if (pkg != null && pkg.startsWith("hidden_app_")) {
+                iv.setImageDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             } else {
                 try {
                     Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, appDynamicIcons, theme,
@@ -1014,7 +1020,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
             }
             final String fpkg = pkg;
-            setupDockItemTap(iv, fpkg);
+            setupDockItemTap(iv, "app_bar", i, fpkg);
             bar.addView(iv);
         }
 
@@ -1144,19 +1150,23 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"));
+                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"))
+                    || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
                 int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
                         : "app_launcher".equals(pkg) ? R.drawable.search
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
-                                                        : R.drawable.folder;
+                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
                 iv.clearColorFilter();
                 applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+            } else if (pkg != null && pkg.startsWith("hidden_app_")) {
+                iv.setImageDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             } else {
                 try {
                     Drawable drawable = DynamicIconHelper.getAppIcon(this, pkg, appDynamicIcons, theme,
@@ -1173,7 +1183,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
             }
             final String fpkg = pkg;
-            setupDockItemTap(iv, fpkg);
+            setupDockItemTap(iv, "dock", i, fpkg);
             bar.addView(iv);
         }
 
@@ -2292,22 +2302,43 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
     }
 
-    private void showDockShortcuts(String pkg) {
-        if (pkg == null || pkg.isEmpty() || pkg.startsWith("folder_")
-                || pkg.startsWith("webapp_") || "launcher_settings".equals(pkg)
-                || "app_launcher".equals(pkg) || "notification_panel".equals(pkg)
-                || "koreader_history".equals(pkg) || "calendar".equals(pkg)) {
+    private void showDockShortcuts(String pkg, String dockPrefix, int dockSlotIndex) {
+        if (pkg == null || pkg.isEmpty()) {
             return;
         }
-        java.util.List<ShortcutInfo> shortcuts = ShortcutHelper.getShortcuts(this, pkg);
-        if (shortcuts != null && !shortcuts.isEmpty()) {
-            new AppShortcutsDialog(this, shortcuts, "Edit", null,
-                    shortcut -> launchShortcut(shortcut)).show();
+        java.util.List<ShortcutInfo> shortcuts = null;
+        String realPkg = pkg.startsWith("hidden_app_") ? pkg.substring("hidden_app_".length()) : pkg;
+        if (isSlotRealApp(pkg)) {
+            shortcuts = ShortcutHelper.getShortcuts(this, realPkg);
+        }
+        final String prefix = dockPrefix;
+        final int slotIndex = dockSlotIndex;
+        new AppShortcutsDialog(this, shortcuts, "Edit",
+                () -> editDockItem(prefix, slotIndex),
+                shortcut -> launchShortcut(shortcut)).show();
+    }
+
+    private void editDockItem(String prefix, int slotIndex) {
+        if (prefix == null || slotIndex < 0) {
+            return;
+        }
+        pendingDockPrefix = prefix;
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
+        Intent intent = new Intent(this, AppSelectorActivity.class);
+        intent.putExtra(AppSelectorActivity.EXTRA_POSITION, slotIndex);
+        intent.putExtra(AppSelectorActivity.EXTRA_NO_BLANK, true);
+        if (!animate) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
+        startActivityForResult(intent, REQUEST_EDIT_DOCK_BASE + slotIndex);
+        if (animate) {
+            overridePendingTransition(R.anim.dialog_fade_in, 0);
         }
     }
 
-    private void setupDockItemTap(ImageView iv, String pkg) {
-        iv.setTag("dock_pkg:" + pkg);
+    private void setupDockItemTap(ImageView iv, String prefix, int slotIndex, String pkg) {
+        iv.setTag("dock_pkg:" + prefix + ":" + slotIndex + ":" + pkg);
     }
 
     public void launchApp(String packageName) {
@@ -2829,6 +2860,32 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 return;
             }
 
+            if (requestCode >= REQUEST_EDIT_DOCK_BASE && requestCode < REQUEST_EDIT_DOCK_BASE + 100) {
+                int slotIndex = requestCode - REQUEST_EDIT_DOCK_BASE;
+                String prefix = pendingDockPrefix;
+                pendingDockPrefix = null;
+                if (prefix != null && slotIndex >= 0) {
+                    String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
+                    String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
+                    if (pkg != null) {
+                        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        if (pkg.startsWith("folder_")) {
+                            editor.putString(pkg + "_name", label == null ? "" : label);
+                        }
+                        editor.putString(prefix + "_app_package_" + slotIndex, pkg);
+                        editor.putString(prefix + "_app_label_" + slotIndex, label == null ? "" : label);
+                        editor.apply();
+                        if ("dock".equals(prefix)) {
+                            refreshDock();
+                        } else if ("app_bar".equals(prefix)) {
+                            refreshAppBar();
+                        }
+                    }
+                }
+                return;
+            }
+
             String label = data.getStringExtra(AppSelectorActivity.EXTRA_LABEL);
             String pkg = data.getStringExtra(AppSelectorActivity.EXTRA_PACKAGE);
             int position = data.getIntExtra(AppSelectorActivity.EXTRA_POSITION, -1);
@@ -2886,6 +2943,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         private boolean touchedDate = false;
         private boolean isLongPress = false;
         private String touchedDockPkg = null;
+        private String touchedDockPrefix = null;
+        private int touchedDockSlotIndex = -1;
 
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final java.util.ArrayList<GesturePoint> touchPoints = new java.util.ArrayList<>();
@@ -2951,7 +3010,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     longPressRunnable = () -> {
                         isLongPress = true;
                         if (touchedDockPkg != null) {
-                            showDockShortcuts(touchedDockPkg);
+                            showDockShortcuts(touchedDockPkg, touchedDockPrefix, touchedDockSlotIndex);
                         } else if (touchedSlotIndex >= 0) {
                             String pkg = appPackages.get(touchedSlotIndex);
                             java.util.List<ShortcutInfo> shortcuts = null;
@@ -3117,11 +3176,30 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         Object tag = item.getTag();
                         if (tag instanceof String && ((String) tag).startsWith("dock_pkg:")
                                 && isPointInsideView(x, y, item)) {
-                            return ((String) tag).substring("dock_pkg:".length());
+                            String t = ((String) tag).substring("dock_pkg:".length());
+                            int firstSep = t.indexOf(':');
+                            if (firstSep > 0) {
+                                touchedDockPrefix = t.substring(0, firstSep);
+                                int secondSep = t.indexOf(':', firstSep + 1);
+                                if (secondSep > firstSep) {
+                                    try {
+                                        touchedDockSlotIndex = Integer.parseInt(
+                                                t.substring(firstSep + 1, secondSep));
+                                    } catch (NumberFormatException e) {
+                                        touchedDockSlotIndex = -1;
+                                    }
+                                    return t.substring(secondSep + 1);
+                                }
+                            }
+                            touchedDockPrefix = null;
+                            touchedDockSlotIndex = -1;
+                            return t;
                         }
                     }
                 }
             }
+            touchedDockPrefix = null;
+            touchedDockSlotIndex = -1;
             return null;
         }
 
