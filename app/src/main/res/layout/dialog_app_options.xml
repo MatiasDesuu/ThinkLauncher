@@ -24,6 +24,14 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/hide_button"
+            style="@style/DialogButton"
+            android:text="Hide App"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/more_info_button"
             style="@style/DialogButton"
             android:text="More info"

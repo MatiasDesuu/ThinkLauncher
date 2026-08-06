@@ -27,10 +27,15 @@ public class AppOptionsDialog extends Dialog {
         void onRename();
     }
 
+    public interface OnHideCallback {
+        void onHide();
+    }
+
     private String packageName;
     private OnRemoveCallback removeCallback;
     private OnMoreInfoCallback moreInfoCallback;
     private OnRenameCallback renameCallback;
+    private OnHideCallback hideCallback;
 
     public AppOptionsDialog(Context context, String packageName) {
         super(context, R.style.NoAnimationDialog);
@@ -70,6 +75,17 @@ public class AppOptionsDialog extends Dialog {
         init();
     }
 
+    public AppOptionsDialog(Context context, String packageName, OnRemoveCallback removeCallback,
+            OnMoreInfoCallback moreInfoCallback, OnRenameCallback renameCallback, OnHideCallback hideCallback) {
+        super(context, R.style.NoAnimationDialog);
+        this.packageName = packageName;
+        this.removeCallback = removeCallback;
+        this.moreInfoCallback = moreInfoCallback;
+        this.renameCallback = renameCallback;
+        this.hideCallback = hideCallback;
+        init();
+    }
+
     private void init() {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
@@ -81,6 +97,7 @@ public class AppOptionsDialog extends Dialog {
         DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
         TextView renameButton = findViewById(R.id.rename_button);
+        TextView hideButton = findViewById(R.id.hide_button);
         TextView moreInfoButton = findViewById(R.id.more_info_button);
         TextView uninstallButton = findViewById(R.id.uninstall_button);
         TextView removeButton = findViewById(R.id.remove_button);
@@ -123,6 +140,20 @@ public class AppOptionsDialog extends Dialog {
             });
         }
 
+        if (hideCallback != null && !(packageName != null && (packageName.startsWith("webapp_")
+                || packageName.startsWith("folder_")
+                || packageName.equals("app_launcher")
+                || packageName.equals("notification_panel")))) {
+            hideButton.setVisibility(View.VISIBLE);
+            DialogEffectHelper.applyButtonTheme(hideButton, theme, getContext(), surfaceColor);
+            hideButton.setOnClickListener(v -> {
+                hideCallback.onHide();
+                dismiss();
+            });
+        } else {
+            hideButton.setVisibility(View.GONE);
+        }
+
         DialogEffectHelper.applyButtonTheme(uninstallButton, theme, getContext(), surfaceColor);
         if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_")
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
@@ -150,7 +181,7 @@ public class AppOptionsDialog extends Dialog {
             removeButton.setVisibility(View.GONE);
         }
 
-        TextView[] allButtons = {renameButton, moreInfoButton, uninstallButton, removeButton};
+        TextView[] allButtons = {renameButton, hideButton, moreInfoButton, uninstallButton, removeButton};
         View lastVisible = null;
         for (int i = allButtons.length - 1; i >= 0; i--) {
             if (allButtons[i].getVisibility() == View.VISIBLE) {

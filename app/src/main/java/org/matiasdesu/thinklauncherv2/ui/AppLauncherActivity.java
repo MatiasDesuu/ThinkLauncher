@@ -428,6 +428,24 @@ public class AppLauncherActivity extends AppCompatActivity {
         }
     }
 
+    private void hideApp(int position) {
+        int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+        if (globalPosition >= 0 && globalPosition < filteredApps.size()) {
+            AppSearchHelper.AppItem app = filteredApps.get(globalPosition);
+            hiddenApps.add(app.packageName);
+            prefs.edit().putStringSet("hidden_apps", hiddenApps).apply();
+            originalApps.removeIf(a -> a.packageName.equals(app.packageName));
+            filteredApps.removeIf(a -> a.packageName.equals(app.packageName));
+            buildIndexSidebar();
+            if (pageNavigator != null) {
+                pageNavigator.setTotalItems(filteredApps.size());
+            }
+            launcherAdapter.notifyDataSetChanged();
+            updatePageIndicator();
+            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+        }
+    }
+
     public void refreshApps() {
 
         List<String> labels = new ArrayList<>();
@@ -799,6 +817,8 @@ public class AppLauncherActivity extends AppCompatActivity {
             holder.itemView.setOnLongClickListener(v -> {
                 new AppOptionsDialog(activity, app.packageName, null, null, () -> {
                     activity.renameApp(position);
+                }, () -> {
+                    activity.hideApp(position);
                 }).show();
                 return true;
             });
