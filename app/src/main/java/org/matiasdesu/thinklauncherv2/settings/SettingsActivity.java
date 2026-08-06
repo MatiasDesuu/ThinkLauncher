@@ -224,4 +224,10 @@ public class SettingsActivity extends BaseSettingsActivity {
         super.onPause();
         unregisterReceiver(homeButtonReceiver);
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+    }
 }
