@@ -33,6 +33,7 @@ public class ThemeUtils {
     public static void applyEditTextTheme(EditText editText, int theme, Context context) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(getBgColor(theme, context));
+        DialogEffectHelper.applyCornerRadius(drawable, context);
         editText.setBackground(drawable);
         editText.setTextColor(getTextColor(theme, context));
         editText.setHintTextColor(getTextColor(theme, context));
@@ -42,6 +43,7 @@ public class ThemeUtils {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(getBgColor(theme, context));
         drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density), getTextColor(theme, context));
+        DialogEffectHelper.applyCornerRadius(drawable, context);
         int padding = (int) (4 * context.getResources().getDisplayMetrics().density);
         button.setBackground(drawable);
         button.setPadding(padding, padding, padding, padding);
@@ -52,6 +54,7 @@ public class ThemeUtils {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(fillColor);
         drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density), strokeColor);
+        DialogEffectHelper.applyCornerRadius(drawable, context);
         imageView.setBackground(drawable);
     }
 

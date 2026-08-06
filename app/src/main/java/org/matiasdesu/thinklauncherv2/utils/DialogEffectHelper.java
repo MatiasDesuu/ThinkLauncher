@@ -42,6 +42,7 @@ public final class DialogEffectHelper {
         drawable.setColor(surfaceColor);
         drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density),
                 ThemeUtils.getTextColor(theme, context));
+        applyCornerRadius(drawable, context);
         view.setBackground(drawable);
     }
 
@@ -53,6 +54,7 @@ public final class DialogEffectHelper {
         drawable.setColor(surfaceColor);
         drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density),
                 ThemeUtils.getTextColor(theme, context));
+        applyCornerRadius(drawable, context);
         int padding = (int) (4 * context.getResources().getDisplayMetrics().density);
         button.setBackground(drawable);
         button.setPadding(padding, padding, padding, padding);
@@ -67,9 +69,50 @@ public final class DialogEffectHelper {
         drawable.setColor(surfaceColor);
         drawable.setStroke((int) (2 * context.getResources().getDisplayMetrics().density),
                 ThemeUtils.getTextColor(theme, context));
+        applyCornerRadius(drawable, context);
         editText.setBackground(drawable);
         editText.setTextColor(ThemeUtils.getTextColor(theme, context));
         editText.setHintTextColor(ThemeUtils.getTextColor(theme, context));
+    }
+
+    public static void applyCornerRadius(GradientDrawable drawable, Context context) {
+        int radius = getCornerRadiusPx(context);
+        if (radius > 0) {
+            drawable.setCornerRadius(radius);
+        }
+    }
+
+    public static int getCornerRadiusPx(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        int radiusDp = prefs.getInt("modal_corner_radius", 0);
+        if (radiusDp <= 0) {
+            return 0;
+        }
+        return (int) (radiusDp * context.getResources().getDisplayMetrics().density);
+    }
+
+    public static void applyCornerRadiusToTree(View view, Context context) {
+        int radius = getCornerRadiusPx(context);
+        if (radius <= 0 || view == null) {
+            return;
+        }
+        applyCornerRadiusToView(view, radius);
+    }
+
+    private static void applyCornerRadiusToView(View view, int radiusPx) {
+        android.graphics.drawable.Drawable background = view.getBackground();
+        if (background instanceof GradientDrawable) {
+            GradientDrawable drawable = (GradientDrawable) background;
+            if (drawable.getCornerRadius() != radiusPx) {
+                drawable.setCornerRadius(radiusPx);
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                applyCornerRadiusToView(group.getChildAt(i), radiusPx);
+            }
+        }
     }
 
     private static int getSurfaceColor(Context context, int theme) {

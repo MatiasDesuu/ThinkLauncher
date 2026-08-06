@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -23,6 +24,7 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
     private int einkRefreshEnabled;
     private int einkRefreshDelay;
     private int webappPwaMode;
+    private int modalCornerRadius;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -60,6 +62,32 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         einkRefreshEnabled = prefs.getInt("eink_refresh_enabled", 0);
         einkRefreshDelay = prefs.getInt("eink_refresh_delay", 100);
         webappPwaMode = prefs.getInt("webapp_pwa_mode", 0);
+        modalCornerRadius = prefs.getInt("modal_corner_radius", 0);
+
+        View modalCornerRadiusContainer = findViewById(R.id.modal_corner_radius_container);
+        TextView modalCornerRadiusValueTv = modalCornerRadiusContainer.findViewById(R.id.value_text);
+        modalCornerRadiusValueTv.setText(String.valueOf(modalCornerRadius));
+
+        TextView minusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_minus);
+        TextView plusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_plus);
+
+        minusModalCornerRadiusBtn.setOnClickListener(v -> {
+            if (modalCornerRadius >= 2) {
+                modalCornerRadius -= 2;
+                modalCornerRadiusValueTv.setText(String.valueOf(modalCornerRadius));
+                prefs.edit().putInt("modal_corner_radius", modalCornerRadius).apply();
+                updateCornerRadius();
+            }
+        });
+
+        plusModalCornerRadiusBtn.setOnClickListener(v -> {
+            if (modalCornerRadius <= 30) {
+                modalCornerRadius += 2;
+                modalCornerRadiusValueTv.setText(String.valueOf(modalCornerRadius));
+                prefs.edit().putInt("modal_corner_radius", modalCornerRadius).apply();
+                updateCornerRadius();
+            }
+        });
 
         View scrollAppListContainer = findViewById(R.id.scroll_app_list_container);
         TextView scrollAppListValueTv = scrollAppListContainer.findViewById(R.id.value_text);
@@ -286,6 +314,10 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
 
     private void refreshVisibility() {
         updateEinkRefreshDelayVisibility();
+    }
+
+    private void updateCornerRadius() {
+        DialogEffectHelper.applyCornerRadiusToTree(findViewById(R.id.root_layout), this);
     }
 
     private String getOnOffText(int pos) {

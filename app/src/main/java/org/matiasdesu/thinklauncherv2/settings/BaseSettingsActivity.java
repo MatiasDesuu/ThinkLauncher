@@ -13,6 +13,7 @@ import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.SettingsPaginationHelper;
@@ -91,6 +92,7 @@ public abstract class BaseSettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         FontHelper.applyToViewTree(this, rootLayout);
+        DialogEffectHelper.applyCornerRadiusToTree(rootLayout, this);
         refreshPagination();
     }
 
