@@ -52,7 +52,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     private int textSize;
     private boolean boldText;
     private List<AppSearchHelper.AppItem> originalApps;
-    private List<AppSearchHelper.AppItem> filteredApps;
+    private List<AppSearchHelper.AppItem> filteredApps = new ArrayList<>();
     private AppSearchHelper.IndexedApps appIndex;
     private int itemsPerPage;
     private int currentPage = 0;
