@@ -674,9 +674,9 @@ public class MainActivity extends Activity {
 private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         switch (colorSource) {
             case 1: // Dark
-                return ThemeUtils.getBgColor(ThemeUtils.THEME_LIGHT, this);
-            case 2: // White
                 return ThemeUtils.getBgColor(ThemeUtils.THEME_DARK, this);
+            case 2: // White
+                return ThemeUtils.getBgColor(ThemeUtils.THEME_LIGHT, this);
             case 3: // Dynamic Dark
                 return ThemeUtils.getBgColor(ThemeUtils.THEME_DYNAMIC_DARK, this);
             case 4: // Dynamic Light
