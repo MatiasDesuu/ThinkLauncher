@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.HomePositionHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -20,8 +21,7 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
     private static final int HOME_COLUMNS_MAX = 10;
 
     private int maxApps;
-    private int homeAlignment;
-    private int homeVerticalAlignment;
+    private int homePosition;
     private int homeColumns;
     private int homePages;
     private boolean hidePagination;
@@ -56,8 +56,12 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
         ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         maxApps = prefs.getInt("max_apps", 4);
-        homeAlignment = prefs.getInt("home_alignment", 1);
-        homeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
+        homePosition = prefs.getInt("home_position", -1);
+        if (homePosition < 0 || homePosition > 8) {
+            homePosition = HomePositionHelper.positionFromAlignment(
+                    prefs.getInt("home_vertical_alignment", 1), prefs.getInt("home_alignment", 1));
+            prefs.edit().putInt("home_position", homePosition).apply();
+        }
         homeColumns = prefs.getInt("home_columns", HOME_COLUMNS_MIN);
         if (homeColumns < HOME_COLUMNS_MIN) homeColumns = HOME_COLUMNS_MIN;
         if (homeColumns > HOME_COLUMNS_MAX) homeColumns = HOME_COLUMNS_MAX;
@@ -113,17 +117,18 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
-        View homeAlignmentContainer = findViewById(R.id.home_alignment_container);
-        TextView homeAlignmentValueTv = homeAlignmentContainer.findViewById(R.id.value_text);
-        homeAlignmentValueTv.setText(getAlignmentText(homeAlignment));
-        homeAlignmentValueTv.setMinWidth(
-                TextWidthHelper.getMaxTextWidthPx(homeAlignmentValueTv, new String[] { "Left", "Center", "Right" }));
-
-        View homeVerticalAlignmentContainer = findViewById(R.id.home_vertical_alignment_container);
-        TextView homeVerticalAlignmentValueTv = homeVerticalAlignmentContainer.findViewById(R.id.value_text);
-        homeVerticalAlignmentValueTv.setText(getVerticalAlignmentText(homeVerticalAlignment));
-        homeVerticalAlignmentValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(homeVerticalAlignmentValueTv,
-                new String[] { "Top", "Center", "Bottom" }));
+        LinearLayout homePositionButton = findViewById(R.id.home_position_button);
+        homePositionButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AppBarPositionActivity.class);
+            intent.putExtra(AppBarPositionActivity.EXTRA_PREF_KEY, "home_position");
+            intent.putExtra(AppBarPositionActivity.EXTRA_DEFAULT_POSITION, HomePositionHelper.DEFAULT_POSITION);
+            intent.putExtra(AppBarPositionActivity.EXTRA_TITLE, "Position");
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
+        });
 
         TextView minusMaxAppsBtn = maxAppsContainer.findViewById(R.id.btn_minus);
         TextView plusMaxAppsBtn = maxAppsContainer.findViewById(R.id.btn_plus);
@@ -133,10 +138,6 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
         TextView plusPagesBtn = pagesContainer.findViewById(R.id.btn_plus);
         TextView minusHidePaginationBtn = hidePaginationContainer.findViewById(R.id.btn_minus);
         TextView plusHidePaginationBtn = hidePaginationContainer.findViewById(R.id.btn_plus);
-        TextView minusHomeAlignmentBtn = homeAlignmentContainer.findViewById(R.id.btn_minus);
-        TextView plusHomeAlignmentBtn = homeAlignmentContainer.findViewById(R.id.btn_plus);
-        TextView minusHomeVerticalBtn = homeVerticalAlignmentContainer.findViewById(R.id.btn_minus);
-        TextView plusHomeVerticalBtn = homeVerticalAlignmentContainer.findViewById(R.id.btn_plus);
 
         minusMaxAppsBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (maxApps > 1) {
@@ -186,30 +187,6 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
             }
         }));
 
-        minusHomeAlignmentBtn.setOnClickListener(v -> {
-            homeAlignment = (homeAlignment - 1 + 3) % 3;
-            homeAlignmentValueTv.setText(getAlignmentText(homeAlignment));
-            prefs.edit().putInt("home_alignment", homeAlignment).apply();
-        });
-
-        plusHomeAlignmentBtn.setOnClickListener(v -> {
-            homeAlignment = (homeAlignment + 1) % 3;
-            homeAlignmentValueTv.setText(getAlignmentText(homeAlignment));
-            prefs.edit().putInt("home_alignment", homeAlignment).apply();
-        });
-
-        minusHomeVerticalBtn.setOnClickListener(v -> {
-            homeVerticalAlignment = (homeVerticalAlignment - 1 + 3) % 3;
-            homeVerticalAlignmentValueTv.setText(getVerticalAlignmentText(homeVerticalAlignment));
-            prefs.edit().putInt("home_vertical_alignment", homeVerticalAlignment).apply();
-        });
-
-        plusHomeVerticalBtn.setOnClickListener(v -> {
-            homeVerticalAlignment = (homeVerticalAlignment + 1) % 3;
-            homeVerticalAlignmentValueTv.setText(getVerticalAlignmentText(homeVerticalAlignment));
-            prefs.edit().putInt("home_vertical_alignment", homeVerticalAlignment).apply();
-        });
-
         minusHidePaginationBtn.setOnClickListener(v -> {
             hidePagination = !hidePagination;
             hidePaginationValueTv.setText(hidePagination ? "ON" : "OFF");
@@ -228,32 +205,6 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
     private void refreshVisibility() {
         View hidePaginationContainer = findViewById(R.id.hide_pagination_row);
         hidePaginationContainer.setVisibility(homePages > 1 ? View.VISIBLE : View.GONE);
-    }
-
-    private String getAlignmentText(int alignment) {
-        switch (alignment) {
-            case 0:
-                return "Left";
-            case 1:
-                return "Center";
-            case 2:
-                return "Right";
-            default:
-                return "Center";
-        }
-    }
-
-    private String getVerticalAlignmentText(int alignment) {
-        switch (alignment) {
-            case 0:
-                return "Top";
-            case 1:
-                return "Center";
-            case 2:
-                return "Bottom";
-            default:
-                return "Center";
-        }
     }
 
     @Override

@@ -65,6 +65,7 @@ import org.matiasdesu.thinklauncherv2.ui.ShadowOutlineDrawable;
 import org.matiasdesu.thinklauncherv2.utils.AppNamePositionHelper;
 import org.matiasdesu.thinklauncherv2.utils.DynamicIconHelper;
 import org.matiasdesu.thinklauncherv2.utils.HomePagesManager;
+import org.matiasdesu.thinklauncherv2.utils.HomePositionHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconMonochromeHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -104,6 +105,7 @@ public class MainActivity extends Activity {
     private int iconShape;
     private int homeAlignment;
     private int homeVerticalAlignment;
+    private int homePosition;
     private int homeColumns;
     private int homePages;
     private boolean hidePagination;
@@ -1366,8 +1368,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         invertHomeColors = prefs.getBoolean("invert_home_colors", false);
         iconBackground = prefs.getBoolean("icon_background", true);
         iconShape = prefs.getInt("icon_shape", IconShapeHelper.SHAPE_SYSTEM);
-        homeAlignment = prefs.getInt("home_alignment", 1);
-        homeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
+        homePosition = prefs.getInt("home_position", -1);
+        if (homePosition < 0 || homePosition > 8) {
+            homePosition = HomePositionHelper.positionFromAlignment(
+                    prefs.getInt("home_vertical_alignment", 1), prefs.getInt("home_alignment", 1));
+            prefs.edit().putInt("home_position", homePosition).apply();
+        }
+        homeAlignment = HomePositionHelper.horizontalFromPosition(homePosition);
+        homeVerticalAlignment = HomePositionHelper.verticalFromPosition(homePosition);
         homeColumns = prefs.getInt("home_columns", 1);
         if (homeColumns < 1) homeColumns = 1;
         if (homeColumns > 10) homeColumns = 10;
@@ -1513,8 +1521,13 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             int newEffectColor = prefs.getInt("effect_color", 0);
             int newIconEffect = prefs.getInt("icon_effect", 0);
             int newIconEffectColor = prefs.getInt("icon_effect_color", 0);
-            int newHomeAlignment = prefs.getInt("home_alignment", 1);
-            int newHomeVerticalAlignment = prefs.getInt("home_vertical_alignment", 1);
+            int newHomePosition = prefs.getInt("home_position", -1);
+            if (newHomePosition < 0 || newHomePosition > 8) {
+                newHomePosition = HomePositionHelper.positionFromAlignment(
+                        prefs.getInt("home_vertical_alignment", 1), prefs.getInt("home_alignment", 1));
+            }
+            int newHomeAlignment = HomePositionHelper.horizontalFromPosition(newHomePosition);
+            int newHomeVerticalAlignment = HomePositionHelper.verticalFromPosition(newHomePosition);
             int newHomeColumns = prefs.getInt("home_columns", 1);
             if (newHomeColumns < 1) newHomeColumns = 1;
             if (newHomeColumns > 10) newHomeColumns = 10;
@@ -1666,6 +1679,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 iconEffectColor = newIconEffectColor;
                 homeAlignment = newHomeAlignment;
                 homeVerticalAlignment = newHomeVerticalAlignment;
+                homePosition = newHomePosition;
                 homeColumns = newHomeColumns;
                 homePages = newHomePages;
                 hidePagination = newHidePagination;
@@ -1739,6 +1753,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             if (onlyAlignmentChanged) {
                 homeAlignment = newHomeAlignment;
                 homeVerticalAlignment = newHomeVerticalAlignment;
+                homePosition = newHomePosition;
                 monochromeIcons = newMonochromeIcons;
                 dynamicIcons = newDynamicIcons;
                 forceMonochromeFallback = newForceMonochromeFallback;
@@ -3343,9 +3358,6 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
                     rootLayout.setVisibility(View.VISIBLE);
 
-                    // Re-capture the dock backdrops now that the (possibly new
-                    // or moved) wallpaper is on screen, so they always show
-                    // exactly what is behind them.
                     DockBackdropHelper.reapplyAll(rootLayout);
 
                     EinkRefreshHelper.refreshEink(getWindow(), getSharedPreferences("prefs", MODE_PRIVATE),

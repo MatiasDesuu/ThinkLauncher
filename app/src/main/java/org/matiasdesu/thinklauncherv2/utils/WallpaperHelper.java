@@ -494,11 +494,6 @@ public class WallpaperHelper {
         }
     }
 
-    /**
-     * Returns the given color with its alpha replaced by the given opacity
-     * percentage (clamped to 0-100). Shared by every launcher surface (app
-     * launcher, folders, docks) so they all tint their backdrops identically.
-     */
     public static int applyOpacity(int color, int opacityPercent) {
         int clamped = Math.max(0, Math.min(opacityPercent, 100));
         int alpha = Math.round(255f * clamped / 100f);

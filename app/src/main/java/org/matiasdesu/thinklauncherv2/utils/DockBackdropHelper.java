@@ -24,6 +24,7 @@ public final class DockBackdropHelper {
 
     private static final long RETRY_DELAY_MS = 100L;
     private static final int MAX_ATTEMPTS = 50;
+    private static final int EXPAND = 64;
 
     private static final ExecutorService CAPTURE_EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactory() {
         @Override
@@ -62,13 +63,6 @@ public final class DockBackdropHelper {
     private DockBackdropHelper() {
     }
 
-    /**
-     * Registers a dock view for the backdrop treatment. Each dock has its own
-     * &lt;prefix&gt;_backdrop_opacity / &lt;prefix&gt;_backdrop_blur toggles
-     * (0/1); when opacity is on, the dock paints the launcher surface color at
-     * the global opacity percentage over the wallpaper, blurred when the dock's
-     * blur toggle is on with the global blur strength.
-     */
     public static void applyBackdrop(View dockView, ViewGroup parent, SharedPreferences prefs, String prefix,
             int surfaceColor, boolean borderEnabled, int borderColor, float borderWidthPx, float cornerRadiusPx) {
         if (dockView == null || parent == null) {
@@ -79,9 +73,6 @@ public final class DockBackdropHelper {
         recapture(dockView, 0);
     }
 
-    /**
-     * Re-captures a single registered dock.
-     */
     public static void reapply(View dockView) {
         Params params = BACKDROPS.get(dockView);
         if (params != null) {
@@ -89,11 +80,6 @@ public final class DockBackdropHelper {
         }
     }
 
-    /**
-     * Re-captures every registered dock still attached to the given parent.
-     * Call this after the home wallpaper finishes loading or moving so the
-     * dock backdrop always matches what is actually behind it.
-     */
     public static void reapplyAll(ViewGroup parent) {
         List<View> views;
         synchronized (BACKDROPS) {
@@ -139,8 +125,6 @@ public final class DockBackdropHelper {
             return;
         }
 
-        // Keep a minimum padding so icons never touch the blurred edge when
-        // the dock's own background toggle is off.
         int minPad = Math.round(dockView.getResources().getDisplayMetrics().density * 6f);
         if (dockView.getPaddingLeft() < minPad) {
             dockView.setPadding(minPad, minPad, minPad, minPad);
@@ -155,10 +139,6 @@ public final class DockBackdropHelper {
 
         CAPTURE_EXECUTOR.execute(() -> {
             int[] screen = WallpaperHelper.getScreenDimensions(dockView.getContext());
-            // Same full-screen wallpaper the launcher surfaces use: blurred
-            // with the same settings (or sharp when blur is off) and
-            // positioned with the same offset/zoom. Cropping it keeps the
-            // dock's backdrop uniform, with no visible seam at the border.
             Bitmap wallpaper = WallpaperHelper.getWallpaperForScreenCached(dockView.getContext(), screen[0],
                     screen[1], blurEnabled, blurStrength);
             final Drawable backdrop;
@@ -193,19 +173,10 @@ public final class DockBackdropHelper {
 
         Bitmap bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        // The wallpaper covers the whole screen at 1:1; draw it offset so the
-        // dock's region lands exactly in the middle of the bitmap. The extra
-        // margin keeps the rounded corners and border area covered.
         canvas.drawBitmap(wallpaper, EXPAND - left, EXPAND - top, null);
 
-        // Always paint the dock color over the wallpaper, exactly like the
-        // launcher paints its surface color over the backdrop: at 100% opacity
-        // the dock shows its configured color (continuous with the theme), at
-        // lower values the wallpaper shows through.
         canvas.drawColor(WallpaperHelper.applyOpacity(params.surfaceColor, opacityPercent));
 
-        // The border is a plain stroke over the backdrop, with no blur of its
-        // own; users can simply remove it with the Border toggle.
         if (params.borderEnabled && params.borderWidthPx > 0f) {
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             paint.setStyle(Paint.Style.STROKE);
@@ -219,14 +190,6 @@ public final class DockBackdropHelper {
         return new AlignedBitmapDrawable(bitmap, EXPAND, params.cornerRadiusPx);
     }
 
-    // Fixed margin around the dock in the captured bitmap so the corners and
-    // border always sit over wallpaper content even at the strongest blur.
-    private static final int EXPAND = 64;
-
-    /**
-     * Draws the backdrop bitmap at 1:1 scale, aligned with the dock view,
-     * clipped to the dock's rounded corners.
-     */
     private static final class AlignedBitmapDrawable extends Drawable {
 
         private final Bitmap bitmap;
