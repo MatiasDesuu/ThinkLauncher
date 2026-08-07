@@ -52,6 +52,15 @@ public class WallpaperHelper {
     }
 
     /**
+     * Convenience overload matching the previous
+     * {@link #getWallpaperForScreen(Context, int, int)} behavior, but served
+     * from (and populated into) the LRU cache.
+     */
+    public static Bitmap getWallpaperForScreenCached(Context context, int screenWidth, int screenHeight) {
+        return getWallpaperForScreenCached(context, screenWidth, screenHeight, false, 3);
+    }
+
+    /**
      * Cached version of {@link #getWallpaperForScreen(Context, int, int, boolean, int)}.
      * Returns null when no wallpaper exists or decoding fails.
      */
@@ -82,6 +91,9 @@ public class WallpaperHelper {
             fos = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
             fos.flush();
+            context.getSharedPreferences("prefs", Context.MODE_PRIVATE).edit()
+                    .putLong("wallpaper_file_modified", file.lastModified())
+                    .apply();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -96,30 +108,44 @@ public class WallpaperHelper {
     }
 
     /**
-     * Load the saved wallpaper bitmap
+     * Load the saved wallpaper downsampled to at most the screen size.
      */
     public static Bitmap loadWallpaper(Context context) {
+        int[] dims = getScreenDimensions(context);
+        return loadWallpaper(context, dims[0], dims[1]);
+    }
+
+    /**
+     * Load the saved wallpaper bitmap, downsampled to at most the requested size
+     * so we never hold a full-resolution decode in memory. On high-density
+     * e-ink panels this can cut RAM usage by an order of magnitude.
+     */
+    public static Bitmap loadWallpaper(Context context, int maxWidth, int maxHeight) {
         File file = new File(context.getFilesDir(), WALLPAPER_FILENAME);
         if (!file.exists()) {
             return null;
         }
 
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(file);
-            return BitmapFactory.decodeStream(fis);
-        } catch (IOException e) {
-            e.printStackTrace();
+        int width = Math.max(maxWidth, 1);
+        int height = Math.max(maxHeight, 1);
+
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.getPath(), bounds);
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
             return null;
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
+
+        int sample = 1;
+        while (bounds.outWidth / (sample * 2) >= width
+                && bounds.outHeight / (sample * 2) >= height) {
+            sample *= 2;
+        }
+
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inSampleSize = sample;
+        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        return BitmapFactory.decodeFile(file.getPath(), opts);
     }
 
     /**
@@ -148,7 +174,7 @@ public class WallpaperHelper {
      * @return Bitmap cropped and scaled for the screen, or null if no wallpaper
      */
     public static Bitmap getWallpaperForScreen(Context context, int screenWidth, int screenHeight) {
-        Bitmap wallpaper = loadWallpaper(context);
+        Bitmap wallpaper = loadWallpaper(context, screenWidth, screenHeight);
         if (wallpaper == null) {
             return null;
         }
@@ -213,8 +239,12 @@ public class WallpaperHelper {
         if (srcLeft + srcWidth > bitmapWidth) srcLeft = bitmapWidth - srcWidth;
         if (srcTop + srcHeight > bitmapHeight) srcTop = bitmapHeight - srcHeight;
 
-        // Create output bitmap
-        Bitmap result = Bitmap.createBitmap(screenWidth, screenHeight, Bitmap.Config.ARGB_8888);
+        // Create output bitmap. Use RGB_565 when the source has no alpha:
+        // e-ink panels are grayscale anyway, and this halves memory usage.
+        Bitmap.Config config = (!bitmap.hasAlpha() || bitmap.getConfig() == Bitmap.Config.RGB_565)
+                ? Bitmap.Config.RGB_565
+                : Bitmap.Config.ARGB_8888;
+        Bitmap result = Bitmap.createBitmap(screenWidth, screenHeight, config);
         Canvas canvas = new Canvas(result);
 
         // Draw the cropped portion of the wallpaper
@@ -233,7 +263,23 @@ public class WallpaperHelper {
             return source;
         }
 
-        Bitmap bitmap = source.copy(Bitmap.Config.ARGB_8888, true);
+        // Blur at a capped resolution (e.g. 640px) and scale back up.
+        // The stack-blur below allocates ~4 full int arrays, so blurring a
+        // full-screen bitmap directly can eat tens of MB on high-density
+        // e-ink panels. Visually the result is equivalent after upscaling.
+        final int MAX_BLUR_DIMENSION = 640;
+        Bitmap working = source;
+        int scaleFactor = 1;
+        if (source.getWidth() > MAX_BLUR_DIMENSION || source.getHeight() > MAX_BLUR_DIMENSION) {
+            float maxDim = Math.max(source.getWidth(), source.getHeight());
+            scaleFactor = (int) Math.ceil(maxDim / MAX_BLUR_DIMENSION);
+            int w = Math.max(1, source.getWidth() / scaleFactor);
+            int h = Math.max(1, source.getHeight() / scaleFactor);
+            working = Bitmap.createScaledBitmap(source, w, h, true);
+            radius = Math.max(1, radius / scaleFactor);
+        }
+
+        Bitmap bitmap = working.copy(Bitmap.Config.ARGB_8888, true);
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         int[] pixels = new int[width * height];
@@ -410,6 +456,13 @@ public class WallpaperHelper {
         }
 
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+        if (working != source) {
+            Bitmap scaledBack = Bitmap.createScaledBitmap(bitmap, source.getWidth(), source.getHeight(), true);
+            if (scaledBack != bitmap) {
+                bitmap.recycle();
+                return scaledBack;
+            }
+        }
         return bitmap;
     }
 

@@ -127,6 +127,10 @@ public class MainActivity extends Activity {
     private int batteryPosition;
     private int theme;
     private boolean hasWallpaper;
+    private float wallpaperOffsetX = 0.5f;
+    private float wallpaperOffsetY = 0.5f;
+    private float wallpaperScale = 1f;
+    private long wallpaperFileModified = 0L;
     private int textColor;
     private int appTextColor;
     private int doubleTapLock;
@@ -1282,7 +1286,6 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         super.onCreate(savedInstanceState);
         BigmeShims.registerUnlockReceiver(this);
         BigmeShims.queryLauncherProvider(this);
-        BigmeShims.queryLauncherProvider(this);
         setContentView(R.layout.activity_main);
 
         handler = new Handler(Looper.getMainLooper());
@@ -1290,6 +1293,11 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         int bgColor = ThemeUtils.getBgColor(theme, this);
         this.textColor = ThemeUtils.getTextColor(theme, this);
         this.hasWallpaper = WallpaperHelper.hasWallpaper(this);
+        SharedPreferences initPrefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        this.wallpaperOffsetX = initPrefs.getFloat("wallpaper_offset_x", 0.5f);
+        this.wallpaperOffsetY = initPrefs.getFloat("wallpaper_offset_y", 0.5f);
+        this.wallpaperScale = initPrefs.getFloat("wallpaper_scale", 1f);
+        this.wallpaperFileModified = initPrefs.getLong("wallpaper_file_modified", 0L);
 
         if (this.hasWallpaper) {
             WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -1555,6 +1563,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             int bgColor = ThemeUtils.getBgColor(newTheme, this);
             int textColor = ThemeUtils.getTextColor(newTheme, this);
             boolean newHasWallpaper = WallpaperHelper.hasWallpaper(this);
+            float newWallpaperOffsetX = prefs.getFloat("wallpaper_offset_x", 0.5f);
+            float newWallpaperOffsetY = prefs.getFloat("wallpaper_offset_y", 0.5f);
+            float newWallpaperScale = prefs.getFloat("wallpaper_scale", 1f);
+            long newWallpaperFileModified = prefs.getLong("wallpaper_file_modified", 0L);
             boolean themeChanged = newTheme != theme ||
                     (newTheme == ThemeUtils.THEME_CUSTOM
                             && (newCustomBgColor != customBgColor || newCustomAccentColor != customAccentColor));
@@ -1569,7 +1581,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     || newBatteryInfo != batteryInfo || newBatteryPosition != batteryPosition
                     || newCalendarEventFontSize != calendarEventFontSize;
             boolean iconChanged = newIconEffect != iconEffect || newIconEffectColor != iconEffectColor;
-            boolean wallpaperChanged = newHasWallpaper != hasWallpaper;
+            boolean wallpaperChanged = newHasWallpaper != hasWallpaper
+                    || newWallpaperOffsetX != wallpaperOffsetX || newWallpaperOffsetY != wallpaperOffsetY
+                    || newWallpaperScale != wallpaperScale || newWallpaperFileModified != wallpaperFileModified;
             boolean layoutChanged = newMaxApps != maxApps || newHomeColumns != homeColumns || newHomePages != homePages
                     || newHomeAlignment != homeAlignment || newHomeVerticalAlignment != homeVerticalAlignment
                     || newTimePosition != timePosition || newDateVerticalPosition != dateVerticalPosition
@@ -1623,6 +1637,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 customBgColor = newCustomBgColor;
                 customAccentColor = newCustomAccentColor;
                 hasWallpaper = newHasWallpaper;
+                wallpaperOffsetX = newWallpaperOffsetX;
+                wallpaperOffsetY = newWallpaperOffsetY;
+                wallpaperScale = newWallpaperScale;
+                wallpaperFileModified = newWallpaperFileModified;
                 textSize = newTextSize;
                 iconSize = newIconSize;
                 boldText = newBoldText;
@@ -1718,7 +1736,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 updateVisibility();
             }
 
-            loadWallpaper();
+            if (wallpaperChanged || themeChanged || layoutChanged) {
+                loadWallpaper();
+            }
         }
 
         TextView pageIndicator = findViewById(R.id.page_indicator);
@@ -3252,7 +3272,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
                 if (WallpaperHelper.hasWallpaper(this)) {
                     int[] screenDimensions = WallpaperHelper.getScreenDimensions(this);
-                    wallpaper = WallpaperHelper.getWallpaperForScreen(this, screenDimensions[0], screenDimensions[1]);
+                    wallpaper = WallpaperHelper.getWallpaperForScreenCached(this, screenDimensions[0],
+                            screenDimensions[1]);
                 }
 
                 final Bitmap finalWallpaper = wallpaper;

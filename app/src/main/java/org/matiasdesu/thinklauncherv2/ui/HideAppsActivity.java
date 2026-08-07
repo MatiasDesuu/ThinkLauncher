@@ -53,6 +53,7 @@ public class HideAppsActivity extends AppCompatActivity {
 
     private List<AppSearchHelper.AppItem> originalApps;
     private List<AppSearchHelper.AppItem> filteredApps;
+    private AppSearchHelper.IndexedApps appIndex;
     private int itemsPerPage;
     private int currentPage = 0;
     private int theme;
@@ -218,15 +219,7 @@ public class HideAppsActivity extends AppCompatActivity {
         List<String> installedAppLabels = new ArrayList<>();
         List<String> installedAppPackages = new ArrayList<>();
 
-        PackageManager pm = getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_MAIN, null);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
-        apps.sort((a, b) -> a.loadLabel(pm).toString().compareToIgnoreCase(b.loadLabel(pm).toString()));
-        for (ResolveInfo ri : apps) {
-            installedAppLabels.add(ri.loadLabel(pm).toString());
-            installedAppPackages.add(ri.activityInfo.packageName);
-        }
+        loadInstalledAppsAsync(installedAppLabels, installedAppPackages, () -> {
 
         installedAppLabels.add(0, "Launcher Settings");
         installedAppPackages.add(0, "launcher_settings");
@@ -271,7 +264,7 @@ public class HideAppsActivity extends AppCompatActivity {
                 if (query.isEmpty()) {
                     filteredApps.addAll(originalApps);
                 } else {
-                    List<AppSearchHelper.AppItem> filtered = AppSearchHelper.filterApps(installedAppLabels, installedAppPackages, query);
+                    List<AppSearchHelper.AppItem> filtered = appIndex.filter(query);
                     filteredApps.addAll(filtered);
                 }
                 currentPage = 0;
@@ -294,6 +287,36 @@ public class HideAppsActivity extends AppCompatActivity {
             }
             return false;
         });
+        });
+    }
+
+    private void loadInstalledAppsAsync(final List<String> installedAppLabels,
+            final List<String> installedAppPackages, Runnable onLoaded) {
+        final List<String> labels = new ArrayList<>();
+        final List<String> packages = new ArrayList<>();
+
+        Thread loader = new Thread(() -> {
+            PackageManager pm = getPackageManager();
+            Intent intent = new Intent(Intent.ACTION_MAIN, null);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
+            List<String[]> labeled = new ArrayList<>(apps.size());
+            for (ResolveInfo ri : apps) {
+                labeled.add(new String[]{ri.loadLabel(pm).toString(), ri.activityInfo.packageName});
+            }
+            labeled.sort((a, b) -> a[0].compareToIgnoreCase(b[0]));
+            for (String[] item : labeled) {
+                labels.add(item[0]);
+                packages.add(item[1]);
+            }
+            runOnUiThread(() -> {
+                installedAppLabels.addAll(labels);
+                installedAppPackages.addAll(packages);
+                onLoaded.run();
+            });
+        }, "TL-AppLoader");
+        loader.setPriority(Thread.NORM_PRIORITY);
+        loader.start();
     }
 
     private void updatePageIndicator() {
@@ -340,38 +363,21 @@ public class HideAppsActivity extends AppCompatActivity {
             String pkg = packages.get(i);
             originalApps.add(new AppSearchHelper.AppItem(labels.get(i), pkg));
         }
-        filteredApps = new ArrayList<>(originalApps);
+        filteredApps.clear();
+        filteredApps.addAll(originalApps);
+        appIndex = new AppSearchHelper.IndexedApps(originalApps);
     }
 
     public void refreshApps() {
-        // Reload installed apps
-        List<String> labels = new ArrayList<>();
-        List<String> packages = new ArrayList<>();
-        PackageManager pm = getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_MAIN, null);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
-        apps.sort((a, b) -> a.loadLabel(pm).toString().compareToIgnoreCase(b.loadLabel(pm).toString()));
-        for (ResolveInfo ri : apps) {
-            labels.add(ri.loadLabel(pm).toString());
-            packages.add(ri.activityInfo.packageName);
-        }
-        labels.add(0, "Launcher Settings");
-        packages.add(0, "launcher_settings");
-
-        labels.add(1, "KOReader History");
-        packages.add(1, "koreader_history");
-
-        labels.add(2, "Calendar Screen");
-        packages.add(2, "calendar");
-        loadApps(labels, packages);
-        currentPage = 0;
-        if (!scrollAppList && pageNavigator != null) {
-            pageNavigator.setTotalItems(filteredApps.size());
-            pageNavigator.setCurrentPage(currentPage);
-        }
-        hideAppsAdapter.notifyDataSetChanged();
-        updatePageIndicator();
+        loadInstalledAppsAsync(installedAppLabels, installedAppPackages, () -> {
+            currentPage = 0;
+            if (!scrollAppList && pageNavigator != null) {
+                pageNavigator.setTotalItems(filteredApps.size());
+                pageNavigator.setCurrentPage(currentPage);
+            }
+            hideAppsAdapter.notifyDataSetChanged();
+            updatePageIndicator();
+        });
     }
 
     @Override

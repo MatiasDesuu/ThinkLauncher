@@ -90,11 +90,12 @@ public class HomePagesManager {
 
     public void saveAppsForCurrentPage() {
         int totalApps = homeColumns * maxApps;
+        SharedPreferences.Editor editor = prefs.edit();
         for (int i = 0; i < totalApps; i++) {
-            prefs.edit().putString("slot_label_page_" + currentPage + "_" + i, appLabels.get(i))
-                    .putString("slot_pkg_page_" + currentPage + "_" + i, appPackages.get(i))
-                    .apply();
+            editor.putString("slot_label_page_" + currentPage + "_" + i, appLabels.get(i))
+                    .putString("slot_pkg_page_" + currentPage + "_" + i, appPackages.get(i));
         }
+        editor.apply();
     }
 
     public void updatePageIndicator() {

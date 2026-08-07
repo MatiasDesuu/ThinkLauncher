@@ -53,6 +53,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     private boolean boldText;
     private List<AppSearchHelper.AppItem> originalApps;
     private List<AppSearchHelper.AppItem> filteredApps;
+    private AppSearchHelper.IndexedApps appIndex;
     private int itemsPerPage;
     private int currentPage = 0;
     private int theme;
@@ -178,15 +179,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         List<String> installedAppLabels = new ArrayList<>();
         List<String> installedAppPackages = new ArrayList<>();
 
-        PackageManager pm = getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_MAIN, null);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
-        apps.sort((a, b) -> a.loadLabel(pm).toString().compareToIgnoreCase(b.loadLabel(pm).toString()));
-        for (ResolveInfo ri : apps) {
-            installedAppLabels.add(ri.loadLabel(pm).toString());
-            installedAppPackages.add(ri.activityInfo.packageName);
-        }
+        loadInstalledAppsAsync(installedAppLabels, installedAppPackages, () -> {
 
         installedAppLabels.add(0, "None");
         installedAppPackages.add(0, "");
@@ -277,7 +270,9 @@ public class AppSelectorActivity extends AppCompatActivity {
         for (int i = 0; i < installedAppLabels.size(); i++) {
             originalApps.add(new AppSearchHelper.AppItem(installedAppLabels.get(i), installedAppPackages.get(i)));
         }
-        filteredApps = new ArrayList<>(originalApps);
+        filteredApps.clear();
+        filteredApps.addAll(originalApps);
+        appIndex = new AppSearchHelper.IndexedApps(originalApps);
 
         adapter = new AppSelectorAdapter(filteredApps, this, theme);
         recyclerView.setAdapter(adapter);
@@ -305,11 +300,10 @@ public class AppSelectorActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String query = s.toString();
                 filteredApps.clear();
-                if (query.isEmpty()) {
+                if (query.isEmpty() || appIndex == null) {
                     filteredApps.addAll(originalApps);
                 } else {
-                    List<AppSearchHelper.AppItem> filtered = AppSearchHelper.filterApps(installedAppLabels,
-                            installedAppPackages, query);
+                    List<AppSearchHelper.AppItem> filtered = appIndex.filter(query);
                     filteredApps.addAll(filtered);
                 }
                 currentPage = 0;
@@ -328,6 +322,36 @@ public class AppSelectorActivity extends AppCompatActivity {
         indexSidebar = findViewById(R.id.index_sidebar);
         indexSidebarHorizontal = findViewById(R.id.index_sidebar_horizontal);
         buildIndexSidebar();
+        });
+    }
+
+    private void loadInstalledAppsAsync(final List<String> installedAppLabels, final List<String> installedAppPackages,
+            Runnable onLoaded) {
+        final List<String> labels = new ArrayList<>();
+        final List<String> packages = new ArrayList<>();
+
+        Thread loader = new Thread(() -> {
+            PackageManager pm = getPackageManager();
+            Intent intent = new Intent(Intent.ACTION_MAIN, null);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
+            List<String[]> labeled = new ArrayList<>(apps.size());
+            for (ResolveInfo ri : apps) {
+                labeled.add(new String[]{ri.loadLabel(pm).toString(), ri.activityInfo.packageName});
+            }
+            labeled.sort((a, b) -> a[0].compareToIgnoreCase(b[0]));
+            for (String[] item : labeled) {
+                labels.add(item[0]);
+                packages.add(item[1]);
+            }
+            runOnUiThread(() -> {
+                installedAppLabels.addAll(labels);
+                installedAppPackages.addAll(packages);
+                onLoaded.run();
+            });
+        }, "TL-AppLoader");
+        loader.setPriority(Thread.NORM_PRIORITY);
+        loader.start();
     }
 
     private void selectApp(String label, String pkg) {

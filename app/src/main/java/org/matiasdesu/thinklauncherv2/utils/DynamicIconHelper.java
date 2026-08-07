@@ -16,9 +16,23 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
+import android.util.LruCache;
 import android.util.TypedValue;
 
 public class DynamicIconHelper {
+
+    /**
+     * Processed-icon cache. Building a themed/shaped icon involves binder
+     * calls ({@link PackageManager#getApplicationIcon}) plus drawable
+     * processing; home, dock and app bar slots re-resolve the same package
+     * constantly, so cache the final drawable per option combination.
+     */
+    private static final int ICON_CACHE_SIZE = 192;
+    private static final LruCache<String, Drawable> ICON_CACHE = new LruCache<>(ICON_CACHE_SIZE);
+
+    public static void clearIconCache() {
+        ICON_CACHE.evictAll();
+    }
 
     /**
      * Get the app icon, preferring adaptive/dynamic icons if available and enabled
@@ -79,6 +93,14 @@ public class DynamicIconHelper {
     public static Drawable getAppIcon(Context context, String packageName, boolean useDynamic, int theme,
             boolean iconBackground, boolean dynamicColors, boolean invertIconColors, int iconShape,
             boolean forceMonochromeFallback) throws PackageManager.NameNotFoundException {
+        String key = "app|" + packageName + "|" + useDynamic + "|" + theme + "|" + iconBackground
+                + "|" + dynamicColors + "|" + invertIconColors + "|" + iconShape
+                + "|" + forceMonochromeFallback;
+        Drawable cached = ICON_CACHE.get(key);
+        if (cached != null) {
+            return cached;
+        }
+
         PackageManager pm = context.getPackageManager();
 
         Drawable icon = pm.getApplicationIcon(packageName);
@@ -113,6 +135,7 @@ public class DynamicIconHelper {
                         Drawable shapedIcon = IconShapeHelper.createShapedIcon(context, tintedIcon,
                                 backgroundColor, iconShape, size, false);
                         if (shapedIcon != null) {
+                            ICON_CACHE.put(key, shapedIcon);
                             return shapedIcon;
                         }
                     }
@@ -120,6 +143,7 @@ public class DynamicIconHelper {
                     if (!iconBackground) {
                         float expandFraction = -0.35f;
                         InsetDrawable expandedIcon = new InsetDrawable(tintedIcon, expandFraction);
+                        ICON_CACHE.put(key, expandedIcon);
                         return expandedIcon;
                     }
 
@@ -133,12 +157,15 @@ public class DynamicIconHelper {
                         twoToneIcon.setBounds(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight());
                     }
 
+                    ICON_CACHE.put(key, twoToneIcon);
                     return twoToneIcon;
                 }
             }
         }
 
-        return applyShapeIfNeeded(context, icon, iconShape, iconBackground);
+        Drawable result = applyShapeIfNeeded(context, icon, iconShape, iconBackground);
+        ICON_CACHE.put(key, result);
+        return result;
     }
 
     private static Drawable createTintedDrawable(Context context, Drawable source, int iconColor) {
@@ -391,6 +418,13 @@ public class DynamicIconHelper {
      */
     public static Drawable createSpecialIcon(Context context, int drawableResId, int theme, boolean iconBackground,
             boolean dynamicColors, boolean invertIconColors, int iconShape) {
+        String key = "special|" + drawableResId + "|" + theme + "|" + iconBackground
+                + "|" + dynamicColors + "|" + invertIconColors + "|" + iconShape;
+        Drawable cached = ICON_CACHE.get(key);
+        if (cached != null) {
+            return cached;
+        }
+
         Drawable iconDrawable = context.getResources().getDrawable(drawableResId, context.getTheme()).mutate();
 
         int[] colors = getDynamicColors(context, theme, iconBackground, invertIconColors, dynamicColors);
@@ -403,13 +437,16 @@ public class DynamicIconHelper {
             iconDrawable.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
         }
 
+        Drawable result;
         if (iconBackground && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (iconShape != IconShapeHelper.SHAPE_SYSTEM) {
                 int size = 108;
                 Drawable shapedIcon = IconShapeHelper.createShapedIcon(context, iconDrawable, backgroundColor,
                         iconShape, size);
                 if (shapedIcon != null) {
-                    return shapedIcon;
+                    result = shapedIcon;
+                    ICON_CACHE.put(key, result);
+                    return result;
                 }
             }
 
@@ -418,13 +455,13 @@ public class DynamicIconHelper {
             float insetFraction = 0.30f;
             InsetDrawable insetIcon = new InsetDrawable(iconDrawable, insetFraction);
 
-            AdaptiveIconDrawable adaptiveIcon = new AdaptiveIconDrawable(bgDrawable, insetIcon);
-
-            return adaptiveIcon;
+            result = new AdaptiveIconDrawable(bgDrawable, insetIcon);
+        } else {
+            float expandFraction = 0.15f;
+            result = new InsetDrawable(iconDrawable, expandFraction);
         }
 
-        float expandFraction = 0.15f;
-        InsetDrawable expandedIcon = new InsetDrawable(iconDrawable, expandFraction);
-        return expandedIcon;
+        ICON_CACHE.put(key, result);
+        return result;
     }
 }
