@@ -51,8 +51,8 @@ public class HideAppsActivity extends AppCompatActivity {
 
     private static final int SETTINGS_ITEM_TEXT_SIZE_SP = 18;
 
-    private List<AppSearchHelper.AppItem> originalApps;
-    private List<AppSearchHelper.AppItem> filteredApps;
+    private List<AppSearchHelper.AppItem> originalApps = new ArrayList<>();
+    private List<AppSearchHelper.AppItem> filteredApps = new ArrayList<>();
     private AppSearchHelper.IndexedApps appIndex;
     private int itemsPerPage;
     private int currentPage = 0;

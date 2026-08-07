@@ -60,6 +60,24 @@
             android:name=".settings.SettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".settings.HomeScreenSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppearanceSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.FontsSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.ControlsSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppLauncherSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.SystemSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".settings.GestureSettingsActivity"
             android:exported="false" />
         <activity

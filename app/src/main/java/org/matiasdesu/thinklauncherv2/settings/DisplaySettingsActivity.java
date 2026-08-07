@@ -19,12 +19,8 @@ import android.widget.ImageButton;
 public class DisplaySettingsActivity extends BaseSettingsActivity {
 
     private int scrollAppList;
-    private int appIndexSidebar;
-    private int appIndexAnimation;
-    private boolean autoFocusSearch;
     private int einkRefreshEnabled;
     private int einkRefreshDelay;
-    private int webappPwaMode;
     private int modalCornerRadius;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
@@ -57,12 +53,8 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         ThemeUtils.applyThemeToViewGroup(root, theme, this);
 
         scrollAppList = prefs.getInt("scroll_app_list", 0);
-        appIndexSidebar = prefs.getInt("app_index_sidebar", 0);
-        appIndexAnimation = prefs.getInt("app_index_animation", 0);
-        autoFocusSearch = prefs.getBoolean("auto_focus_search", true);
         einkRefreshEnabled = prefs.getInt("eink_refresh_enabled", 0);
         einkRefreshDelay = prefs.getInt("eink_refresh_delay", 100);
-        webappPwaMode = prefs.getInt("webapp_pwa_mode", 0);
         modalCornerRadius = prefs.getInt("modal_corner_radius", 0);
 
         View modalCornerRadiusContainer = findViewById(R.id.modal_corner_radius_container);
@@ -96,11 +88,6 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         scrollAppListValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(scrollAppListValueTv, new String[] { "OFF", "ON" }));
 
-        View autoFocusContainer = findViewById(R.id.autofocus_container);
-        TextView autoFocusValueTv = autoFocusContainer.findViewById(R.id.value_text);
-        autoFocusValueTv.setText(autoFocusSearch ? "ON" : "OFF");
-        autoFocusValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(autoFocusValueTv, new String[] { "OFF", "ON" }));
-
         View einkRefreshEnabledContainer = findViewById(R.id.eink_refresh_enabled_container);
         TextView einkRefreshEnabledValueTv = einkRefreshEnabledContainer.findViewById(R.id.value_text);
         einkRefreshEnabledValueTv.setText(getOnOffText(einkRefreshEnabled));
@@ -113,9 +100,6 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
 
         ImageButton minusScrollAppListBtn = scrollAppListContainer.findViewById(R.id.btn_minus);
         ImageButton plusScrollAppListBtn = scrollAppListContainer.findViewById(R.id.btn_plus);
-
-        ImageButton minusAutoFocusBtn = autoFocusContainer.findViewById(R.id.btn_minus);
-        ImageButton plusAutoFocusBtn = autoFocusContainer.findViewById(R.id.btn_plus);
 
         ImageButton minusEinkRefreshEnabledBtn = einkRefreshEnabledContainer.findViewById(R.id.btn_minus);
         ImageButton plusEinkRefreshEnabledBtn = einkRefreshEnabledContainer.findViewById(R.id.btn_plus);
@@ -135,62 +119,6 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
             scrollAppListValueTv.setText(getOnOffText(scrollAppList));
             prefs.edit().putInt("scroll_app_list", scrollAppList).apply();
             refreshPagination();
-        });
-
-        minusAutoFocusBtn.setOnClickListener(v -> {
-            autoFocusSearch = !autoFocusSearch;
-            autoFocusValueTv.setText(autoFocusSearch ? "ON" : "OFF");
-            prefs.edit().putBoolean("auto_focus_search", autoFocusSearch).apply();
-        });
-
-        plusAutoFocusBtn.setOnClickListener(v -> {
-            autoFocusSearch = !autoFocusSearch;
-            autoFocusValueTv.setText(autoFocusSearch ? "ON" : "OFF");
-            prefs.edit().putBoolean("auto_focus_search", autoFocusSearch).apply();
-        });
-
-        View appIndexSidebarContainer = findViewById(R.id.app_index_sidebar_container);
-        TextView appIndexSidebarValueTv = appIndexSidebarContainer.findViewById(R.id.value_text);
-        appIndexSidebarValueTv.setText(getOnOffText(appIndexSidebar));
-        appIndexSidebarValueTv.setMinWidth(
-                TextWidthHelper.getMaxTextWidthPx(appIndexSidebarValueTv, new String[]{"OFF", "ON"}));
-
-        ImageButton minusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_minus);
-        ImageButton plusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_plus);
-
-        minusAppIndexSidebarBtn.setOnClickListener(v -> {
-            appIndexSidebar = (appIndexSidebar - 1 + 2) % 2;
-            appIndexSidebarValueTv.setText(getOnOffText(appIndexSidebar));
-            prefs.edit().putInt("app_index_sidebar", appIndexSidebar).apply();
-            refreshPagination();
-        });
-
-        plusAppIndexSidebarBtn.setOnClickListener(v -> {
-            appIndexSidebar = (appIndexSidebar + 1) % 2;
-            appIndexSidebarValueTv.setText(getOnOffText(appIndexSidebar));
-            prefs.edit().putInt("app_index_sidebar", appIndexSidebar).apply();
-            refreshPagination();
-        });
-
-        View webappPwaContainer = findViewById(R.id.webapp_pwa_container);
-        TextView webappPwaValueTv = webappPwaContainer.findViewById(R.id.value_text);
-        webappPwaValueTv.setText(getOnOffText(webappPwaMode));
-        webappPwaValueTv.setMinWidth(
-                TextWidthHelper.getMaxTextWidthPx(webappPwaValueTv, new String[]{"OFF", "ON"}));
-
-        ImageButton minusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_minus);
-        ImageButton plusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_plus);
-
-        minusWebappPwaBtn.setOnClickListener(v -> {
-            webappPwaMode = (webappPwaMode - 1 + 2) % 2;
-            webappPwaValueTv.setText(getOnOffText(webappPwaMode));
-            prefs.edit().putInt("webapp_pwa_mode", webappPwaMode).apply();
-        });
-
-        plusWebappPwaBtn.setOnClickListener(v -> {
-            webappPwaMode = (webappPwaMode + 1) % 2;
-            webappPwaValueTv.setText(getOnOffText(webappPwaMode));
-            prefs.edit().putInt("webapp_pwa_mode", webappPwaMode).apply();
         });
 
         LinearLayout animationSettingsButton = findViewById(R.id.animation_settings_button);
@@ -237,80 +165,7 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
 
         updateEinkRefreshDelayVisibility();
 
-        LinearLayout homePaddingButton = findViewById(R.id.home_screen_padding_button);
-        homePaddingButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, HomeScreenPaddingActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
         initPagination(this::refreshVisibility);
-
-        findViewById(R.id.time_settings_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, TimeSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        findViewById(R.id.date_settings_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, DateSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        findViewById(R.id.settings_button_settings_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, SettingsButtonSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        findViewById(R.id.search_button_settings_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, SearchButtonSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        findViewById(R.id.opacity_blur_effects_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, OpacityBlurEffectsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        findViewById(R.id.font_sizes_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, FontSizesSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        findViewById(R.id.custom_font_button).setOnClickListener(v -> {
-            Intent intent = new Intent(this, FontSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
     }
 
     private void refreshVisibility() {

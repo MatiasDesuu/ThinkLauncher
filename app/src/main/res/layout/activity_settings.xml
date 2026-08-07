@@ -72,49 +72,7 @@
                 android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/theme_settings_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_margin="16dp"
-        android:clickable="true">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/style"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/text_color" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Theme Settings:"
-            android:textColor="?attr/text_color"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RelativeLayout
-            android:layout_width="160dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/forward_arrow"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="12dp"
-                android:tint="?attr/text_color" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/home_settings_button"
+        android:id="@+id/home_screen_settings_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -133,7 +91,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Home Settings:"
+            android:text="Home Screen:"
             android:textColor="?attr/text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -156,7 +114,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/display_settings_button"
+        android:id="@+id/appearance_settings_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -167,7 +125,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/display_settings"
+            android:src="@drawable/style"
             android:layout_marginEnd="8dp"
             android:tint="?attr/text_color" />
 
@@ -175,7 +133,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Display Settings:"
+            android:text="Appearance:"
             android:textColor="?attr/text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -240,7 +198,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/gesture_settings_button"
+        android:id="@+id/controls_settings_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -259,7 +217,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Gesture Settings:"
+            android:text="Controls:"
             android:textColor="?attr/text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -282,7 +240,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/hardware_keys_button"
+        android:id="@+id/app_launcher_settings_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -293,7 +251,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/keyboard"
+            android:src="@drawable/app_icons"
             android:layout_marginEnd="8dp"
             android:tint="?attr/text_color" />
 
@@ -301,7 +259,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Hardware Keys:"
+            android:text="App Launcher:"
             android:textColor="?attr/text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -324,7 +282,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/hide_apps_button"
+        android:id="@+id/system_settings_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -335,7 +293,7 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/hide"
+            android:src="@drawable/info"
             android:layout_marginEnd="8dp"
             android:tint="?attr/text_color" />
 
@@ -343,7 +301,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Hide Apps:"
+            android:text="System:"
             android:textColor="?attr/text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -356,216 +314,6 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:src="@drawable/forward_arrow"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="12dp"
-                android:tint="?attr/text_color" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/default_launcher_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_margin="16dp"
-        android:clickable="true">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/info"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/text_color" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Set Default Launcher:"
-            android:textColor="?attr/text_color"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RelativeLayout
-            android:layout_width="160dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/arrow_outward"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="12dp"
-                android:tint="?attr/text_color" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/accessibility_settings_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_margin="16dp"
-        android:clickable="true">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/info"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/text_color" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Accessibility Settings:"
-            android:textColor="?attr/text_color"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RelativeLayout
-            android:layout_width="160dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/arrow_outward"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="12dp"
-                android:tint="?attr/text_color" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/device_admin_settings_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_margin="16dp"
-        android:clickable="true">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/info"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/text_color" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Device Admin Settings:"
-            android:textColor="?attr/text_color"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RelativeLayout
-            android:layout_width="160dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/arrow_outward"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="12dp"
-                android:tint="?attr/text_color" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/app_settings_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_margin="16dp"
-        android:clickable="true">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/info"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/text_color" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Open App Settings:"
-            android:textColor="?attr/text_color"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RelativeLayout
-            android:layout_width="160dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/arrow_outward"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="12dp"
-                android:tint="?attr/text_color" />
-
-        </RelativeLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/github_repo_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_margin="16dp"
-        android:clickable="true">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/webapps"
-            android:layout_marginEnd="8dp"
-            android:tint="?attr/text_color" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Open GitHub Repository:"
-            android:textColor="?attr/text_color"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RelativeLayout
-            android:layout_width="160dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/arrow_outward"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:padding="12dp"

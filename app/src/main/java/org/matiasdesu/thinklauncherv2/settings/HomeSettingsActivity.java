@@ -88,36 +88,6 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
         hidePaginationValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(hidePaginationValueTv, new String[] { "ON", "OFF" }));
 
-        LinearLayout textSettingsButton = findViewById(R.id.text_settings_button);
-        textSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, TextSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout iconSettingsButton = findViewById(R.id.icon_settings_button);
-        iconSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, IconSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout wallpaperSettingsButton = findViewById(R.id.wallpaper_settings_button);
-        wallpaperSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, WallpaperSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
         LinearLayout homePositionButton = findViewById(R.id.home_position_button);
         homePositionButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, AppBarPositionActivity.class);

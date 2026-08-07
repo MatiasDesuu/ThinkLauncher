@@ -4,16 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
-import org.matiasdesu.thinklauncherv2.ui.HideAppsActivity;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 public class SettingsActivity extends BaseSettingsActivity {
@@ -67,130 +63,23 @@ public class SettingsActivity extends BaseSettingsActivity {
         View bottomDivider = findViewById(R.id.bottom_divider);
         bottomDivider.setBackgroundColor(textColor);
 
-        LinearLayout themeSettingsButton = findViewById(R.id.theme_settings_button);
-        themeSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ThemeSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout gestureSettingsButton = findViewById(R.id.gesture_settings_button);
-        gestureSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, GestureSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout hardwareKeysButton = findViewById(R.id.hardware_keys_button);
-        hardwareKeysButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, HardwareKeysSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout hideAppsButton = findViewById(R.id.hide_apps_button);
-        hideAppsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, HideAppsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout homeSettingsButton = findViewById(R.id.home_settings_button);
-        homeSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, HomeSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout displaySettingsButton = findViewById(R.id.display_settings_button);
-        displaySettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, DisplaySettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout docksSettingsButton = findViewById(R.id.docks_settings_button);
-        docksSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, DocksSettingsActivity.class);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout defaultLauncherButton = findViewById(R.id.default_launcher_button);
-        defaultLauncherButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Settings.ACTION_HOME_SETTINGS);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout accessibilitySettingsButton = findViewById(R.id.accessibility_settings_button);
-        accessibilitySettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout deviceAdminSettingsButton = findViewById(R.id.device_admin_settings_button);
-        deviceAdminSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent();
-            intent.setClassName("com.android.settings", "com.android.settings.DeviceAdminSettings");
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout appSettingsButton = findViewById(R.id.app_settings_button);
-        appSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            intent.setData(android.net.Uri.parse("package:" + getPackageName()));
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
-
-        LinearLayout githubRepoButton = findViewById(R.id.github_repo_button);
-        githubRepoButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://github.com/MatiasDesuu/ThinkLauncher"));
-            if (!screenAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
-        });
+        findViewById(R.id.home_screen_settings_button).setOnClickListener(v -> open(HomeScreenSettingsActivity.class));
+        findViewById(R.id.appearance_settings_button).setOnClickListener(v -> open(AppearanceSettingsActivity.class));
+        findViewById(R.id.docks_settings_button).setOnClickListener(v -> open(DocksSettingsActivity.class));
+        findViewById(R.id.controls_settings_button).setOnClickListener(v -> open(ControlsSettingsActivity.class));
+        findViewById(R.id.app_launcher_settings_button).setOnClickListener(v -> open(AppLauncherSettingsActivity.class));
+        findViewById(R.id.system_settings_button).setOnClickListener(v -> open(SystemSettingsActivity.class));
 
         initPagination(null);
+    }
+
+    private void open(Class<?> cls) {
+        Intent intent = new Intent(this, cls);
+        if (!screenAnimations) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
+        startActivity(intent);
+        overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
     }
 
     @Override
