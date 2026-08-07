@@ -92,11 +92,10 @@ public final class DialogEffectHelper {
     }
 
     public static void applyCornerRadiusToTree(View view, Context context) {
-        int radius = getCornerRadiusPx(context);
-        if (radius <= 0 || view == null) {
+        if (view == null) {
             return;
         }
-        applyCornerRadiusToView(view, radius);
+        applyCornerRadiusToView(view, getCornerRadiusPx(context));
     }
 
     private static void applyCornerRadiusToView(View view, int radiusPx) {

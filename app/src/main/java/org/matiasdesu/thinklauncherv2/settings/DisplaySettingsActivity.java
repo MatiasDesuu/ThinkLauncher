@@ -71,23 +71,23 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         TextView minusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_minus);
         TextView plusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_plus);
 
-        minusModalCornerRadiusBtn.setOnClickListener(v -> {
+        minusModalCornerRadiusBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (modalCornerRadius >= 2) {
                 modalCornerRadius -= 2;
                 modalCornerRadiusValueTv.setText(String.valueOf(modalCornerRadius));
                 prefs.edit().putInt("modal_corner_radius", modalCornerRadius).apply();
                 updateCornerRadius();
             }
-        });
+        }));
 
-        plusModalCornerRadiusBtn.setOnClickListener(v -> {
+        plusModalCornerRadiusBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (modalCornerRadius <= 30) {
                 modalCornerRadius += 2;
                 modalCornerRadiusValueTv.setText(String.valueOf(modalCornerRadius));
                 prefs.edit().putInt("modal_corner_radius", modalCornerRadius).apply();
                 updateCornerRadius();
             }
-        });
+        }));
 
         View scrollAppListContainer = findViewById(R.id.scroll_app_list_container);
         TextView scrollAppListValueTv = scrollAppListContainer.findViewById(R.id.value_text);
