@@ -14,6 +14,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class TextSettingsActivity extends BaseSettingsActivity {
 
@@ -80,14 +81,14 @@ public class TextSettingsActivity extends BaseSettingsActivity {
         effectColorValueTv.setText(EFFECT_COLOR_NAMES[effectColor]);
         effectColorValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(effectColorValueTv, EFFECT_COLOR_NAMES));
 
-        TextView minusBoldBtn = boldTextContainer.findViewById(R.id.btn_minus);
-        TextView plusBoldBtn = boldTextContainer.findViewById(R.id.btn_plus);
-        TextView minusTextColorBtn = textColorContainer.findViewById(R.id.btn_minus);
-        TextView plusTextColorBtn = textColorContainer.findViewById(R.id.btn_plus);
-        TextView minusTextEffectBtn = textEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusTextEffectBtn = textEffectContainer.findViewById(R.id.btn_plus);
-        TextView minusEffectColorBtn = effectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusEffectColorBtn = effectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBoldBtn = boldTextContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBoldBtn = boldTextContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTextColorBtn = textColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTextColorBtn = textColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTextEffectBtn = textEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTextEffectBtn = textEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusEffectColorBtn = effectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusEffectColorBtn = effectColorContainer.findViewById(R.id.btn_plus);
 
         minusBoldBtn.setOnClickListener(v -> toggleBold(prefs, boldTextValueTv));
         plusBoldBtn.setOnClickListener(v -> toggleBold(prefs, boldTextValueTv));

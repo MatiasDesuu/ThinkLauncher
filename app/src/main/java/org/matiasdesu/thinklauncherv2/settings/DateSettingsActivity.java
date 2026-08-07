@@ -13,6 +13,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class DateSettingsActivity extends BaseSettingsActivity {
 
@@ -107,18 +108,18 @@ public class DateSettingsActivity extends BaseSettingsActivity {
         dateColorValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(dateColorValueTv,
                 new String[] { "FOLLOW THEME", "DARK", "WHITE", "DYNAMIC DARK", "DYNAMIC LIGHT" }));
 
-        TextView minusDateBtn = dateContainer.findViewById(R.id.btn_minus);
-        TextView plusDateBtn = dateContainer.findViewById(R.id.btn_plus);
-        TextView minusDateFontSizeBtn = dateFontSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusDateFontSizeBtn = dateFontSizeContainer.findViewById(R.id.btn_plus);
-        TextView minusDateHorizontalBtn = dateHorizontalContainer.findViewById(R.id.btn_minus);
-        TextView plusDateHorizontalBtn = dateHorizontalContainer.findViewById(R.id.btn_plus);
-        TextView minusDateVerticalBtn = dateVerticalContainer.findViewById(R.id.btn_minus);
-        TextView plusDateVerticalBtn = dateVerticalContainer.findViewById(R.id.btn_plus);
-        TextView minusDateFormatBtn = dateFormatContainer.findViewById(R.id.btn_minus);
-        TextView plusDateFormatBtn = dateFormatContainer.findViewById(R.id.btn_plus);
-        TextView minusDateColorBtn = dateColorContainer.findViewById(R.id.btn_minus);
-        TextView plusDateColorBtn = dateColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateBtn = dateContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateBtn = dateContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateFontSizeBtn = dateFontSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateFontSizeBtn = dateFontSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateHorizontalBtn = dateHorizontalContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateHorizontalBtn = dateHorizontalContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateVerticalBtn = dateVerticalContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateVerticalBtn = dateVerticalContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateFormatBtn = dateFormatContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateFormatBtn = dateFormatContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateColorBtn = dateColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateColorBtn = dateColorContainer.findViewById(R.id.btn_plus);
 
         View dateEffectContainer = findViewById(R.id.date_effect_container);
         TextView dateEffectValueTv = dateEffectContainer.findViewById(R.id.value_text);
@@ -126,8 +127,8 @@ public class DateSettingsActivity extends BaseSettingsActivity {
         dateEffectValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(dateEffectValueTv,
                 new String[] { "NOTHING", "SHADOW", "OUTLINE" }));
 
-        TextView minusDateEffectBtn = dateEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusDateEffectBtn = dateEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateEffectBtn = dateEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateEffectBtn = dateEffectContainer.findViewById(R.id.btn_plus);
 
         View dateEffectColorContainer = findViewById(R.id.date_effect_color_container);
         TextView dateEffectColorValueTv = dateEffectColorContainer.findViewById(R.id.value_text);
@@ -135,8 +136,8 @@ public class DateSettingsActivity extends BaseSettingsActivity {
         dateEffectColorValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(dateEffectColorValueTv,
                 new String[] { "DARK", "WHITE", "DYNAMIC DARK", "DYNAMIC WHITE" }));
 
-        TextView minusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateEffectColorBtn = dateEffectColorContainer.findViewById(R.id.btn_plus);
 
         View dateCalendarEventsContainer = findViewById(R.id.date_calendar_events_container);
         TextView dateCalendarEventsValueTv = dateCalendarEventsContainer.findViewById(R.id.value_text);
@@ -144,31 +145,31 @@ public class DateSettingsActivity extends BaseSettingsActivity {
         dateCalendarEventsValueTv.setMinWidth(
             TextWidthHelper.getMaxTextWidthPx(dateCalendarEventsValueTv, new String[] { "OFF", "ON" }));
 
-        TextView minusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_minus);
-        TextView plusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDateCalendarEventsBtn = dateCalendarEventsContainer.findViewById(R.id.btn_plus);
 
         View calendarEventFontSizeContainer = findViewById(R.id.calendar_event_font_size_container);
         TextView calendarEventFontSizeValueTv = calendarEventFontSizeContainer.findViewById(R.id.value_text);
         calendarEventFontSizeValueTv.setText(String.valueOf(calendarEventFontSize));
 
-        TextView minusCalendarEventFontSizeBtn = calendarEventFontSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusCalendarEventFontSizeBtn = calendarEventFontSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusCalendarEventFontSizeBtn = calendarEventFontSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusCalendarEventFontSizeBtn = calendarEventFontSizeContainer.findViewById(R.id.btn_plus);
 
         View batteryInfoContainer = findViewById(R.id.battery_info_container);
         TextView batteryInfoValueTv = batteryInfoContainer.findViewById(R.id.value_text);
         batteryInfoValueTv.setText(getOnOffText(batteryInfo));
         batteryInfoValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(batteryInfoValueTv, new String[]{"OFF", "ON"}));
 
-        TextView minusBatteryInfoBtn = batteryInfoContainer.findViewById(R.id.btn_minus);
-        TextView plusBatteryInfoBtn = batteryInfoContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBatteryInfoBtn = batteryInfoContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBatteryInfoBtn = batteryInfoContainer.findViewById(R.id.btn_plus);
 
         View batteryPositionContainer = findViewById(R.id.battery_position_container);
         TextView batteryPositionValueTv = batteryPositionContainer.findViewById(R.id.value_text);
         batteryPositionValueTv.setText(getLeftRightText(batteryPosition));
         batteryPositionValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(batteryPositionValueTv, new String[]{"LEFT", "RIGHT"}));
 
-        TextView minusBatteryPositionBtn = batteryPositionContainer.findViewById(R.id.btn_minus);
-        TextView plusBatteryPositionBtn = batteryPositionContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBatteryPositionBtn = batteryPositionContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBatteryPositionBtn = batteryPositionContainer.findViewById(R.id.btn_plus);
 
         minusDateBtn.setOnClickListener(v -> {
             datePosition = (datePosition - 1 + 2) % 2;

@@ -13,6 +13,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class SearchButtonSettingsActivity extends BaseSettingsActivity {
 
@@ -88,16 +89,16 @@ public class SearchButtonSettingsActivity extends BaseSettingsActivity {
         searchButtonEffectColorValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(searchButtonEffectColorValueTv, EFFECT_COLOR_NAMES));
 
-        TextView minusShowSearchBtn = showSearchButtonContainer.findViewById(R.id.btn_minus);
-        TextView plusShowSearchBtn = showSearchButtonContainer.findViewById(R.id.btn_plus);
-        TextView minusSearchButtonSizeBtn = searchButtonSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusSearchButtonSizeBtn = searchButtonSizeContainer.findViewById(R.id.btn_plus);
-        TextView minusSearchButtonColorBtn = searchButtonColorContainer.findViewById(R.id.btn_minus);
-        TextView plusSearchButtonColorBtn = searchButtonColorContainer.findViewById(R.id.btn_plus);
-        TextView minusSearchButtonEffectBtn = searchButtonEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusSearchButtonEffectBtn = searchButtonEffectContainer.findViewById(R.id.btn_plus);
-        TextView minusSearchButtonEffectColorBtn = searchButtonEffectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusSearchButtonEffectColorBtn = searchButtonEffectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusShowSearchBtn = showSearchButtonContainer.findViewById(R.id.btn_minus);
+        ImageButton plusShowSearchBtn = showSearchButtonContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSearchButtonSizeBtn = searchButtonSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSearchButtonSizeBtn = searchButtonSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSearchButtonColorBtn = searchButtonColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSearchButtonColorBtn = searchButtonColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSearchButtonEffectBtn = searchButtonEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSearchButtonEffectBtn = searchButtonEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSearchButtonEffectColorBtn = searchButtonEffectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSearchButtonEffectColorBtn = searchButtonEffectColorContainer.findViewById(R.id.btn_plus);
 
         minusShowSearchBtn.setOnClickListener(v -> {
             showSearchButton = (showSearchButton - 1 + 2) % 2;

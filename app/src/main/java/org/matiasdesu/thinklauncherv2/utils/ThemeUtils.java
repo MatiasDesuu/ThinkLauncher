@@ -225,7 +225,8 @@ public class ThemeUtils {
                 ImageView iv = (ImageView) child;
                 iv.setColorFilter(textColor);
                 int ivId = iv.getId();
-                if (ivId == R.id.btn_move_up || ivId == R.id.btn_move_down
+                if (ivId == R.id.btn_minus || ivId == R.id.btn_plus ||
+                        ivId == R.id.btn_move_up || ivId == R.id.btn_move_down
                         || ivId == R.id.btn_move_left || ivId == R.id.btn_move_right) {
                     applyButtonBorder(iv, textColor, bgColor, context);
                 }

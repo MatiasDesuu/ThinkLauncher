@@ -12,6 +12,7 @@ import android.widget.TextView;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class HomeScreenPaddingActivity extends BaseSettingsActivity {
 
@@ -70,14 +71,14 @@ public class HomeScreenPaddingActivity extends BaseSettingsActivity {
         TextView paddingRightValueTv = paddingRightContainer.findViewById(R.id.value_text);
         paddingRightValueTv.setText(String.valueOf(paddingRight));
 
-        TextView minusPaddingTopBtn = paddingTopContainer.findViewById(R.id.btn_minus);
-        TextView plusPaddingTopBtn = paddingTopContainer.findViewById(R.id.btn_plus);
-        TextView minusPaddingBottomBtn = paddingBottomContainer.findViewById(R.id.btn_minus);
-        TextView plusPaddingBottomBtn = paddingBottomContainer.findViewById(R.id.btn_plus);
-        TextView minusPaddingLeftBtn = paddingLeftContainer.findViewById(R.id.btn_minus);
-        TextView plusPaddingLeftBtn = paddingLeftContainer.findViewById(R.id.btn_plus);
-        TextView minusPaddingRightBtn = paddingRightContainer.findViewById(R.id.btn_minus);
-        TextView plusPaddingRightBtn = paddingRightContainer.findViewById(R.id.btn_plus);
+        ImageButton minusPaddingTopBtn = paddingTopContainer.findViewById(R.id.btn_minus);
+        ImageButton plusPaddingTopBtn = paddingTopContainer.findViewById(R.id.btn_plus);
+        ImageButton minusPaddingBottomBtn = paddingBottomContainer.findViewById(R.id.btn_minus);
+        ImageButton plusPaddingBottomBtn = paddingBottomContainer.findViewById(R.id.btn_plus);
+        ImageButton minusPaddingLeftBtn = paddingLeftContainer.findViewById(R.id.btn_minus);
+        ImageButton plusPaddingLeftBtn = paddingLeftContainer.findViewById(R.id.btn_plus);
+        ImageButton minusPaddingRightBtn = paddingRightContainer.findViewById(R.id.btn_minus);
+        ImageButton plusPaddingRightBtn = paddingRightContainer.findViewById(R.id.btn_plus);
 
         minusPaddingTopBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (paddingTop > 0) {

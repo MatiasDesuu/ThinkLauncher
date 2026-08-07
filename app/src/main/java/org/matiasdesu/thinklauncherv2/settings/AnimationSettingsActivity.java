@@ -12,6 +12,7 @@ import android.widget.TextView;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class AnimationSettingsActivity extends BaseSettingsActivity {
 
@@ -57,8 +58,8 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
         TextView appIndexAnimationValueTv = appIndexAnimationContainer.findViewById(R.id.value_text);
         appIndexAnimationValueTv.setText(getOnOffText(appIndexAnimation));
 
-        TextView minusBtn = appIndexAnimationContainer.findViewById(R.id.btn_minus);
-        TextView plusBtn = appIndexAnimationContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBtn = appIndexAnimationContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBtn = appIndexAnimationContainer.findViewById(R.id.btn_plus);
 
         minusBtn.setOnClickListener(v -> {
             appIndexAnimation = (appIndexAnimation - 1 + 2) % 2;
@@ -76,8 +77,8 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
         TextView screenAnimationsValueTv = screenAnimationsContainer.findViewById(R.id.value_text);
         screenAnimationsValueTv.setText(getOnOffText(screenAnimations ? 1 : 0));
 
-        TextView minusScreenBtn = screenAnimationsContainer.findViewById(R.id.btn_minus);
-        TextView plusScreenBtn = screenAnimationsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusScreenBtn = screenAnimationsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusScreenBtn = screenAnimationsContainer.findViewById(R.id.btn_plus);
 
         minusScreenBtn.setOnClickListener(v -> {
             screenAnimations = !screenAnimations;
@@ -95,8 +96,8 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
         TextView dialogAnimationsValueTv = dialogAnimationsContainer.findViewById(R.id.value_text);
         dialogAnimationsValueTv.setText(getOnOffText(dialogAnimations));
 
-        TextView minusDialogBtn = dialogAnimationsContainer.findViewById(R.id.btn_minus);
-        TextView plusDialogBtn = dialogAnimationsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDialogBtn = dialogAnimationsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDialogBtn = dialogAnimationsContainer.findViewById(R.id.btn_plus);
 
         minusDialogBtn.setOnClickListener(v -> {
             dialogAnimations = (dialogAnimations - 1 + 2) % 2;
@@ -114,8 +115,8 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
         TextView appLaunchAnimationValueTv = appLaunchAnimationContainer.findViewById(R.id.value_text);
         appLaunchAnimationValueTv.setText(getOnOffText(appLaunchAnimation));
 
-        TextView minusAppLaunchBtn = appLaunchAnimationContainer.findViewById(R.id.btn_minus);
-        TextView plusAppLaunchBtn = appLaunchAnimationContainer.findViewById(R.id.btn_plus);
+        ImageButton minusAppLaunchBtn = appLaunchAnimationContainer.findViewById(R.id.btn_minus);
+        ImageButton plusAppLaunchBtn = appLaunchAnimationContainer.findViewById(R.id.btn_plus);
 
         minusAppLaunchBtn.setOnClickListener(v -> {
             appLaunchAnimation = (appLaunchAnimation - 1 + 2) % 2;

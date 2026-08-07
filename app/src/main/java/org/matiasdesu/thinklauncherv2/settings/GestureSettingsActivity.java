@@ -16,6 +16,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class GestureSettingsActivity extends BaseSettingsActivity {
 
@@ -116,8 +117,8 @@ public class GestureSettingsActivity extends BaseSettingsActivity {
         doubleTapLockValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(doubleTapLockValueTv, new String[] { "OFF", "ON" }));
 
-        TextView minusDoubleTapBtn = doubleTapLockContainer.findViewById(R.id.btn_minus);
-        TextView plusDoubleTapBtn = doubleTapLockContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDoubleTapBtn = doubleTapLockContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDoubleTapBtn = doubleTapLockContainer.findViewById(R.id.btn_plus);
 
         minusDoubleTapBtn.setOnClickListener(v -> {
             doubleTapLock = (doubleTapLock - 1 + 2) % 2;

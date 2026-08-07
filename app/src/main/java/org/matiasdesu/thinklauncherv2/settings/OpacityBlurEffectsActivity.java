@@ -13,6 +13,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class OpacityBlurEffectsActivity extends BaseSettingsActivity {
 
@@ -77,14 +78,14 @@ public class OpacityBlurEffectsActivity extends BaseSettingsActivity {
         blurStrengthValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(blurStrengthValueTv,
                 new String[] { "1", "10" }));
 
-        TextView minusEnabledBtn = enabledContainer.findViewById(R.id.btn_minus);
-        TextView plusEnabledBtn = enabledContainer.findViewById(R.id.btn_plus);
-        TextView minusOpacityBtn = opacityContainer.findViewById(R.id.btn_minus);
-        TextView plusOpacityBtn = opacityContainer.findViewById(R.id.btn_plus);
-        TextView minusBlurBtn = blurContainer.findViewById(R.id.btn_minus);
-        TextView plusBlurBtn = blurContainer.findViewById(R.id.btn_plus);
-        TextView minusBlurStrengthBtn = blurStrengthContainer.findViewById(R.id.btn_minus);
-        TextView plusBlurStrengthBtn = blurStrengthContainer.findViewById(R.id.btn_plus);
+        ImageButton minusEnabledBtn = enabledContainer.findViewById(R.id.btn_minus);
+        ImageButton plusEnabledBtn = enabledContainer.findViewById(R.id.btn_plus);
+        ImageButton minusOpacityBtn = opacityContainer.findViewById(R.id.btn_minus);
+        ImageButton plusOpacityBtn = opacityContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBlurBtn = blurContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBlurBtn = blurContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBlurStrengthBtn = blurStrengthContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBlurStrengthBtn = blurStrengthContainer.findViewById(R.id.btn_plus);
 
         minusEnabledBtn.setOnClickListener(v -> {
             appLauncherBgOpacityEnabled = (appLauncherBgOpacityEnabled - 1 + 2) % 2;

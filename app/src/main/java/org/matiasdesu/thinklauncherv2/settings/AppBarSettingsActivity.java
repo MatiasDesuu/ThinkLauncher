@@ -10,6 +10,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.RepeatListener;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class AppBarSettingsActivity extends BaseSettingsActivity {
 
@@ -114,22 +115,22 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
         backdropBlurValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(backdropBlurValueTv, new String[] { "ON", "OFF" }));
 
-        TextView minusEnabled = enabledContainer.findViewById(R.id.btn_minus);
-        TextView plusEnabled = enabledContainer.findViewById(R.id.btn_plus);
-        TextView minusOrientation = orientationContainer.findViewById(R.id.btn_minus);
-        TextView plusOrientation = orientationContainer.findViewById(R.id.btn_plus);
-        TextView minusIconSize = iconSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusIconSize = iconSizeContainer.findViewById(R.id.btn_plus);
-        TextView minusNumApps = numAppsContainer.findViewById(R.id.btn_minus);
-        TextView plusNumApps = numAppsContainer.findViewById(R.id.btn_plus);
-        TextView minusBorder = borderContainer.findViewById(R.id.btn_minus);
-        TextView plusBorder = borderContainer.findViewById(R.id.btn_plus);
-        TextView minusBackground = backgroundContainer.findViewById(R.id.btn_minus);
-        TextView plusBackground = backgroundContainer.findViewById(R.id.btn_plus);
-        TextView minusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_minus);
-        TextView plusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_plus);
-        TextView minusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_minus);
-        TextView plusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_plus);
+        ImageButton minusEnabled = enabledContainer.findViewById(R.id.btn_minus);
+        ImageButton plusEnabled = enabledContainer.findViewById(R.id.btn_plus);
+        ImageButton minusOrientation = orientationContainer.findViewById(R.id.btn_minus);
+        ImageButton plusOrientation = orientationContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconSize = iconSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconSize = iconSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusNumApps = numAppsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusNumApps = numAppsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBorder = borderContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBorder = borderContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBackground = backgroundContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBackground = backgroundContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_plus);
 
         minusEnabled.setOnClickListener(v -> {
             enabled = enabled == 1 ? 0 : 1;

@@ -14,6 +14,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.HomePositionHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class HomeSettingsActivity extends BaseSettingsActivity {
 
@@ -130,14 +131,14 @@ public class HomeSettingsActivity extends BaseSettingsActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
-        TextView minusMaxAppsBtn = maxAppsContainer.findViewById(R.id.btn_minus);
-        TextView plusMaxAppsBtn = maxAppsContainer.findViewById(R.id.btn_plus);
-        TextView minusColumnsBtn = columnsContainer.findViewById(R.id.btn_minus);
-        TextView plusColumnsBtn = columnsContainer.findViewById(R.id.btn_plus);
-        TextView minusPagesBtn = pagesContainer.findViewById(R.id.btn_minus);
-        TextView plusPagesBtn = pagesContainer.findViewById(R.id.btn_plus);
-        TextView minusHidePaginationBtn = hidePaginationContainer.findViewById(R.id.btn_minus);
-        TextView plusHidePaginationBtn = hidePaginationContainer.findViewById(R.id.btn_plus);
+        ImageButton minusMaxAppsBtn = maxAppsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusMaxAppsBtn = maxAppsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusColumnsBtn = columnsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusColumnsBtn = columnsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusPagesBtn = pagesContainer.findViewById(R.id.btn_minus);
+        ImageButton plusPagesBtn = pagesContainer.findViewById(R.id.btn_plus);
+        ImageButton minusHidePaginationBtn = hidePaginationContainer.findViewById(R.id.btn_minus);
+        ImageButton plusHidePaginationBtn = hidePaginationContainer.findViewById(R.id.btn_plus);
 
         minusMaxAppsBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (maxApps > 1) {

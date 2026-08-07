@@ -14,6 +14,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class ThemeSettingsActivity extends BaseSettingsActivity {
 
@@ -61,8 +62,8 @@ public class ThemeSettingsActivity extends BaseSettingsActivity {
         themeValueTv.setText(ThemeUtils.getThemeName(theme));
         themeValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(themeValueTv, ThemeUtils.THEME_NAMES));
 
-        TextView minusThemeBtn = themeContainer.findViewById(R.id.btn_minus);
-        TextView plusThemeBtn = themeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusThemeBtn = themeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusThemeBtn = themeContainer.findViewById(R.id.btn_plus);
 
         minusThemeBtn.setOnClickListener(v -> {
             theme = ThemeUtils.getPreviousTheme(theme);
@@ -93,8 +94,8 @@ public class ThemeSettingsActivity extends BaseSettingsActivity {
         invertIconColorsValueTv.setText(invertIconColors ? "ON" : "OFF");
         invertIconColorsValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(invertIconColorsValueTv, new String[] { "ON", "OFF" }));
 
-        TextView minusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_minus);
-        TextView plusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusInvertIconColorsBtn = invertIconColorsContainer.findViewById(R.id.btn_plus);
 
         minusInvertIconColorsBtn.setOnClickListener(v -> {
             invertIconColors = !invertIconColors;
@@ -113,8 +114,8 @@ public class ThemeSettingsActivity extends BaseSettingsActivity {
         invertHomeColorsValueTv.setText(invertHomeColors ? "ON" : "OFF");
         invertHomeColorsValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(invertHomeColorsValueTv, new String[] { "ON", "OFF" }));
 
-        TextView minusInvertHomeColorsBtn = invertHomeColorsContainer.findViewById(R.id.btn_minus);
-        TextView plusInvertHomeColorsBtn = invertHomeColorsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusInvertHomeColorsBtn = invertHomeColorsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusInvertHomeColorsBtn = invertHomeColorsContainer.findViewById(R.id.btn_plus);
 
         minusInvertHomeColorsBtn.setOnClickListener(v -> {
             invertHomeColors = !invertHomeColors;

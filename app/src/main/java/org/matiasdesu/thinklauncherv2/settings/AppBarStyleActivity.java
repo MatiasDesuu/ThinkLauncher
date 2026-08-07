@@ -9,6 +9,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class AppBarStyleActivity extends BaseSettingsActivity {
 
@@ -118,22 +119,22 @@ public class AppBarStyleActivity extends BaseSettingsActivity {
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(iconEffectColorValueTv, EFFECT_COLOR_NAMES));
         iconEffectColorLayout.setVisibility(iconEffect > 0 ? View.VISIBLE : View.GONE);
 
-        TextView minusMonochrome = monochromeContainer.findViewById(R.id.btn_minus);
-        TextView plusMonochrome = monochromeContainer.findViewById(R.id.btn_plus);
-        TextView minusDynamic = dynamicContainer.findViewById(R.id.btn_minus);
-        TextView plusDynamic = dynamicContainer.findViewById(R.id.btn_plus);
-        TextView minusForceFallback = forceFallbackContainer.findViewById(R.id.btn_minus);
-        TextView plusForceFallback = forceFallbackContainer.findViewById(R.id.btn_plus);
-        TextView minusDynamicColors = dynamicColorsContainer.findViewById(R.id.btn_minus);
-        TextView plusDynamicColors = dynamicColorsContainer.findViewById(R.id.btn_plus);
-        TextView minusIconBackground = iconBackgroundContainer.findViewById(R.id.btn_minus);
-        TextView plusIconBackground = iconBackgroundContainer.findViewById(R.id.btn_plus);
-        TextView minusIconShape = iconShapeContainer.findViewById(R.id.btn_minus);
-        TextView plusIconShape = iconShapeContainer.findViewById(R.id.btn_plus);
-        TextView minusIconEffect = iconEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusIconEffect = iconEffectContainer.findViewById(R.id.btn_plus);
-        TextView minusIconEffectColor = iconEffectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusIconEffectColor = iconEffectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusMonochrome = monochromeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusMonochrome = monochromeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDynamic = dynamicContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDynamic = dynamicContainer.findViewById(R.id.btn_plus);
+        ImageButton minusForceFallback = forceFallbackContainer.findViewById(R.id.btn_minus);
+        ImageButton plusForceFallback = forceFallbackContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDynamicColors = dynamicColorsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDynamicColors = dynamicColorsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconBackground = iconBackgroundContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconBackground = iconBackgroundContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconShape = iconShapeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconShape = iconShapeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconEffect = iconEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconEffect = iconEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconEffectColor = iconEffectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconEffectColor = iconEffectColorContainer.findViewById(R.id.btn_plus);
 
         minusMonochrome.setOnClickListener(v -> {
             monochrome = !monochrome;
@@ -234,8 +235,8 @@ public class AppBarStyleActivity extends BaseSettingsActivity {
         borderColorValueTv.setText(COLOR_SOURCE_NAMES[borderColor]);
         borderColorValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(borderColorValueTv, COLOR_SOURCE_NAMES));
-        TextView minusBorderColor = borderColorContainer.findViewById(R.id.btn_minus);
-        TextView plusBorderColor = borderColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBorderColor = borderColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBorderColor = borderColorContainer.findViewById(R.id.btn_plus);
         minusBorderColor.setOnClickListener(v -> {
             borderColor = (borderColor - 1 + COLOR_SOURCE_NAMES.length) % COLOR_SOURCE_NAMES.length;
             borderColorValueTv.setText(COLOR_SOURCE_NAMES[borderColor]);
@@ -252,8 +253,8 @@ public class AppBarStyleActivity extends BaseSettingsActivity {
         backgroundColorValueTv.setText(COLOR_SOURCE_NAMES[backgroundColor]);
         backgroundColorValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(backgroundColorValueTv, COLOR_SOURCE_NAMES));
-        TextView minusBackgroundColor = backgroundColorContainer.findViewById(R.id.btn_minus);
-        TextView plusBackgroundColor = backgroundColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusBackgroundColor = backgroundColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusBackgroundColor = backgroundColorContainer.findViewById(R.id.btn_plus);
         minusBackgroundColor.setOnClickListener(v -> {
             backgroundColor = (backgroundColor - 1 + COLOR_SOURCE_NAMES.length) % COLOR_SOURCE_NAMES.length;
             backgroundColorValueTv.setText(COLOR_SOURCE_NAMES[backgroundColor]);

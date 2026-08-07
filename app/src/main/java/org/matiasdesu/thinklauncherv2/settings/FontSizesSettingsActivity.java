@@ -12,6 +12,7 @@ import android.widget.TextView;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class FontSizesSettingsActivity extends BaseSettingsActivity {
 
@@ -75,16 +76,16 @@ public class FontSizesSettingsActivity extends BaseSettingsActivity {
         TextView folderValueTv = folderContainer.findViewById(R.id.value_text);
         folderValueTv.setText(String.valueOf(folderFontSize));
 
-        TextView minusHomeBtn = homeContainer.findViewById(R.id.btn_minus);
-        TextView plusHomeBtn = homeContainer.findViewById(R.id.btn_plus);
-        TextView minusAppLauncherBtn = appLauncherContainer.findViewById(R.id.btn_minus);
-        TextView plusAppLauncherBtn = appLauncherContainer.findViewById(R.id.btn_plus);
-        TextView minusCalendarBtn = calendarContainer.findViewById(R.id.btn_minus);
-        TextView plusCalendarBtn = calendarContainer.findViewById(R.id.btn_plus);
-        TextView minusKoreaderBtn = koreaderContainer.findViewById(R.id.btn_minus);
-        TextView plusKoreaderBtn = koreaderContainer.findViewById(R.id.btn_plus);
-        TextView minusFolderBtn = folderContainer.findViewById(R.id.btn_minus);
-        TextView plusFolderBtn = folderContainer.findViewById(R.id.btn_plus);
+        ImageButton minusHomeBtn = homeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusHomeBtn = homeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusAppLauncherBtn = appLauncherContainer.findViewById(R.id.btn_minus);
+        ImageButton plusAppLauncherBtn = appLauncherContainer.findViewById(R.id.btn_plus);
+        ImageButton minusCalendarBtn = calendarContainer.findViewById(R.id.btn_minus);
+        ImageButton plusCalendarBtn = calendarContainer.findViewById(R.id.btn_plus);
+        ImageButton minusKoreaderBtn = koreaderContainer.findViewById(R.id.btn_minus);
+        ImageButton plusKoreaderBtn = koreaderContainer.findViewById(R.id.btn_plus);
+        ImageButton minusFolderBtn = folderContainer.findViewById(R.id.btn_minus);
+        ImageButton plusFolderBtn = folderContainer.findViewById(R.id.btn_plus);
 
         minusHomeBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (homeFontSize > 10) {

@@ -14,6 +14,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class DisplaySettingsActivity extends BaseSettingsActivity {
 
@@ -68,8 +69,8 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         TextView modalCornerRadiusValueTv = modalCornerRadiusContainer.findViewById(R.id.value_text);
         modalCornerRadiusValueTv.setText(String.valueOf(modalCornerRadius));
 
-        TextView minusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_minus);
-        TextView plusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_plus);
+        ImageButton minusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_minus);
+        ImageButton plusModalCornerRadiusBtn = modalCornerRadiusContainer.findViewById(R.id.btn_plus);
 
         minusModalCornerRadiusBtn.setOnTouchListener(new org.matiasdesu.thinklauncherv2.utils.RepeatListener(v -> {
             if (modalCornerRadius >= 2) {
@@ -110,17 +111,17 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         TextView einkRefreshDelayValueTv = einkRefreshDelayContainer.findViewById(R.id.value_text);
         einkRefreshDelayValueTv.setText(String.valueOf(einkRefreshDelay));
 
-        TextView minusScrollAppListBtn = scrollAppListContainer.findViewById(R.id.btn_minus);
-        TextView plusScrollAppListBtn = scrollAppListContainer.findViewById(R.id.btn_plus);
+        ImageButton minusScrollAppListBtn = scrollAppListContainer.findViewById(R.id.btn_minus);
+        ImageButton plusScrollAppListBtn = scrollAppListContainer.findViewById(R.id.btn_plus);
 
-        TextView minusAutoFocusBtn = autoFocusContainer.findViewById(R.id.btn_minus);
-        TextView plusAutoFocusBtn = autoFocusContainer.findViewById(R.id.btn_plus);
+        ImageButton minusAutoFocusBtn = autoFocusContainer.findViewById(R.id.btn_minus);
+        ImageButton plusAutoFocusBtn = autoFocusContainer.findViewById(R.id.btn_plus);
 
-        TextView minusEinkRefreshEnabledBtn = einkRefreshEnabledContainer.findViewById(R.id.btn_minus);
-        TextView plusEinkRefreshEnabledBtn = einkRefreshEnabledContainer.findViewById(R.id.btn_plus);
+        ImageButton minusEinkRefreshEnabledBtn = einkRefreshEnabledContainer.findViewById(R.id.btn_minus);
+        ImageButton plusEinkRefreshEnabledBtn = einkRefreshEnabledContainer.findViewById(R.id.btn_plus);
 
-        TextView minusEinkRefreshDelayBtn = einkRefreshDelayContainer.findViewById(R.id.btn_minus);
-        TextView plusEinkRefreshDelayBtn = einkRefreshDelayContainer.findViewById(R.id.btn_plus);
+        ImageButton minusEinkRefreshDelayBtn = einkRefreshDelayContainer.findViewById(R.id.btn_minus);
+        ImageButton plusEinkRefreshDelayBtn = einkRefreshDelayContainer.findViewById(R.id.btn_plus);
 
         minusScrollAppListBtn.setOnClickListener(v -> {
             scrollAppList = (scrollAppList - 1 + 2) % 2;
@@ -154,8 +155,8 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         appIndexSidebarValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(appIndexSidebarValueTv, new String[]{"OFF", "ON"}));
 
-        TextView minusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_minus);
-        TextView plusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_plus);
+        ImageButton minusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_minus);
+        ImageButton plusAppIndexSidebarBtn = appIndexSidebarContainer.findViewById(R.id.btn_plus);
 
         minusAppIndexSidebarBtn.setOnClickListener(v -> {
             appIndexSidebar = (appIndexSidebar - 1 + 2) % 2;
@@ -177,8 +178,8 @@ public class DisplaySettingsActivity extends BaseSettingsActivity {
         webappPwaValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(webappPwaValueTv, new String[]{"OFF", "ON"}));
 
-        TextView minusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_minus);
-        TextView plusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_plus);
+        ImageButton minusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_minus);
+        ImageButton plusWebappPwaBtn = webappPwaContainer.findViewById(R.id.btn_plus);
 
         minusWebappPwaBtn.setOnClickListener(v -> {
             webappPwaMode = (webappPwaMode - 1 + 2) % 2;

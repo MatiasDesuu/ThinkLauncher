@@ -37,6 +37,10 @@ public class AppListSizeHelper {
         // Calculate text height accurately
         Paint paint = new Paint();
         paint.setTextSize(textSize * scaledDensity);
+        android.graphics.Typeface custom = FontHelper.getTypeface(context);
+        if (custom != null) {
+            paint.setTypeface(custom);
+        }
         float textHeightPx = paint.getFontMetrics().bottom - paint.getFontMetrics().top;
         float textHeightDp = textHeightPx / density;
 

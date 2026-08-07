@@ -15,6 +15,7 @@ import org.matiasdesu.thinklauncherv2.utils.AppNamePositionHelper;
 import org.matiasdesu.thinklauncherv2.utils.IconShapeHelper;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class IconSettingsActivity extends BaseSettingsActivity {
 
@@ -161,30 +162,30 @@ public class IconSettingsActivity extends BaseSettingsActivity {
         TextView iconSizeValueTv = iconSizeContainer.findViewById(R.id.value_text);
         iconSizeValueTv.setText(String.valueOf(iconSize));
 
-        TextView minusShowIconsBtn = showIconsContainer.findViewById(R.id.btn_minus);
-        TextView plusShowIconsBtn = showIconsContainer.findViewById(R.id.btn_plus);
-        TextView minusShowAppNamesBtn = showAppNamesContainer.findViewById(R.id.btn_minus);
-        TextView plusShowAppNamesBtn = showAppNamesContainer.findViewById(R.id.btn_plus);
-        TextView minusAppNamePositionBtn = appNamePositionContainer.findViewById(R.id.btn_minus);
-        TextView plusAppNamePositionBtn = appNamePositionContainer.findViewById(R.id.btn_plus);
-        TextView minusMonochromeBtn = monochromeIconsContainer.findViewById(R.id.btn_minus);
-        TextView plusMonochromeBtn = monochromeIconsContainer.findViewById(R.id.btn_plus);
-        TextView minusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_minus);
-        TextView plusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_plus);
-        TextView minusForceMonochromeFallbackBtn = forceMonochromeFallbackContainer.findViewById(R.id.btn_minus);
-        TextView plusForceMonochromeFallbackBtn = forceMonochromeFallbackContainer.findViewById(R.id.btn_plus);
-        TextView minusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_minus);
-        TextView plusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_plus);
-        TextView minusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_minus);
-        TextView plusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_plus);
-        TextView minusIconShapeBtn = iconShapeContainer.findViewById(R.id.btn_minus);
-        TextView plusIconShapeBtn = iconShapeContainer.findViewById(R.id.btn_plus);
-        TextView minusIconEffectBtn = iconEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusIconEffectBtn = iconEffectContainer.findViewById(R.id.btn_plus);
-        TextView minusIconEffectColorBtn = iconEffectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusIconEffectColorBtn = iconEffectColorContainer.findViewById(R.id.btn_plus);
-        TextView minusIconSizeBtn = iconSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusIconSizeBtn = iconSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusShowIconsBtn = showIconsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusShowIconsBtn = showIconsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusShowAppNamesBtn = showAppNamesContainer.findViewById(R.id.btn_minus);
+        ImageButton plusShowAppNamesBtn = showAppNamesContainer.findViewById(R.id.btn_plus);
+        ImageButton minusAppNamePositionBtn = appNamePositionContainer.findViewById(R.id.btn_minus);
+        ImageButton plusAppNamePositionBtn = appNamePositionContainer.findViewById(R.id.btn_plus);
+        ImageButton minusMonochromeBtn = monochromeIconsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusMonochromeBtn = monochromeIconsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDynamicBtn = dynamicIconsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusForceMonochromeFallbackBtn = forceMonochromeFallbackContainer.findViewById(R.id.btn_minus);
+        ImageButton plusForceMonochromeFallbackBtn = forceMonochromeFallbackContainer.findViewById(R.id.btn_plus);
+        ImageButton minusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_minus);
+        ImageButton plusDynamicColorsBtn = dynamicColorsContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconBackgroundBtn = iconBackgroundContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconShapeBtn = iconShapeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconShapeBtn = iconShapeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconEffectBtn = iconEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconEffectBtn = iconEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconEffectColorBtn = iconEffectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconEffectColorBtn = iconEffectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusIconSizeBtn = iconSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusIconSizeBtn = iconSizeContainer.findViewById(R.id.btn_plus);
 
         minusShowIconsBtn.setOnClickListener(v -> {
             showIcons = !showIcons;

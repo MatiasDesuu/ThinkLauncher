@@ -29,6 +29,7 @@ import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 import org.matiasdesu.thinklauncherv2.views.WallpaperPositionView;
 
 import java.io.InputStream;
+import android.widget.ImageButton;
 
 public class WallpaperSettingsActivity extends BaseSettingsActivity {
 
@@ -95,8 +96,8 @@ public class WallpaperSettingsActivity extends BaseSettingsActivity {
         View zoomContainer = findViewById(R.id.wallpaper_zoom_container);
         TextView zoomValueTv = zoomContainer.findViewById(R.id.value_text);
         zoomValueTv.setText(Math.round(savedScale * 100f) + "%");
-        TextView minusZoomBtn = zoomContainer.findViewById(R.id.btn_minus);
-        TextView plusZoomBtn = zoomContainer.findViewById(R.id.btn_plus);
+        ImageButton minusZoomBtn = zoomContainer.findViewById(R.id.btn_minus);
+        ImageButton plusZoomBtn = zoomContainer.findViewById(R.id.btn_plus);
 
         wallpaperPositionView.setOnPositionChangedListener(new WallpaperPositionView.OnPositionChangedListener() {
             @Override

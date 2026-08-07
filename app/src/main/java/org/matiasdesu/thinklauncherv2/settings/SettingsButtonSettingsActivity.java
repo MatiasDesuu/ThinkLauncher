@@ -13,6 +13,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class SettingsButtonSettingsActivity extends BaseSettingsActivity {
 
@@ -88,16 +89,16 @@ public class SettingsButtonSettingsActivity extends BaseSettingsActivity {
         settingsButtonEffectColorValueTv
                 .setMinWidth(TextWidthHelper.getMaxTextWidthPx(settingsButtonEffectColorValueTv, EFFECT_COLOR_NAMES));
 
-        TextView minusShowSettingsBtn = showSettingsButtonContainer.findViewById(R.id.btn_minus);
-        TextView plusShowSettingsBtn = showSettingsButtonContainer.findViewById(R.id.btn_plus);
-        TextView minusSettingsButtonSizeBtn = settingsButtonSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusSettingsButtonSizeBtn = settingsButtonSizeContainer.findViewById(R.id.btn_plus);
-        TextView minusSettingsButtonColorBtn = settingsButtonColorContainer.findViewById(R.id.btn_minus);
-        TextView plusSettingsButtonColorBtn = settingsButtonColorContainer.findViewById(R.id.btn_plus);
-        TextView minusSettingsButtonEffectBtn = settingsButtonEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusSettingsButtonEffectBtn = settingsButtonEffectContainer.findViewById(R.id.btn_plus);
-        TextView minusSettingsButtonEffectColorBtn = settingsButtonEffectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusSettingsButtonEffectColorBtn = settingsButtonEffectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusShowSettingsBtn = showSettingsButtonContainer.findViewById(R.id.btn_minus);
+        ImageButton plusShowSettingsBtn = showSettingsButtonContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSettingsButtonSizeBtn = settingsButtonSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSettingsButtonSizeBtn = settingsButtonSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSettingsButtonColorBtn = settingsButtonColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSettingsButtonColorBtn = settingsButtonColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSettingsButtonEffectBtn = settingsButtonEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSettingsButtonEffectBtn = settingsButtonEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusSettingsButtonEffectColorBtn = settingsButtonEffectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusSettingsButtonEffectColorBtn = settingsButtonEffectColorContainer.findViewById(R.id.btn_plus);
 
         minusShowSettingsBtn.setOnClickListener(v -> {
             showSettingsButton = (showSettingsButton - 1 + 2) % 2;

@@ -4,11 +4,12 @@
     android:layout_height="wrap_content"
     android:minHeight="40dp">
 
-    <TextView
+    <ImageButton
         style="@style/PlusMinusButton"
         android:id="@+id/btn_minus"
-        android:text="-"
-        android:textSize="20sp"
+        android:src="@drawable/remove"
+        android:contentDescription="@string/button_minus"
+        android:padding="8dp"
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true" />
 
@@ -27,11 +28,12 @@
         android:paddingLeft="4dp"
         android:paddingRight="4dp" />
 
-    <TextView
+    <ImageButton
         style="@style/PlusMinusButton"
         android:id="@+id/btn_plus"
-        android:text="+"
-        android:textSize="20sp"
+        android:src="@drawable/add"
+        android:contentDescription="@string/button_plus"
+        android:padding="8dp"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true" />
 

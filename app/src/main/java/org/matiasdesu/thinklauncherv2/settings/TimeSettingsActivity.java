@@ -13,6 +13,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.widget.ImageButton;
 
 public class TimeSettingsActivity extends BaseSettingsActivity {
 
@@ -83,14 +84,14 @@ public class TimeSettingsActivity extends BaseSettingsActivity {
         timeFormatValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(timeFormatValueTv, new String[] { "12H", "24H" }));
 
-        TextView minusTimeBtn = timePositionContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeBtn = timePositionContainer.findViewById(R.id.btn_plus);
-        TextView minusTimeHorizontalBtn = timeHorizontalContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeHorizontalBtn = timeHorizontalContainer.findViewById(R.id.btn_plus);
-        TextView minusTimeFontSizeBtn = timeFontSizeContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeFontSizeBtn = timeFontSizeContainer.findViewById(R.id.btn_plus);
-        TextView minusTimeFormatBtn = timeFormatContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeFormatBtn = timeFormatContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeBtn = timePositionContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeBtn = timePositionContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeHorizontalBtn = timeHorizontalContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeHorizontalBtn = timeHorizontalContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeFontSizeBtn = timeFontSizeContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeFontSizeBtn = timeFontSizeContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeFormatBtn = timeFormatContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeFormatBtn = timeFormatContainer.findViewById(R.id.btn_plus);
 
         View timeColorContainer = findViewById(R.id.time_color_container);
         TextView timeColorValueTv = timeColorContainer.findViewById(R.id.value_text);
@@ -98,8 +99,8 @@ public class TimeSettingsActivity extends BaseSettingsActivity {
         timeColorValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(timeColorValueTv,
                 new String[] { "FOLLOW THEME", "DARK", "WHITE", "DYNAMIC DARK", "DYNAMIC LIGHT" }));
 
-        TextView minusTimeColorBtn = timeColorContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeColorBtn = timeColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeColorBtn = timeColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeColorBtn = timeColorContainer.findViewById(R.id.btn_plus);
 
         View timeEffectContainer = findViewById(R.id.time_effect_container);
         TextView timeEffectValueTv = timeEffectContainer.findViewById(R.id.value_text);
@@ -107,8 +108,8 @@ public class TimeSettingsActivity extends BaseSettingsActivity {
         timeEffectValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(timeEffectValueTv,
                 new String[] { "NOTHING", "SHADOW", "OUTLINE" }));
 
-        TextView minusTimeEffectBtn = timeEffectContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeEffectBtn = timeEffectContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeEffectBtn = timeEffectContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeEffectBtn = timeEffectContainer.findViewById(R.id.btn_plus);
 
         View timeEffectColorContainer = findViewById(R.id.time_effect_color_container);
         TextView timeEffectColorValueTv = timeEffectColorContainer.findViewById(R.id.value_text);
@@ -116,8 +117,8 @@ public class TimeSettingsActivity extends BaseSettingsActivity {
         timeEffectColorValueTv.setMinWidth(TextWidthHelper.getMaxTextWidthPx(timeEffectColorValueTv,
                 new String[] { "DARK", "WHITE", "DYNAMIC DARK", "DYNAMIC WHITE" }));
 
-        TextView minusTimeEffectColorBtn = timeEffectColorContainer.findViewById(R.id.btn_minus);
-        TextView plusTimeEffectColorBtn = timeEffectColorContainer.findViewById(R.id.btn_plus);
+        ImageButton minusTimeEffectColorBtn = timeEffectColorContainer.findViewById(R.id.btn_minus);
+        ImageButton plusTimeEffectColorBtn = timeEffectColorContainer.findViewById(R.id.btn_plus);
 
         minusTimeBtn.setOnClickListener(v -> {
             timePosition = (timePosition - 1 + 2) % 2;
