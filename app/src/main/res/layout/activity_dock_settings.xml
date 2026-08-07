@@ -216,6 +216,64 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/backdrop_opacity_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/opacity"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Backdrop Opacity:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/backdrop_opacity_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/backdrop_blur_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/blur"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Backdrop Blur:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/backdrop_blur_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/style_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

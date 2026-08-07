@@ -74,6 +74,7 @@ import org.matiasdesu.thinklauncherv2.utils.BigmeShims;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 import org.matiasdesu.thinklauncherv2.utils.BatteryUtils;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
+import org.matiasdesu.thinklauncherv2.utils.DockBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import android.graphics.Bitmap;
 
@@ -1104,6 +1105,13 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
         rootLayout.addView(bar, params);
         appBarView = bar;
+
+        DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "app_bar",
+                resolveAppBarThemeColor(prefs.getInt("app_bar_background_color", 0), true),
+                appBarBorderEnabled,
+                resolveAppBarThemeColor(prefs.getInt("app_bar_border_color", 0), false),
+                2 * density,
+                DialogEffectHelper.getCornerRadiusPx(this));
     }
 
     private void refreshAppBar() {
@@ -1230,6 +1238,13 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
         rootLayout.addView(bar, params);
         dockView = bar;
+
+        DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "dock",
+                resolveAppBarThemeColor(prefs.getInt("dock_background_color", 0), true),
+                appBarBorderEnabled,
+                resolveAppBarThemeColor(prefs.getInt("dock_border_color", 0), false),
+                2 * density,
+                DialogEffectHelper.getCornerRadiusPx(this));
     }
 
     private void refreshDock() {
@@ -3327,6 +3342,11 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     }
 
                     rootLayout.setVisibility(View.VISIBLE);
+
+                    // Re-capture the dock backdrops now that the (possibly new
+                    // or moved) wallpaper is on screen, so they always show
+                    // exactly what is behind them.
+                    DockBackdropHelper.reapplyAll(rootLayout);
 
                     EinkRefreshHelper.refreshEink(getWindow(), getSharedPreferences("prefs", MODE_PRIVATE),
                             getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));

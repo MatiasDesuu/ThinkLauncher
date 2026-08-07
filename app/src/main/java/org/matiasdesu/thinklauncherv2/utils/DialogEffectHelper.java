@@ -120,15 +120,7 @@ public final class DialogEffectHelper {
         if (prefs.getInt("app_launcher_bg_opacity_enabled", 0) != 1) {
             return color;
         }
-        int opacityPercent = prefs.getInt("app_launcher_bg_opacity", 100);
-        if (opacityPercent < 0) {
-            opacityPercent = 0;
-        }
-        if (opacityPercent > 100) {
-            opacityPercent = 100;
-        }
-        int alpha = Math.round(255f * (opacityPercent / 100f));
-        return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+        return WallpaperHelper.applyOpacity(color, prefs.getInt("app_launcher_bg_opacity", 100));
     }
 
     private static void applyDialogBlur(Window window, Context context) {

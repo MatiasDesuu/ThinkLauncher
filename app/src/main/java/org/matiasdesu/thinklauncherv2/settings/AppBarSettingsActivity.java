@@ -24,6 +24,8 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
     private int numApps;
     private int border;
     private int background;
+    private int backdropOpacity;
+    private int backdropBlur;
 
     @Override
     protected int getLayoutResId() {
@@ -45,6 +47,8 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
         numApps = prefs.getInt("app_bar_num_apps", 4);
         border = prefs.getInt("app_bar_border", 0);
         background = prefs.getInt("app_bar_background", 0);
+        backdropOpacity = prefs.getInt("app_bar_backdrop_opacity", 0);
+        backdropBlur = prefs.getInt("app_bar_backdrop_blur", 0);
 
         View enabledContainer = findViewById(R.id.enabled_container);
         TextView enabledValueTv = enabledContainer.findViewById(R.id.value_text);
@@ -98,6 +102,18 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
         backgroundValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(backgroundValueTv, new String[] { "ON", "OFF" }));
 
+        View backdropOpacityContainer = findViewById(R.id.backdrop_opacity_container);
+        TextView backdropOpacityValueTv = backdropOpacityContainer.findViewById(R.id.value_text);
+        backdropOpacityValueTv.setText(backdropOpacity == 1 ? "ON" : "OFF");
+        backdropOpacityValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(backdropOpacityValueTv, new String[] { "ON", "OFF" }));
+
+        View backdropBlurContainer = findViewById(R.id.backdrop_blur_container);
+        TextView backdropBlurValueTv = backdropBlurContainer.findViewById(R.id.value_text);
+        backdropBlurValueTv.setText(backdropBlur == 1 ? "ON" : "OFF");
+        backdropBlurValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(backdropBlurValueTv, new String[] { "ON", "OFF" }));
+
         TextView minusEnabled = enabledContainer.findViewById(R.id.btn_minus);
         TextView plusEnabled = enabledContainer.findViewById(R.id.btn_plus);
         TextView minusOrientation = orientationContainer.findViewById(R.id.btn_minus);
@@ -110,6 +126,10 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
         TextView plusBorder = borderContainer.findViewById(R.id.btn_plus);
         TextView minusBackground = backgroundContainer.findViewById(R.id.btn_minus);
         TextView plusBackground = backgroundContainer.findViewById(R.id.btn_plus);
+        TextView minusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_minus);
+        TextView plusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_plus);
+        TextView minusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_minus);
+        TextView plusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_plus);
 
         minusEnabled.setOnClickListener(v -> {
             enabled = enabled == 1 ? 0 : 1;
@@ -188,6 +208,30 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
             prefs.edit().putInt("app_bar_background", background).apply();
         });
 
+        minusBackdropOpacity.setOnClickListener(v -> {
+            backdropOpacity = backdropOpacity == 1 ? 0 : 1;
+            backdropOpacityValueTv.setText(backdropOpacity == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_backdrop_opacity", backdropOpacity).apply();
+            refreshVisibility();
+        });
+        plusBackdropOpacity.setOnClickListener(v -> {
+            backdropOpacity = backdropOpacity == 1 ? 0 : 1;
+            backdropOpacityValueTv.setText(backdropOpacity == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_backdrop_opacity", backdropOpacity).apply();
+            refreshVisibility();
+        });
+
+        minusBackdropBlur.setOnClickListener(v -> {
+            backdropBlur = backdropBlur == 1 ? 0 : 1;
+            backdropBlurValueTv.setText(backdropBlur == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_backdrop_blur", backdropBlur).apply();
+        });
+        plusBackdropBlur.setOnClickListener(v -> {
+            backdropBlur = backdropBlur == 1 ? 0 : 1;
+            backdropBlurValueTv.setText(backdropBlur == 1 ? "ON" : "OFF");
+            prefs.edit().putInt("app_bar_backdrop_blur", backdropBlur).apply();
+        });
+
         LinearLayout selectAppsButton = findViewById(R.id.select_apps_button);
         selectAppsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, AppBarAppsActivity.class);
@@ -210,6 +254,8 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
                 findViewById(R.id.num_apps_layout),
                 findViewById(R.id.border_layout),
                 findViewById(R.id.background_layout),
+                findViewById(R.id.backdrop_opacity_layout),
+                findViewById(R.id.backdrop_blur_layout),
                 findViewById(R.id.style_button),
                 findViewById(R.id.position_button),
                 findViewById(R.id.select_apps_button)
@@ -218,5 +264,7 @@ public class AppBarSettingsActivity extends BaseSettingsActivity {
         for (View v : views) {
             v.setVisibility(visibility);
         }
+        findViewById(R.id.backdrop_blur_layout).setVisibility(
+                enabled == 1 && backdropOpacity == 1 ? View.VISIBLE : View.GONE);
     }
 }

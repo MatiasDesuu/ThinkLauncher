@@ -75,16 +75,8 @@ public final class LauncherBackdropHelper {
         int blurStrength = prefs.getInt("app_launcher_bg_blur_strength", 3);
         int surfaceColor = ThemeUtils.getBgColor(theme, activity);
         if (opacityEnabled) {
-            int opacityPercent = prefs.getInt("app_launcher_bg_opacity", 100);
-            if (opacityPercent < 0) {
-                opacityPercent = 0;
-            }
-            if (opacityPercent > 100) {
-                opacityPercent = 100;
-            }
-            int alpha = Math.round(255f * (opacityPercent / 100f));
-            surfaceColor = Color.argb(alpha, Color.red(surfaceColor), Color.green(surfaceColor),
-                    Color.blue(surfaceColor));
+            surfaceColor = WallpaperHelper.applyOpacity(surfaceColor,
+                    prefs.getInt("app_launcher_bg_opacity", 100));
             activity.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 

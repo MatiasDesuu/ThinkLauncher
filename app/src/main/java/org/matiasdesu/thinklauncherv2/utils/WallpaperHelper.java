@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
 import android.util.LruCache;
@@ -491,6 +492,17 @@ public class WallpaperHelper {
             default:
                 return 18;
         }
+    }
+
+    /**
+     * Returns the given color with its alpha replaced by the given opacity
+     * percentage (clamped to 0-100). Shared by every launcher surface (app
+     * launcher, folders, docks) so they all tint their backdrops identically.
+     */
+    public static int applyOpacity(int color, int opacityPercent) {
+        int clamped = Math.max(0, Math.min(opacityPercent, 100));
+        int alpha = Math.round(255f * clamped / 100f);
+        return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
     }
 
     /**
