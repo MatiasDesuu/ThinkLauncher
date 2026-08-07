@@ -73,6 +73,7 @@ import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.BigmeShims;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 import org.matiasdesu.thinklauncherv2.utils.BatteryUtils;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import android.graphics.Bitmap;
 
@@ -1090,7 +1091,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             barBg.setColor(appBarBgEnabled
                     ? resolveAppBarThemeColor(prefs.getInt("app_bar_background_color", 0), true)
                     : android.graphics.Color.TRANSPARENT);
-            barBg.setCornerRadius(0);
+            barBg.setCornerRadius(DialogEffectHelper.getCornerRadiusPx(this));
             bar.setBackground(barBg);
             int barPad = (int) (6 * density);
             bar.setPadding(barPad, barPad, barPad, barPad);
@@ -1216,7 +1217,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             barBg.setColor(appBarBgEnabled
                     ? resolveAppBarThemeColor(prefs.getInt("dock_background_color", 0), true)
                     : android.graphics.Color.TRANSPARENT);
-            barBg.setCornerRadius(0);
+            barBg.setCornerRadius(DialogEffectHelper.getCornerRadiusPx(this));
             bar.setBackground(barBg);
             int barPad = (int) (6 * density);
             bar.setPadding(barPad, barPad, barPad, barPad);
