@@ -23,7 +23,6 @@ import android.view.ViewGroup;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -59,7 +58,6 @@ public class HideAppsActivity extends AppCompatActivity {
     private int theme;
     private HideAppsAdapter hideAppsAdapter;
     private FrameLayout rootLayout;
-    private boolean keyboardShown = false;
     private SharedPreferences prefs;
     private List<String> installedAppLabels;
     private List<String> installedAppPackages;
@@ -392,17 +390,6 @@ public class HideAppsActivity extends AppCompatActivity {
         if (hasFocus) {
             SharedPreferences prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE);
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-
-            if (!keyboardShown && prefs.getBoolean("auto_focus_search", true)) {
-                keyboardShown = true;
-                EditText et = findViewById(R.id.search_edit_text);
-                et.requestFocus();
-                et.performClick();
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT);
-                }
-            }
         }
     }
 
