@@ -8,8 +8,11 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.ui.ResetAllConfigDialog;
+import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.SettingsBackupHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -101,6 +104,18 @@ public class SystemSettingsActivity extends BaseSettingsActivity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             }
             startActivityForResult(intent, REQUEST_IMPORT);
+        });
+
+        findViewById(R.id.reset_all_config_button).setOnClickListener(v -> {
+            new ResetAllConfigDialog(this, () -> {
+                prefs.edit().clear().apply();
+                SettingsBackupHelper.applyInitialDefaults(this);
+                FontHelper.removeFont(this);
+                WallpaperHelper.removeWallpaper(this);
+                new java.io.File(getFilesDir(), "custom_gestures").delete();
+                Toast.makeText(this, "Configuration reset", Toast.LENGTH_SHORT).show();
+                finish();
+            }).show();
         });
 
         initPagination(null);

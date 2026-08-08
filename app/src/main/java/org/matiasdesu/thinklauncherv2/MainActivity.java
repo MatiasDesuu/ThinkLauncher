@@ -77,6 +77,7 @@ import org.matiasdesu.thinklauncherv2.utils.BatteryUtils;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.DockBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.SettingsBackupHelper;
 import android.graphics.Bitmap;
 
 public class MainActivity extends Activity {
@@ -1290,11 +1291,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SettingsBackupHelper.repairFloatKeys(this);
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-        theme = prefs.getInt("theme", 0);
         if (!prefs.contains("theme")) {
-            prefs.edit().putInt("theme", 0).apply();
+            SettingsBackupHelper.applyInitialDefaults(this);
         }
+        theme = prefs.getInt("theme", 0);
         if (ThemeUtils.isDarkTheme(theme, this)) {
             setTheme(R.style.AppTheme_Dark);
         } else {
