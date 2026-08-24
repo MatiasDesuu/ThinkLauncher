@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.WeakHashMap;
 
 public class FontHelper {
 
@@ -19,6 +20,9 @@ public class FontHelper {
     private static final String FONT_SUFFIX = ".ttf";
 
     private static volatile Typeface cachedTypeface = null;
+    private static volatile String lastCacheKey = null;
+
+    private static final WeakHashMap<TextView, String> appliedFonts = new WeakHashMap<>();
 
     public static boolean hasCustomFont(Context context) {
         return getCurrentFontFile(context) != null;
@@ -53,6 +57,7 @@ public class FontHelper {
     public static void clearCache() {
         cachedTypeface = null;
         lastCacheKey = null;
+        appliedFonts.clear();
     }
 
     public static boolean saveFont(Context context, InputStream in) {
@@ -112,11 +117,16 @@ public class FontHelper {
         if (tv == null) {
             return;
         }
+        Typeface custom = getTypeface(context);
+        applyTypeface(tv, custom);
+        appliedFonts.put(tv, custom == null ? "" : lastCacheKey);
+    }
+
+    private static void applyTypeface(TextView tv, Typeface custom) {
         Typeface current = tv.getTypeface();
         boolean bold = current != null && current.isBold();
         boolean italic = current != null && current.isItalic();
         int style = (bold ? Typeface.BOLD : 0) | (italic ? Typeface.ITALIC : 0);
-        Typeface custom = getTypeface(context);
         if (custom == null) {
             tv.setTypeface(null, style);
         } else {
@@ -128,16 +138,24 @@ public class FontHelper {
         if (view == null) {
             return;
         }
+        Typeface custom = getTypeface(context);
+        String fontKey = custom == null ? "" : lastCacheKey;
+        applyToViewTreeInternal(view, custom, fontKey);
+    }
+
+    private static void applyToViewTreeInternal(View view, Typeface custom, String fontKey) {
         if (view instanceof TextView) {
-            applyFont(context, (TextView) view);
+            TextView tv = (TextView) view;
+            if (!fontKey.equals(appliedFonts.get(tv))) {
+                applyTypeface(tv, custom);
+                appliedFonts.put(tv, fontKey);
+            }
         }
         if (view instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) view;
             for (int i = 0; i < vg.getChildCount(); i++) {
-                applyToViewTree(context, vg.getChildAt(i));
+                applyToViewTreeInternal(vg.getChildAt(i), custom, fontKey);
             }
         }
     }
-
-    private static volatile String lastCacheKey = null;
 }
