@@ -41,6 +41,14 @@
                 android:name="android.app.device_admin"
                 android:resource="@xml/device_admin" />
         </receiver>
+        <service
+            android:name=".services.MusicNotificationListenerService"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -97,6 +105,12 @@
             android:exported="false" />
         <activity
             android:name=".settings.DockSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.MusicDockSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".settings.MusicDockStyleActivity"
             android:exported="false" />
         <activity
             android:name=".settings.DocksSettingsActivity"

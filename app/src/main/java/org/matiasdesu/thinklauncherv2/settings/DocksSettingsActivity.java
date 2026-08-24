@@ -43,6 +43,16 @@ public class DocksSettingsActivity extends BaseSettingsActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
+        LinearLayout musicDockButton = findViewById(R.id.music_dock_button);
+        musicDockButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MusicDockSettingsActivity.class);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
+        });
+
         initPagination(null);
     }
 }

@@ -3,6 +3,7 @@ package org.matiasdesu.thinklauncherv2;
 import android.app.Activity;
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,10 @@ import android.gesture.GestureStroke;
 import android.gesture.Prediction;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
+import android.media.MediaMetadata;
+import android.media.session.MediaController;
+import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -42,6 +47,7 @@ import android.view.WindowInsetsController;
 import androidx.core.view.WindowCompat;
 import androidx.core.content.ContextCompat;
 import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -57,6 +63,7 @@ import android.os.Build;
 
 import org.matiasdesu.thinklauncherv2.adapters.AppAdapter;
 import org.matiasdesu.thinklauncherv2.services.LockAccessibilityService;
+import org.matiasdesu.thinklauncherv2.services.MusicNotificationListenerService;
 import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
 import org.matiasdesu.thinklauncherv2.ui.AppShortcutsDialog;
@@ -168,6 +175,13 @@ public class MainActivity extends Activity {
     private ImageView wallpaperView;
     private LinearLayout appBarView;
     private LinearLayout dockView;
+    private LinearLayout musicDockView;
+    private TextView musicDockTitleView;
+    private ImageView musicDockPlayPause;
+    private MediaSessionManager mediaSessionManager;
+    private MediaController activeMediaController;
+    private MediaSessionManager.OnActiveSessionsChangedListener mediaSessionsListener;
+    private MediaController.Callback mediaControllerCallback;
     private static final int REQUEST_EDIT_DOCK_BASE = 10000;
     private String pendingDockPrefix = null;
     private int statusBarInset = 0;
@@ -648,6 +662,10 @@ public class MainActivity extends Activity {
     }
 
     private void applyAppBarIconEffect(ImageView iv, int effect, int effectColor) {
+        applyAppBarIconEffect(iv, effect, effectColor, appBarUsesBackground());
+    }
+
+    private void applyAppBarIconEffect(ImageView iv, int effect, int effectColor, boolean usesBackground) {
         if (iv == null)
             return;
         if (effect == 0) {
@@ -662,7 +680,7 @@ public class MainActivity extends Activity {
         float offset = android.util.TypedValue.applyDimension(
                 android.util.TypedValue.COMPLEX_UNIT_DIP, 1.5f, getResources().getDisplayMetrics());
         float adjustedOffset = offset * 1.5f;
-        if (!(original instanceof InsetDrawable) && !appBarUsesBackground()) {
+        if (!(original instanceof InsetDrawable) && !usesBackground) {
             original = new InsetDrawable(original, 0.15f);
         }
         int p = (int) (adjustedOffset * 1.5f);
@@ -1258,6 +1276,403 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         createDock();
     }
 
+    private void createMusicDock() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (prefs.getInt("music_dock_enabled", 0) != 1 || !hasNotificationListenerAccess()) {
+            return;
+        }
+        int position = prefs.getInt("music_dock_position", 7);
+        int iconSizeDp = prefs.getInt("music_dock_icon_size", 20);
+        int textSizeSp = prefs.getInt("music_dock_text_size", 16);
+        boolean vertical = prefs.getInt("music_dock_orientation", 0) == 1;
+
+        LinearLayout bar = new LinearLayout(this);
+        bar.setId(View.generateViewId());
+        bar.setOrientation(vertical ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER);
+        bar.setClipChildren(false);
+        bar.setClipToPadding(false);
+
+        float density = getResources().getDisplayMetrics().density;
+        int iconSizePx = (int) (iconSizeDp * density);
+        int slotMargin = (int) (4 * density);
+
+        ImageView prevButton = createMusicTransportButton(R.drawable.ic_media_previous, iconSizePx,
+                slotMargin, vertical, "prev");
+        ImageView playPauseButton = createMusicTransportButton(R.drawable.ic_media_play, iconSizePx,
+                slotMargin, vertical, "play_pause");
+        ImageView nextButton = createMusicTransportButton(R.drawable.ic_media_next, iconSizePx,
+                slotMargin, vertical, "next");
+        musicDockPlayPause = playPauseButton;
+
+        StrokeTextView titleView = new StrokeTextView(this);
+        titleView.setTextColor(resolveAppBarThemeColor(prefs.getInt("music_dock_text_color", 0), false));
+        titleView.setTextSize(textSizeSp);
+        titleView.setTypeface(null, boldText ? Typeface.BOLD : Typeface.NORMAL);
+        titleView.setSingleLine(true);
+        titleView.setEllipsize(TextUtils.TruncateAt.END);
+        titleView.setMaxWidth((int) (160 * density));
+        titleView.setGravity(Gravity.CENTER);
+        titleView.setBackgroundColor(0);
+        applyTextEffect(titleView, prefs.getInt("music_dock_text_effect", 0),
+                getAppBarIconEffectColorValue(prefs.getInt("music_dock_text_effect_color", 0), theme));
+        musicDockTitleView = titleView;
+
+        if (vertical) {
+            int lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing() * 1.15f);
+            int stripLength = (int) (160 * density);
+            FrameLayout titleContainer = new FrameLayout(this);
+            FrameLayout.LayoutParams innerParams = new FrameLayout.LayoutParams(
+                    stripLength, lineHeight, Gravity.CENTER);
+            titleView.setLayoutParams(innerParams);
+            titleView.setRotation(270f);
+            titleContainer.addView(titleView);
+            LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(lineHeight, stripLength);
+            containerParams.bottomMargin = slotMargin;
+            bar.addView(titleContainer, containerParams);
+            bar.addView(prevButton);
+            bar.addView(playPauseButton);
+            bar.addView(nextButton);
+        } else {
+            bar.addView(prevButton);
+            bar.addView(playPauseButton);
+            bar.addView(nextButton);
+            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            titleParams.leftMargin = slotMargin;
+            bar.addView(titleView, titleParams);
+        }
+
+        boolean borderEnabled = prefs.getInt("music_dock_border", 0) == 1;
+        boolean bgEnabled = prefs.getInt("music_dock_background", 0) == 1;
+        if (borderEnabled || bgEnabled) {
+            android.graphics.drawable.GradientDrawable barBg = new android.graphics.drawable.GradientDrawable();
+            barBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+            if (borderEnabled) {
+                barBg.setStroke((int) (2 * density),
+                        resolveAppBarThemeColor(prefs.getInt("music_dock_border_color", 0), false));
+            }
+            barBg.setColor(bgEnabled
+                    ? resolveAppBarThemeColor(prefs.getInt("music_dock_background_color", 0), true)
+                    : android.graphics.Color.TRANSPARENT);
+            barBg.setCornerRadius(DialogEffectHelper.getCornerRadiusPx(this));
+            bar.setBackground(barBg);
+            int barPad = (int) (6 * density);
+            bar.setPadding(barPad, barPad, barPad, barPad);
+        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        int margin = (int) (8 * density);
+        boolean aboveBottomDock = false;
+        switch (position) {
+            case 0:
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case 1:
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            case 2:
+                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case 3:
+                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            case 4:
+                params.addRule(RelativeLayout.CENTER_VERTICAL);
+                params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case 5:
+                params.addRule(RelativeLayout.CENTER_VERTICAL);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            case 6:
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                break;
+            case 7:
+                params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                if (dockView != null && dockView.getParent() == rootLayout) {
+                    params.addRule(RelativeLayout.ABOVE, dockView.getId());
+                    aboveBottomDock = true;
+                } else {
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                }
+                break;
+            default:
+                params.addRule(RelativeLayout.CENTER_IN_PARENT);
+                break;
+        }
+
+        updatePaddingPx();
+        boolean topAnchored = position == 0 || position == 1 || position == 6;
+        boolean bottomAnchored = (position == 2 || position == 3 || position == 7) && !aboveBottomDock;
+        params.leftMargin = margin + homePaddingLeftPx;
+        params.rightMargin = margin + homePaddingRightPx;
+        params.topMargin = margin + homePaddingTopPx + (topAnchored ? statusBarInset : 0);
+        params.bottomMargin = margin + homePaddingBottomPx + (bottomAnchored ? navBarInset : 0);
+
+        rootLayout.addView(bar, params);
+        musicDockView = bar;
+        bar.setVisibility(View.GONE);
+
+        DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "music_dock",
+                resolveAppBarThemeColor(prefs.getInt("music_dock_background_color", 0), true),
+                borderEnabled,
+                resolveAppBarThemeColor(prefs.getInt("music_dock_border_color", 0), false),
+                2 * density,
+                DialogEffectHelper.getCornerRadiusPx(this));
+    }
+
+    private ImageView createMusicTransportButton(int drawableRes, int sizePx, int margin,
+            boolean vertical, String action) {
+        ImageView iv = new ImageView(this);
+        iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(sizePx, sizePx);
+        if (vertical) {
+            lp.topMargin = margin;
+            lp.bottomMargin = margin;
+        } else {
+            lp.leftMargin = margin;
+            lp.rightMargin = margin;
+        }
+        iv.setLayoutParams(lp);
+        iv.setTag(action);
+        applyMusicTransportIcon(iv, drawableRes);
+        return iv;
+    }
+
+    private void applyMusicTransportIcon(ImageView iv, int drawableRes) {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean iconBackgroundEnabled = prefs.getBoolean("music_dock_icon_background", true);
+        int iconShape = prefs.getInt("music_dock_icon_shape", IconShapeHelper.SHAPE_SYSTEM);
+        Drawable icon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
+                iconBackgroundEnabled, false, false, iconShape);
+        iv.setImageDrawable(icon);
+        iv.clearColorFilter();
+        int effect = prefs.getInt("music_dock_icon_effect", 0);
+        int effectColor = prefs.getInt("music_dock_icon_effect_color", 0);
+        applyAppBarIconEffect(iv, effect, effectColor, iconBackgroundEnabled);
+    }
+
+    private void refreshMusicDock() {
+        if (musicDockView != null && musicDockView.getParent() == rootLayout) {
+            rootLayout.removeView(musicDockView);
+        }
+        musicDockView = null;
+        musicDockTitleView = null;
+        musicDockPlayPause = null;
+        createMusicDock();
+        updateMusicDockContent();
+    }
+
+    private boolean hasNotificationListenerAccess() {
+        String flat = android.provider.Settings.Secure.getString(getContentResolver(),
+                "enabled_notification_listeners");
+        if (flat != null) {
+            String[] names = flat.split(":");
+            for (String name : names) {
+                ComponentName cn = ComponentName.unflattenFromString(name);
+                if (cn != null && getPackageName().equals(cn.getPackageName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void startMusicMonitoring() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (prefs.getInt("music_dock_enabled", 0) != 1 || !hasNotificationListenerAccess()) {
+            stopMusicMonitoring();
+            return;
+        }
+        try {
+            if (mediaSessionManager == null) {
+                mediaSessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+            }
+            if (mediaSessionManager == null) return;
+            ComponentName listenerComponent = new ComponentName(this, MusicNotificationListenerService.class);
+            if (mediaSessionsListener == null) {
+                mediaSessionsListener = controllers -> handleActiveSessions(controllers);
+                mediaSessionManager.addOnActiveSessionsChangedListener(mediaSessionsListener, listenerComponent);
+            }
+            handleActiveSessions(mediaSessionManager.getActiveSessions(listenerComponent));
+        } catch (Exception e) {
+            // Notification listener access may have been revoked
+        }
+    }
+
+    private void stopMusicMonitoring() {
+        if (mediaSessionManager != null && mediaSessionsListener != null) {
+            try {
+                mediaSessionManager.removeOnActiveSessionsChangedListener(mediaSessionsListener);
+            } catch (Exception e) {
+                // Already removed
+            }
+        }
+        mediaSessionsListener = null;
+        detachMediaControllerCallback();
+        hideMusicDock();
+    }
+
+    private void detachMediaControllerCallback() {
+        if (activeMediaController != null && mediaControllerCallback != null) {
+            try {
+                activeMediaController.unregisterCallback(mediaControllerCallback);
+            } catch (Exception e) {
+                // Session already released
+            }
+        }
+        activeMediaController = null;
+    }
+
+    private void handleActiveSessions(List<MediaController> controllers) {
+        detachMediaControllerCallback();
+        MediaController best = null;
+        int bestRank = 0;
+        if (controllers != null) {
+            for (int i = 0; i < controllers.size(); i++) {
+                MediaController candidate = controllers.get(i);
+                PlaybackState playbackState = candidate.getPlaybackState();
+                if (playbackState == null) continue;
+                int state = playbackState.getState();
+                int rank;
+                if (state == PlaybackState.STATE_PLAYING) rank = 2;
+                else if (state == PlaybackState.STATE_PAUSED) rank = 1;
+                else continue;
+                if (rank > bestRank) {
+                    best = candidate;
+                    bestRank = rank;
+                }
+            }
+        }
+        if (best == null) {
+            hideMusicDock();
+            return;
+        }
+        activeMediaController = best;
+        if (mediaControllerCallback == null) {
+            mediaControllerCallback = new MediaController.Callback() {
+                @Override
+                public void onPlaybackStateChanged(PlaybackState state) {
+                    updateMusicDockContent();
+                }
+
+                @Override
+                public void onMetadataChanged(MediaMetadata metadata) {
+                    updateMusicDockContent();
+                }
+            };
+        }
+        try {
+            best.registerCallback(mediaControllerCallback);
+        } catch (Exception e) {
+            // Ignore registration failures
+        }
+        updateMusicDockContent();
+    }
+
+    private void updateMusicDockContent() {
+        if (musicDockView == null) return;
+        MediaController controller = activeMediaController;
+        PlaybackState playbackState = controller != null ? controller.getPlaybackState() : null;
+        int state = playbackState != null ? playbackState.getState() : PlaybackState.STATE_NONE;
+        boolean playing = state == PlaybackState.STATE_PLAYING;
+        boolean paused = state == PlaybackState.STATE_PAUSED;
+        if (controller == null || (!playing && !paused)) {
+            hideMusicDock();
+            return;
+        }
+        String title = null;
+        MediaMetadata metadata = controller.getMetadata();
+        if (metadata != null) {
+            CharSequence text = metadata.getText(MediaMetadata.METADATA_KEY_TITLE);
+            if (text != null && text.toString().trim().length() > 0) {
+                title = text.toString();
+            }
+        }
+        if (title == null || title.isEmpty()) {
+            try {
+                PackageManager pm = getPackageManager();
+                CharSequence label = pm.getApplicationLabel(
+                        pm.getApplicationInfo(controller.getPackageName(), 0));
+                if (label != null) {
+                    title = label.toString();
+                }
+            } catch (Exception e) {
+                title = "";
+            }
+        }
+        if (musicDockTitleView != null) {
+            musicDockTitleView.setText(title);
+        }
+        if (musicDockPlayPause != null) {
+            applyMusicTransportIcon(musicDockPlayPause,
+                    playing ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
+        }
+        showMusicDock();
+    }
+
+    private void showMusicDock() {
+        if (musicDockView != null && musicDockView.getVisibility() != View.VISIBLE) {
+            musicDockView.setVisibility(View.VISIBLE);
+            DockBackdropHelper.reapply(musicDockView);
+            EinkRefreshHelper.refreshEink(getWindow(),
+                    getSharedPreferences("prefs", MODE_PRIVATE),
+                    getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));
+        }
+    }
+
+    private void hideMusicDock() {
+        if (musicDockView != null && musicDockView.getVisibility() != View.GONE) {
+            musicDockView.setVisibility(View.GONE);
+            EinkRefreshHelper.refreshEink(getWindow(),
+                    getSharedPreferences("prefs", MODE_PRIVATE),
+                    getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));
+        }
+    }
+
+    private void musicSkipToPrevious() {
+        if (activeMediaController != null) {
+            try {
+                activeMediaController.getTransportControls().skipToPrevious();
+            } catch (Exception e) {
+                // Ignore transport errors
+            }
+        }
+    }
+
+    private void musicSkipToNext() {
+        if (activeMediaController != null) {
+            try {
+                activeMediaController.getTransportControls().skipToNext();
+            } catch (Exception e) {
+                // Ignore transport errors
+            }
+        }
+    }
+
+    private void musicTogglePlayPause() {
+        if (activeMediaController == null) return;
+        PlaybackState playbackState = activeMediaController.getPlaybackState();
+        boolean playing = playbackState != null
+                && playbackState.getState() == PlaybackState.STATE_PLAYING;
+        try {
+            if (playing) {
+                activeMediaController.getTransportControls().pause();
+            } else {
+                activeMediaController.getTransportControls().play();
+            }
+        } catch (Exception e) {
+            // Ignore transport errors
+        }
+    }
+
     private void adjustMainLayoutPosition() {
         RelativeLayout.LayoutParams mainParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
@@ -1483,6 +1898,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
         createAppBar();
         createDock();
+        createMusicDock();
 
         adjustMainLayoutPosition();
 
@@ -1787,8 +2203,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         updateDateText();
         refreshAppBar();
         refreshDock();
+        refreshMusicDock();
         FontHelper.applyToViewTree(this, rootLayout);
         applyWindowInsetsToUI(statusBarInset, navBarInset);
+        startMusicMonitoring();
     }
 
     @Override
@@ -2299,6 +2717,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         createSearchButton(bgColor, textColor);
         refreshAppBar();
         refreshDock();
+        refreshMusicDock();
         adjustMainLayoutPosition();
     }
 
@@ -2306,6 +2725,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(homeButtonReceiver);
+        stopMusicMonitoring();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
@@ -3000,6 +3420,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         private String touchedDockPkg = null;
         private String touchedDockPrefix = null;
         private int touchedDockSlotIndex = -1;
+        private View touchedMusicButton = null;
 
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final java.util.ArrayList<GesturePoint> touchPoints = new java.util.ArrayList<>();
@@ -3059,6 +3480,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
                     touchedSlotIndex = findTouchedSlot(event.getX(), event.getY());
                     touchedDockPkg = findDockPkg(event.getX(), event.getY());
+                    touchedMusicButton = findMusicButton(event.getX(), event.getY());
                     touchedClock = isPointInsideView(event.getX(), event.getY(), timeView);
                     touchedDate = isPointInsideView(event.getX(), event.getY(), dateView);
 
@@ -3066,6 +3488,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         isLongPress = true;
                         if (touchedDockPkg != null) {
                             showDockShortcuts(touchedDockPkg, touchedDockPrefix, touchedDockSlotIndex);
+                        } else if (touchedMusicButton != null) {
+                            // Long press on music transport buttons does nothing
                         } else if (touchedSlotIndex >= 0) {
                             String pkg = appPackages.get(touchedSlotIndex);
                             java.util.List<ShortcutInfo> shortcuts = null;
@@ -3138,6 +3562,17 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
 
         private void handleTap() {
+            if (touchedMusicButton != null) {
+                Object action = touchedMusicButton.getTag();
+                if ("prev".equals(action)) {
+                    musicSkipToPrevious();
+                } else if ("play_pause".equals(action)) {
+                    musicTogglePlayPause();
+                } else if ("next".equals(action)) {
+                    musicSkipToNext();
+                }
+                return;
+            }
             if (touchedDockPkg != null) {
                 launchApp(touchedDockPkg);
             } else if (touchedSlotIndex >= 0) {
@@ -3255,6 +3690,17 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             }
             touchedDockPrefix = null;
             touchedDockSlotIndex = -1;
+            return null;
+        }
+
+        private View findMusicButton(float x, float y) {
+            if (musicDockView == null || musicDockView.getParent() != rootLayout) return null;
+            for (int i = 0; i < musicDockView.getChildCount(); i++) {
+                View item = musicDockView.getChildAt(i);
+                if (item.getVisibility() == View.VISIBLE && isPointInsideView(x, y, item)) {
+                    return item;
+                }
+            }
             return null;
         }
 
@@ -3477,6 +3923,21 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             params.topMargin = dockMargin;
             params.bottomMargin = dockMargin + homePaddingBottomPx + bottomInset;
             dockView.setLayoutParams(params);
+        }
+
+        if (musicDockView != null && musicDockView.getParent() == rootLayout) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) musicDockView.getLayoutParams();
+            SharedPreferences musicPrefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            int musicPosition = musicPrefs.getInt("music_dock_position", 7);
+            boolean topAnchored = (musicPosition == 0 || musicPosition == 1 || musicPosition == 6);
+            boolean bottomAnchored = (musicPosition == 2 || musicPosition == 3 || musicPosition == 7);
+            float density = getResources().getDisplayMetrics().density;
+            int musicMargin = (int) (8 * density);
+            params.leftMargin = musicMargin + homePaddingLeftPx;
+            params.rightMargin = musicMargin + homePaddingRightPx;
+            params.topMargin = musicMargin + homePaddingTopPx + (topAnchored ? topInset : 0);
+            params.bottomMargin = musicMargin + homePaddingBottomPx + (bottomAnchored ? bottomInset : 0);
+            musicDockView.setLayoutParams(params);
         }
 
         if (mainLayout != null) {
