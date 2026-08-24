@@ -63,6 +63,7 @@ public class AppLauncherActivity extends AppCompatActivity {
     private List<String> installedAppLabels;
     private List<String> installedAppPackages;
     private Set<String> hiddenApps;
+    private List<AppSearchHelper.AppItem> searchApps;
     private boolean scrollAppList;
     private boolean opacityEnabled;
     private int appIndexSidebar;
@@ -360,6 +361,10 @@ public class AppLauncherActivity extends AppCompatActivity {
     private void removeAppFromList(String packageName) {
         originalApps.removeIf(app -> app.packageName.equals(packageName));
         filteredApps.removeIf(app -> app.packageName.equals(packageName));
+        if (searchApps != null) {
+            searchApps.removeIf(app -> app.packageName.equals(packageName));
+            appIndex = new AppSearchHelper.IndexedApps(searchApps);
+        }
         launcherAdapter.notifyDataSetChanged();
         updatePageIndicator();
     }
@@ -379,10 +384,11 @@ public class AppLauncherActivity extends AppCompatActivity {
 
             originalApps.add(new AppSearchHelper.AppItem(label, pkg));
         }
+        searchApps = new ArrayList<>(originalApps);
+        appIndex = new AppSearchHelper.IndexedApps(searchApps);
         originalApps.removeIf(app -> hiddenApps.contains(app.packageName));
         filteredApps.clear();
         filteredApps.addAll(originalApps);
-        appIndex = new AppSearchHelper.IndexedApps(originalApps);
     }
 
     /**
@@ -463,7 +469,15 @@ public class AppLauncherActivity extends AppCompatActivity {
                     }
                 }
 
-                appIndex = new AppSearchHelper.IndexedApps(originalApps);
+                if (searchApps != null) {
+                    for (AppSearchHelper.AppItem searchApp : searchApps) {
+                        if (searchApp.packageName.equals(app.packageName)) {
+                            searchApp.label = newName;
+                            break;
+                        }
+                    }
+                    appIndex = new AppSearchHelper.IndexedApps(searchApps);
+                }
                 launcherAdapter.notifyDataSetChanged();
             }).show();
         }
