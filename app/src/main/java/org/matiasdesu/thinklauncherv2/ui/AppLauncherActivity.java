@@ -635,6 +635,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                 switch (event.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
                     case MotionEvent.ACTION_MOVE: {
+                        hideKeyboard();
                         int letterIdx = (int) (event.getY() / (v.getHeight() / (float) count));
                         if (letterIdx < 0) letterIdx = 0;
                         if (letterIdx >= count) letterIdx = count - 1;
@@ -679,6 +680,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                 switch (event.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
                     case MotionEvent.ACTION_MOVE: {
+                        hideKeyboard();
                         int letterIdx = (int) (event.getX() / (v.getWidth() / (float) count));
                         if (letterIdx < 0) letterIdx = 0;
                         if (letterIdx >= count) letterIdx = count - 1;
