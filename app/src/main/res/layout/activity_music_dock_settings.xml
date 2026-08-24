@@ -100,6 +100,64 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/keep_active_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/unhide"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Always Active:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/keep_active_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/hide_delay_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_margin="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/time"
+                    android:layout_marginEnd="8dp"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Hide Delay:"
+                    android:textColor="?attr/text_color"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <include layout="@layout/plus_minus_layout"
+                    android:id="@+id/hide_delay_container" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/notification_access_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -182,6 +182,8 @@ public class MainActivity extends Activity {
     private MediaController activeMediaController;
     private MediaSessionManager.OnActiveSessionsChangedListener mediaSessionsListener;
     private MediaController.Callback mediaControllerCallback;
+    private final Handler musicDockHideHandler = new Handler(Looper.getMainLooper());
+    private Runnable musicDockHideRunnable;
     private static final int REQUEST_EDIT_DOCK_BASE = 10000;
     private String pendingDockPrefix = null;
     private int statusBarInset = 0;
@@ -1552,7 +1554,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             }
         }
         if (best == null) {
-            hideMusicDock();
+            scheduleMusicDockHide();
             return;
         }
         activeMediaController = best;
@@ -1585,7 +1587,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         boolean playing = state == PlaybackState.STATE_PLAYING;
         boolean paused = state == PlaybackState.STATE_PAUSED;
         if (controller == null || (!playing && !paused)) {
-            hideMusicDock();
+            scheduleMusicDockHide();
             return;
         }
         String title = null;
@@ -1615,10 +1617,15 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             applyMusicTransportIcon(musicDockPlayPause,
                     playing ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
         }
-        showMusicDock();
+        if (playing) {
+            showMusicDock();
+        } else {
+            scheduleMusicDockHide();
+        }
     }
 
     private void showMusicDock() {
+        cancelMusicDockHide();
         if (musicDockView != null && musicDockView.getVisibility() != View.VISIBLE) {
             musicDockView.setVisibility(View.VISIBLE);
             DockBackdropHelper.reapply(musicDockView);
@@ -1629,11 +1636,42 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     }
 
     private void hideMusicDock() {
+        cancelMusicDockHide();
         if (musicDockView != null && musicDockView.getVisibility() != View.GONE) {
             musicDockView.setVisibility(View.GONE);
             EinkRefreshHelper.refreshEink(getWindow(),
                     getSharedPreferences("prefs", MODE_PRIVATE),
                     getSharedPreferences("prefs", MODE_PRIVATE).getInt("eink_refresh_delay", 100));
+        }
+    }
+
+    private void cancelMusicDockHide() {
+        if (musicDockHideRunnable != null) {
+            musicDockHideHandler.removeCallbacks(musicDockHideRunnable);
+        }
+    }
+
+    private void scheduleMusicDockHide() {
+        cancelMusicDockHide();
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (prefs.getInt("music_dock_keep_active", 0) == 1) {
+            showMusicDock();
+            return;
+        }
+        if (musicDockView == null) return;
+        int delaySeconds = prefs.getInt("music_dock_hide_delay", 0);
+        if (musicDockHideRunnable == null) {
+            musicDockHideRunnable = () -> {
+                if (getSharedPreferences("prefs", MODE_PRIVATE)
+                        .getInt("music_dock_keep_active", 0) != 1) {
+                    hideMusicDock();
+                }
+            };
+        }
+        if (delaySeconds <= 0) {
+            musicDockHideRunnable.run();
+        } else {
+            musicDockHideHandler.postDelayed(musicDockHideRunnable, delaySeconds * 1000L);
         }
     }
 

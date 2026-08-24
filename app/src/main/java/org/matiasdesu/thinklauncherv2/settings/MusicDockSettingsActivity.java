@@ -19,6 +19,8 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
     private static final int ICON_SIZE_MAX = 64;
     private static final int TEXT_SIZE_MIN = 10;
     private static final int TEXT_SIZE_MAX = 48;
+    private static final int HIDE_DELAY_MIN = 0;
+    private static final int HIDE_DELAY_MAX = 120;
 
     private static final String PREFIX = "music_dock";
 
@@ -30,6 +32,8 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
     private int background;
     private int backdropOpacity;
     private int backdropBlur;
+    private int keepActive;
+    private int hideDelay;
 
     private String p(String key) {
         return PREFIX + "_" + key;
@@ -57,6 +61,8 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         background = prefs.getInt(p("background"), 0);
         backdropOpacity = prefs.getInt(p("backdrop_opacity"), 0);
         backdropBlur = prefs.getInt(p("backdrop_blur"), 0);
+        keepActive = prefs.getInt(p("keep_active"), 0);
+        hideDelay = prefs.getInt(p("hide_delay"), 0);
 
         View enabledContainer = findViewById(R.id.enabled_container);
         TextView enabledValueTv = enabledContainer.findViewById(R.id.value_text);
@@ -127,6 +133,16 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         backdropBlurValueTv.setMinWidth(
                 TextWidthHelper.getMaxTextWidthPx(backdropBlurValueTv, new String[] { "ON", "OFF" }));
 
+        View keepActiveContainer = findViewById(R.id.keep_active_container);
+        TextView keepActiveValueTv = keepActiveContainer.findViewById(R.id.value_text);
+        keepActiveValueTv.setText(keepActive == 1 ? "ON" : "OFF");
+        keepActiveValueTv.setMinWidth(
+                TextWidthHelper.getMaxTextWidthPx(keepActiveValueTv, new String[] { "ON", "OFF" }));
+
+        View hideDelayContainer = findViewById(R.id.hide_delay_container);
+        TextView hideDelayValueTv = hideDelayContainer.findViewById(R.id.value_text);
+        hideDelayValueTv.setText(hideDelay + "s");
+
         ImageButton minusEnabled = enabledContainer.findViewById(R.id.btn_minus);
         ImageButton plusEnabled = enabledContainer.findViewById(R.id.btn_plus);
         ImageButton minusOrientation = orientationContainer.findViewById(R.id.btn_minus);
@@ -143,6 +159,10 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         ImageButton plusBackdropOpacity = backdropOpacityContainer.findViewById(R.id.btn_plus);
         ImageButton minusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_minus);
         ImageButton plusBackdropBlur = backdropBlurContainer.findViewById(R.id.btn_plus);
+        ImageButton minusKeepActive = keepActiveContainer.findViewById(R.id.btn_minus);
+        ImageButton plusKeepActive = keepActiveContainer.findViewById(R.id.btn_plus);
+        ImageButton minusHideDelay = hideDelayContainer.findViewById(R.id.btn_minus);
+        ImageButton plusHideDelay = hideDelayContainer.findViewById(R.id.btn_plus);
 
         minusEnabled.setOnClickListener(v -> {
             enabled = enabled == 1 ? 0 : 1;
@@ -244,6 +264,34 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
             prefs.edit().putInt(p("backdrop_blur"), backdropBlur).apply();
         });
 
+        minusKeepActive.setOnClickListener(v -> {
+            keepActive = keepActive == 1 ? 0 : 1;
+            keepActiveValueTv.setText(keepActive == 1 ? "ON" : "OFF");
+            prefs.edit().putInt(p("keep_active"), keepActive).apply();
+            refreshVisibility();
+        });
+        plusKeepActive.setOnClickListener(v -> {
+            keepActive = keepActive == 1 ? 0 : 1;
+            keepActiveValueTv.setText(keepActive == 1 ? "ON" : "OFF");
+            prefs.edit().putInt(p("keep_active"), keepActive).apply();
+            refreshVisibility();
+        });
+
+        minusHideDelay.setOnTouchListener(new RepeatListener(v -> {
+            if (hideDelay > HIDE_DELAY_MIN) {
+                hideDelay--;
+                hideDelayValueTv.setText(hideDelay + "s");
+                prefs.edit().putInt(p("hide_delay"), hideDelay).apply();
+            }
+        }));
+        plusHideDelay.setOnTouchListener(new RepeatListener(v -> {
+            if (hideDelay < HIDE_DELAY_MAX) {
+                hideDelay++;
+                hideDelayValueTv.setText(hideDelay + "s");
+                prefs.edit().putInt(p("hide_delay"), hideDelay).apply();
+            }
+        }));
+
         initPagination(this::refreshVisibility);
 
         refreshVisibility();
@@ -322,5 +370,8 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         }
         findViewById(R.id.backdrop_blur_layout).setVisibility(
                 enabled == 1 && backdropOpacity == 1 ? View.VISIBLE : View.GONE);
+        findViewById(R.id.keep_active_layout).setVisibility(visibility);
+        findViewById(R.id.hide_delay_layout).setVisibility(
+                enabled == 1 && keepActive == 0 ? View.VISIBLE : View.GONE);
     }
 }
