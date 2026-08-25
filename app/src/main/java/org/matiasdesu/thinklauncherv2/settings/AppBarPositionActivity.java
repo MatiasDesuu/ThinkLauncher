@@ -13,11 +13,17 @@ public class AppBarPositionActivity extends BaseSettingsActivity {
     public static final String EXTRA_PREF_KEY = "pref_key";
     public static final String EXTRA_DEFAULT_POSITION = "default_position";
     public static final String EXTRA_TITLE = "title";
+    public static final String EXTRA_PICKER_MODE = "picker_mode";
+
+    public static final int PICKER_MODE_GRID9 = AppBarPositionView.MODE_GRID9;
+    public static final int PICKER_MODE_CROSS4 = AppBarPositionView.MODE_CROSS4;
 
     private static final String[] POSITION_LABELS = {
             "Top Left", "Top Right", "Bottom Left", "Bottom Right",
             "Center Left", "Center Right", "Top Center", "Bottom Center", "Center"
     };
+
+    private static final String[] CROSS4_POSITION_LABELS = { "Top", "Right", "Bottom", "Left" };
 
     @Override
     protected int getLayoutResId() {
@@ -47,13 +53,18 @@ public class AppBarPositionActivity extends BaseSettingsActivity {
 
         TextView selectedLabel = findViewById(R.id.selected_label);
 
+        int mode = getIntent().getIntExtra(EXTRA_PICKER_MODE, PICKER_MODE_GRID9);
+        String[] labels = mode == PICKER_MODE_CROSS4 ? CROSS4_POSITION_LABELS : POSITION_LABELS;
+
         AppBarPositionView picker = findViewById(R.id.position_picker);
+        picker.setMode(mode);
         int current = prefs.getInt(positionPrefKey, defaultPosition);
-        if (current < 0 || current > 8) {
-            current = defaultPosition;
+        if (current < 0 || current >= labels.length) {
+            current = (defaultPosition >= 0 && defaultPosition < labels.length)
+                    ? defaultPosition : 0;
         }
         picker.setSelectedPosition(current);
-        selectedLabel.setText(POSITION_LABELS[current]);
+        selectedLabel.setText(labels[current]);
 
         picker.setOnPositionSelectedListener((position, label) -> {
             prefs.edit().putInt(positionPrefKey, position).apply();

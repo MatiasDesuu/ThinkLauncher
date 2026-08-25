@@ -1285,6 +1285,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         createDock();
     }
 
+    // Music dock buttons placement relative to the title
+    public static final int MUSIC_DOCK_BUTTON_TOP = 0;
+    public static final int MUSIC_DOCK_BUTTON_RIGHT = 1;
+    public static final int MUSIC_DOCK_BUTTON_BOTTOM = 2;
+    public static final int MUSIC_DOCK_BUTTON_LEFT = 3;
+
     private void createMusicDock() {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         if (prefs.getInt("music_dock_enabled", 0) != 1 || !hasNotificationListenerAccess()) {
@@ -1294,10 +1300,24 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         int iconSizeDp = prefs.getInt("music_dock_icon_size", 20);
         int textSizeSp = prefs.getInt("music_dock_text_size", 16);
         boolean vertical = prefs.getInt("music_dock_orientation", 0) == 1;
+        int buttonPos = prefs.getInt("music_dock_button_position", -1);
+        if (buttonPos < MUSIC_DOCK_BUTTON_TOP || buttonPos > MUSIC_DOCK_BUTTON_LEFT) {
+            buttonPos = vertical ? MUSIC_DOCK_BUTTON_BOTTOM : MUSIC_DOCK_BUTTON_LEFT;
+        }
 
         LinearLayout bar = new LinearLayout(this);
         bar.setId(View.generateViewId());
-        bar.setOrientation(vertical ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        // Buttons keep their own stacking axis; the bar flips when the group
+        // sits beside the title instead of in line with it (two rows/columns)
+        if (vertical) {
+            boolean besideTitle = buttonPos == MUSIC_DOCK_BUTTON_LEFT
+                    || buttonPos == MUSIC_DOCK_BUTTON_RIGHT;
+            bar.setOrientation(besideTitle ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        } else {
+            boolean stackedRows = buttonPos == MUSIC_DOCK_BUTTON_TOP
+                    || buttonPos == MUSIC_DOCK_BUTTON_BOTTOM;
+            bar.setOrientation(stackedRows ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        }
         bar.setGravity(Gravity.CENTER);
         bar.setClipChildren(false);
         bar.setClipToPadding(false);
@@ -1327,31 +1347,63 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 getAppBarIconEffectColorValue(prefs.getInt("music_dock_text_effect_color", 0), theme));
         musicDockTitleView = titleView;
 
+        // Transport buttons always stack along the dock's main axis
+        LinearLayout buttonsGroup = new LinearLayout(this);
+        buttonsGroup.setOrientation(vertical ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        buttonsGroup.setGravity(Gravity.CENTER);
+        buttonsGroup.addView(prevButton);
+        buttonsGroup.addView(playPauseButton);
+        buttonsGroup.addView(nextButton);
+
+        boolean buttonsFirst = buttonPos == MUSIC_DOCK_BUTTON_TOP
+                || buttonPos == MUSIC_DOCK_BUTTON_LEFT;
+
+        int lineHeight = 0;
+        int stripLength = 0;
+        View titleSlot;
         if (vertical) {
-            int lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing() * 1.15f);
-            int stripLength = (int) (160 * density);
+            lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing() * 1.15f);
+            stripLength = (int) (160 * density);
             FrameLayout titleContainer = new FrameLayout(this);
             FrameLayout.LayoutParams innerParams = new FrameLayout.LayoutParams(
                     stripLength, lineHeight, Gravity.CENTER);
             titleView.setLayoutParams(innerParams);
             titleView.setRotation(270f);
             titleContainer.addView(titleView);
-            LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(lineHeight, stripLength);
-            containerParams.bottomMargin = slotMargin;
-            bar.addView(titleContainer, containerParams);
-            bar.addView(prevButton);
-            bar.addView(playPauseButton);
-            bar.addView(nextButton);
+            titleSlot = titleContainer;
             musicDockTitleSlot = titleContainer;
         } else {
-            bar.addView(prevButton);
-            bar.addView(playPauseButton);
-            bar.addView(nextButton);
-            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            titleParams.leftMargin = slotMargin;
-            bar.addView(titleView, titleParams);
+            titleSlot = titleView;
             musicDockTitleSlot = titleView;
+        }
+
+        LinearLayout.LayoutParams buttonsParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        // The container must match the rotated strip footprint (narrow and
+        // tall), not the unrotated TextView size, or neighbors will hug or
+        // overlap the visible strip
+        LinearLayout.LayoutParams titleParams = vertical
+                ? new LinearLayout.LayoutParams(lineHeight, stripLength)
+                : new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+        // Side-placed vertical buttons carry no horizontal margins, so double
+        // the gap to match the spacing of the stacked layouts
+        int titleGap = (vertical && bar.getOrientation() == LinearLayout.HORIZONTAL)
+                ? slotMargin * 2 : slotMargin;
+        if (bar.getOrientation() == LinearLayout.HORIZONTAL) {
+            if (buttonsFirst) titleParams.leftMargin = titleGap;
+            else titleParams.rightMargin = titleGap;
+        } else {
+            if (buttonsFirst) titleParams.topMargin = titleGap;
+            else titleParams.bottomMargin = titleGap;
+        }
+        if (buttonsFirst) {
+            bar.addView(buttonsGroup, buttonsParams);
+            bar.addView(titleSlot, titleParams);
+        } else {
+            bar.addView(titleSlot, titleParams);
+            bar.addView(buttonsGroup, buttonsParams);
         }
 
         boolean borderEnabled = prefs.getInt("music_dock_border", 0) == 1;

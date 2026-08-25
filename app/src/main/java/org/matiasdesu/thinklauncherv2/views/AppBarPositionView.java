@@ -17,19 +17,36 @@ public class AppBarPositionView extends View {
         void onPositionSelected(int position, String label);
     }
 
-    // Cell -> position id mapping
-    private static final int[][] CELL_TO_POSITION = {
+    // Picker modes
+    public static final int MODE_GRID9 = 0;  // full 3x3 grid, all cells selectable
+    public static final int MODE_CROSS4 = 1; // 4 cells around an empty center
+
+    private static final int CELL_EMPTY = -1;
+
+    // Cell -> position id mappings
+    private static final int[][] GRID9_CELL_TO_POSITION = {
             { 0, 6, 1 },
             { 4, 8, 5 },
             { 2, 7, 3 }
     };
 
-    private static final String[] POSITION_LABELS = {
+    // Center cell stays empty: on the music dock picker it represents the
+    // track title, buttons are placed around it
+    private static final int[][] CROSS4_CELL_TO_POSITION = {
+            { CELL_EMPTY, 0, CELL_EMPTY },
+            { 3, CELL_EMPTY, 1 },
+            { CELL_EMPTY, 2, CELL_EMPTY }
+    };
+
+    private static final String[] GRID9_POSITION_LABELS = {
             "Top Left", "Top Right", "Bottom Left", "Bottom Right",
             "Center Left", "Center Right", "Top Center", "Bottom Center", "Center"
     };
 
+    private static final String[] CROSS4_POSITION_LABELS = { "Top", "Right", "Bottom", "Left" };
+
     private int theme;
+    private int mode = MODE_GRID9;
     private int selectedPosition = 0;
     private Paint borderPaint;
     private Paint fillPaint;
@@ -76,8 +93,32 @@ public class AppBarPositionView extends View {
         detailPaint.setColor(textColor);
     }
 
+    public void setMode(int mode) {
+        this.mode = mode;
+        if (selectedPosition > getMaxPosition()) {
+            selectedPosition = 0;
+        }
+        invalidate();
+    }
+
+    public int getMode() {
+        return mode;
+    }
+
+    private int[][] getCellMap() {
+        return mode == MODE_CROSS4 ? CROSS4_CELL_TO_POSITION : GRID9_CELL_TO_POSITION;
+    }
+
+    private String[] getLabels() {
+        return mode == MODE_CROSS4 ? CROSS4_POSITION_LABELS : GRID9_POSITION_LABELS;
+    }
+
+    private int getMaxPosition() {
+        return getLabels().length - 1;
+    }
+
     public void setSelectedPosition(int position) {
-        if (position < 0 || position >= 9) return;
+        if (position < 0 || position > getMaxPosition()) return;
         this.selectedPosition = position;
         invalidate();
     }
@@ -119,7 +160,8 @@ public class AppBarPositionView extends View {
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                int position = CELL_TO_POSITION[row][col];
+                int position = getCellMap()[row][col];
+                if (position == CELL_EMPTY) continue;
                 float cx = left + col * cellW + cellW / 2f;
                 float cy = top + row * cellH + cellH / 2f;
                 boolean selected = (position == selectedPosition);
@@ -157,11 +199,13 @@ public class AppBarPositionView extends View {
                 if (row < 0) row = 0;
                 if (row > 2) row = 2;
 
-                int position = CELL_TO_POSITION[row][col];
-                selectedPosition = position;
-                invalidate();
-                if (listener != null) {
-                    listener.onPositionSelected(position, POSITION_LABELS[position]);
+                int position = getCellMap()[row][col];
+                if (position != CELL_EMPTY) {
+                    selectedPosition = position;
+                    invalidate();
+                    if (listener != null) {
+                        listener.onPositionSelected(position, getLabels()[position]);
+                    }
                 }
             }
             performClick();

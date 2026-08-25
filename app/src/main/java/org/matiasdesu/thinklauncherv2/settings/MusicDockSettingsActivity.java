@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.RepeatListener;
 import org.matiasdesu.thinklauncherv2.utils.TextWidthHelper;
@@ -123,6 +124,23 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         refreshOrientationValue();
         refreshIconSizeValue();
         refreshTextSizeValue();
+
+        View buttonsPositionButton = findViewById(R.id.buttons_position_button);
+        buttonsPositionButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AppBarPositionActivity.class);
+            intent.putExtra(AppBarPositionActivity.EXTRA_PREF_KEY, p("button_position"));
+            intent.putExtra(AppBarPositionActivity.EXTRA_DEFAULT_POSITION,
+                    orientation == 1 ? MainActivity.MUSIC_DOCK_BUTTON_BOTTOM
+                            : MainActivity.MUSIC_DOCK_BUTTON_LEFT);
+            intent.putExtra(AppBarPositionActivity.EXTRA_TITLE, "Buttons Position");
+            intent.putExtra(AppBarPositionActivity.EXTRA_PICKER_MODE,
+                    AppBarPositionActivity.PICKER_MODE_CROSS4);
+            if (!screenAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
+        });
 
         View borderContainer = findViewById(R.id.border_container);
         TextView borderValueTv = borderContainer.findViewById(R.id.value_text);
@@ -360,6 +378,7 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
     private void refreshVisibility() {
         View[] views = {
                 findViewById(R.id.orientation_layout),
+                findViewById(R.id.buttons_position_button),
                 findViewById(R.id.icon_size_layout),
                 findViewById(R.id.text_size_layout),
                 findViewById(R.id.border_layout),
