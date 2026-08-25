@@ -1362,7 +1362,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         int stripLength = 0;
         View titleSlot;
         if (vertical) {
-            lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing() * 1.15f);
+            lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing());
             stripLength = (int) (160 * density);
             FrameLayout titleContainer = new FrameLayout(this);
             FrameLayout.LayoutParams innerParams = new FrameLayout.LayoutParams(
@@ -1387,10 +1387,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 : new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
-        // Side-placed vertical buttons carry no horizontal margins, so double
-        // the gap to match the spacing of the stacked layouts
-        int titleGap = (vertical && bar.getOrientation() == LinearLayout.HORIZONTAL)
-                ? slotMargin * 2 : slotMargin;
+        int titleGap;
+        if (vertical) {
+            titleGap = bar.getOrientation() == LinearLayout.HORIZONTAL ? slotMargin * 2 : 0;
+        } else {
+            titleGap = slotMargin;
+        }
         if (bar.getOrientation() == LinearLayout.HORIZONTAL) {
             if (buttonsFirst) titleParams.leftMargin = titleGap;
             else titleParams.rightMargin = titleGap;
@@ -1404,6 +1406,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         } else {
             bar.addView(titleSlot, titleParams);
             bar.addView(buttonsGroup, buttonsParams);
+        }
+        if (vertical) {
+            updateMusicDockTitleStripSize();
         }
 
         boolean borderEnabled = prefs.getInt("music_dock_border", 0) == 1;
@@ -1509,6 +1514,33 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         iv.setTag(action);
         applyMusicTransportIcon(iv, drawableRes);
         return iv;
+    }
+
+    private void updateMusicDockTitleStripSize() {
+        if (!(musicDockTitleView instanceof StrokeTextView)
+                || !(musicDockTitleSlot instanceof FrameLayout)) {
+            return;
+        }
+        StrokeTextView titleView = (StrokeTextView) musicDockTitleView;
+        CharSequence text = titleView.getText();
+        float density = getResources().getDisplayMetrics().density;
+        int maxLength = (int) (160 * density);
+        int lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing());
+        int textLength = 0;
+        if (text != null && text.length() > 0) {
+            titleView.measure(
+                    View.MeasureSpec.makeMeasureSpec(maxLength, View.MeasureSpec.AT_MOST),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            textLength = Math.max(1, Math.min(titleView.getMeasuredWidth(), maxLength));
+        }
+        FrameLayout.LayoutParams innerParams = (FrameLayout.LayoutParams) titleView.getLayoutParams();
+        innerParams.width = textLength;
+        innerParams.height = lineHeight;
+        titleView.setLayoutParams(innerParams);
+        ViewGroup.LayoutParams slotParams = musicDockTitleSlot.getLayoutParams();
+        slotParams.width = lineHeight;
+        slotParams.height = textLength;
+        musicDockTitleSlot.setLayoutParams(slotParams);
     }
 
     private void applyMusicTransportIcon(ImageView iv, int drawableRes) {
@@ -1705,6 +1737,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         if (musicDockTitleSlot != null && musicDockTitleSlot.getVisibility()
                 != (hasTitle ? View.VISIBLE : View.GONE)) {
             musicDockTitleSlot.setVisibility(hasTitle ? View.VISIBLE : View.GONE);
+        }
+        if (hasTitle) {
+            updateMusicDockTitleStripSize();
         }
     }
 
