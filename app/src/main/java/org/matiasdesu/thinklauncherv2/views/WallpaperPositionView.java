@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
 public class WallpaperPositionView extends View {
 
@@ -27,6 +29,8 @@ public class WallpaperPositionView extends View {
     private float offsetX = 0.5f; // 0.0 = left, 1.0 = right
     private float offsetY = 0.5f; // 0.0 = top, 1.0 = bottom
     private float scale = 1f;
+    private int screenWidth;
+    private int screenHeight;
     private float screenAspectRatio;
     private OnPositionChangedListener listener;
     private float lastTouchX;
@@ -56,11 +60,13 @@ public class WallpaperPositionView extends View {
     }
 
     private void init(Context context) {
-        // Get screen aspect ratio
+        // Use the real display size (same area the home screen renders into,
+        // including system bar zones) so the preview matches the home 1:1
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(metrics);
-        screenAspectRatio = (float) metrics.heightPixels / metrics.widthPixels;
+        int[] realDims = getRealScreenDimensions(wm);
+        screenWidth = realDims[0];
+        screenHeight = realDims[1];
+        screenAspectRatio = (float) screenHeight / screenWidth;
 
         borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         borderPaint.setStyle(Paint.Style.STROKE);
@@ -114,6 +120,16 @@ public class WallpaperPositionView extends View {
         this.listener = listener;
     }
 
+    private static int[] getRealScreenDimensions(WindowManager wm) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.graphics.Rect bounds = wm.getCurrentWindowMetrics().getBounds();
+            return new int[]{bounds.width(), bounds.height()};
+        }
+        DisplayMetrics metrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getRealMetrics(metrics);
+        return new int[]{metrics.widthPixels, metrics.heightPixels};
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -149,35 +165,12 @@ public class WallpaperPositionView extends View {
     }
 
     private void drawWallpaperPreview(Canvas canvas, float previewWidth, float previewHeight) {
-        float bitmapWidth = wallpaperBitmap.getWidth();
-        float bitmapHeight = wallpaperBitmap.getHeight();
-        
-        float screenRatio = previewWidth / previewHeight;
-        float bitmapRatio = bitmapWidth / bitmapHeight;
+        // Crop against the real screen dimensions using the exact same math
+        // as the home screen renderer (WallpaperHelper), so what the user
+        // sees here is exactly what gets drawn on the home
+        WallpaperHelper.computeCropSrcRect(wallpaperBitmap, screenWidth, screenHeight,
+                offsetX, offsetY, scale, srcRectInt);
 
-        float baseWidth, baseHeight;
-        if (bitmapRatio > screenRatio) {
-            baseWidth = bitmapHeight * screenRatio;
-            baseHeight = bitmapHeight;
-        } else {
-            baseWidth = bitmapWidth;
-            baseHeight = bitmapWidth / screenRatio;
-        }
-
-        float srcWidth = baseWidth / scale;
-        float srcHeight = baseHeight / scale;
-        float srcLeft = (bitmapWidth - srcWidth) * offsetX;
-        float srcTop = (bitmapHeight - srcHeight) * offsetY;
-
-        // Clamp to bitmap bounds
-        if (srcLeft < 0) srcLeft = 0;
-        if (srcTop < 0) srcTop = 0;
-        if (srcLeft + srcWidth > bitmapWidth) srcLeft = bitmapWidth - srcWidth;
-        if (srcTop + srcHeight > bitmapHeight) srcTop = bitmapHeight - srcHeight;
-
-        // Update rectangles
-        srcRectInt.set((int)srcLeft, (int)srcTop, (int)(srcLeft + srcWidth), (int)(srcTop + srcHeight));
-        
         canvas.save();
         canvas.clipRect(screenRect);
         canvas.drawBitmap(wallpaperBitmap, srcRectInt, screenRect, previewPaint);
@@ -235,36 +228,25 @@ public class WallpaperPositionView extends View {
                     float dx = x - lastTouchX;
                     float dy = y - lastTouchY;
 
-                    float bitmapWidth = wallpaperBitmap.getWidth();
-                    float bitmapHeight = wallpaperBitmap.getHeight();
+                    // Same crop window as the renderer, so panning speed
+                    // matches what the home screen will show
+                    WallpaperHelper.computeCropSrcRect(wallpaperBitmap, screenWidth, screenHeight,
+                            offsetX, offsetY, scale, srcRectInt);
+                    float srcWidth = srcRectInt.width();
+                    float srcHeight = srcRectInt.height();
                     float previewWidth = screenRect.width();
                     float previewHeight = screenRect.height();
-
-                    float screenRatio = previewWidth / previewHeight;
-                    float bitmapRatio = bitmapWidth / bitmapHeight;
-
-                    float baseWidth, baseHeight;
-                    if (bitmapRatio > screenRatio) {
-                        baseWidth = bitmapHeight * screenRatio;
-                        baseHeight = bitmapHeight;
-                    } else {
-                        baseWidth = bitmapWidth;
-                        baseHeight = bitmapWidth / screenRatio;
-                    }
-
-                    float srcWidth = baseWidth / scale;
-                    float srcHeight = baseHeight / scale;
 
                     float newOffsetX = offsetX;
                     float newOffsetY = offsetY;
 
-                    float movableWidth = bitmapWidth - srcWidth;
+                    float movableWidth = wallpaperBitmap.getWidth() - srcWidth;
                     if (movableWidth > 0) {
                         float deltaX = (dx * srcWidth) / (previewWidth * movableWidth);
                         newOffsetX = Math.max(0, Math.min(1, offsetX - deltaX));
                     }
 
-                    float movableHeight = bitmapHeight - srcHeight;
+                    float movableHeight = wallpaperBitmap.getHeight() - srcHeight;
                     if (movableHeight > 0) {
                         float deltaY = (dy * srcHeight) / (previewHeight * movableHeight);
                         newOffsetY = Math.max(0, Math.min(1, offsetY - deltaY));

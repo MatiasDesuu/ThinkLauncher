@@ -209,14 +209,31 @@ public class WallpaperHelper {
         return cropWallpaperForScreen(bitmap, screenWidth, screenHeight, offsetX, offsetY, 1f);
     }
 
-    public static Bitmap cropWallpaperForScreen(Bitmap bitmap, int screenWidth, int screenHeight, 
-                                                 float offsetX, float offsetY, float scale) {
-        if (bitmap == null) return null;
+    /**
+     * Compute the region of {@code bitmap} that covers a screen of the given
+     * size, honoring pan offsets and zoom. This is the single source of truth
+     * shared by the wallpaper settings preview and the home screen renderer,
+     * so both always display exactly the same portion of the image.
+     */
+    public static android.graphics.Rect computeCropSrcRect(Bitmap bitmap, int screenWidth, int screenHeight,
+                                                           float offsetX, float offsetY, float scale) {
+        android.graphics.Rect out = new android.graphics.Rect();
+        computeCropSrcRect(bitmap, screenWidth, screenHeight, offsetX, offsetY, scale, out);
+        return out;
+    }
+
+    /**
+     * Allocation-free variant that writes the result into {@code outRect},
+     * safe to call from layout/draw passes.
+     */
+    public static void computeCropSrcRect(Bitmap bitmap, int screenWidth, int screenHeight,
+                                          float offsetX, float offsetY, float scale,
+                                          android.graphics.Rect outRect) {
         if (scale < 1f) scale = 1f;
 
         float bitmapWidth = bitmap.getWidth();
         float bitmapHeight = bitmap.getHeight();
-        
+
         float screenRatio = (float) screenWidth / screenHeight;
         float bitmapRatio = bitmapWidth / bitmapHeight;
 
@@ -240,6 +257,20 @@ public class WallpaperHelper {
         if (srcLeft + srcWidth > bitmapWidth) srcLeft = bitmapWidth - srcWidth;
         if (srcTop + srcHeight > bitmapHeight) srcTop = bitmapHeight - srcHeight;
 
+        outRect.set((int) srcLeft, (int) srcTop,
+                (int) (srcLeft + srcWidth), (int) (srcTop + srcHeight));
+    }
+
+    /**
+     * Crop and scale wallpaper to fit screen with given offset and zoom
+     */
+    public static Bitmap cropWallpaperForScreen(Bitmap bitmap, int screenWidth, int screenHeight,
+                                                 float offsetX, float offsetY, float scale) {
+        if (bitmap == null) return null;
+
+        android.graphics.Rect srcRect = computeCropSrcRect(bitmap, screenWidth, screenHeight,
+                offsetX, offsetY, scale);
+
         // Create output bitmap. Use RGB_565 when the source has no alpha:
         // e-ink panels are grayscale anyway, and this halves memory usage.
         Bitmap.Config config = (!bitmap.hasAlpha() || bitmap.getConfig() == Bitmap.Config.RGB_565)
@@ -250,9 +281,8 @@ public class WallpaperHelper {
 
         // Draw the cropped portion of the wallpaper
         RectF dstRect = new RectF(0, 0, screenWidth, screenHeight);
-        
-        canvas.drawBitmap(bitmap,
-            new android.graphics.Rect((int)srcLeft, (int)srcTop, (int)(srcLeft + srcWidth), (int)(srcTop + srcHeight)),
+
+        canvas.drawBitmap(bitmap, srcRect,
             new android.graphics.Rect((int)dstRect.left, (int)dstRect.top, (int)dstRect.right, (int)dstRect.bottom),
             null);
 
