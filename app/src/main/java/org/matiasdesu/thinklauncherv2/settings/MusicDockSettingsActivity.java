@@ -297,13 +297,11 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         initPagination(this::refreshVisibility);
 
         refreshVisibility();
-        refreshNotificationAccessStatus();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        refreshNotificationAccessStatus();
     }
 
     private TextView refreshOrientationValue() {
@@ -342,16 +340,6 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
             }
         }
         return false;
-    }
-
-    private void refreshNotificationAccessStatus() {
-        View button = findViewById(R.id.notification_access_button);
-        if (button == null) return;
-        TextView valueTv = button.findViewById(R.id.value_text);
-        boolean granted = hasNotificationListenerAccess();
-        valueTv.setText(granted ? "ON" : "OFF");
-        valueTv.setMinWidth(
-                TextWidthHelper.getMaxTextWidthPx(valueTv, new String[] { "ON", "OFF" }));
     }
 
     private void refreshVisibility() {

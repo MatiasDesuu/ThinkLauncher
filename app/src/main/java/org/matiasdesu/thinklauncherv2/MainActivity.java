@@ -1129,12 +1129,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         rootLayout.addView(bar, params);
         appBarView = bar;
 
-        DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "app_bar",
-                resolveAppBarThemeColor(prefs.getInt("app_bar_background_color", 0), true),
-                appBarBorderEnabled,
-                resolveAppBarThemeColor(prefs.getInt("app_bar_border_color", 0), false),
-                2 * density,
-                DialogEffectHelper.getCornerRadiusPx(this));
+        if (appBarBgEnabled) {
+            DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "app_bar",
+                    resolveAppBarThemeColor(prefs.getInt("app_bar_background_color", 0), true),
+                    appBarBorderEnabled,
+                    resolveAppBarThemeColor(prefs.getInt("app_bar_border_color", 0), false),
+                    2 * density,
+                    DialogEffectHelper.getCornerRadiusPx(this));
+        }
     }
 
     private void refreshAppBar() {
@@ -1262,12 +1264,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         rootLayout.addView(bar, params);
         dockView = bar;
 
-        DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "dock",
-                resolveAppBarThemeColor(prefs.getInt("dock_background_color", 0), true),
-                appBarBorderEnabled,
-                resolveAppBarThemeColor(prefs.getInt("dock_border_color", 0), false),
-                2 * density,
-                DialogEffectHelper.getCornerRadiusPx(this));
+        if (appBarBgEnabled) {
+            DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "dock",
+                    resolveAppBarThemeColor(prefs.getInt("dock_background_color", 0), true),
+                    appBarBorderEnabled,
+                    resolveAppBarThemeColor(prefs.getInt("dock_border_color", 0), false),
+                    2 * density,
+                    DialogEffectHelper.getCornerRadiusPx(this));
+        }
     }
 
     private void refreshDock() {
