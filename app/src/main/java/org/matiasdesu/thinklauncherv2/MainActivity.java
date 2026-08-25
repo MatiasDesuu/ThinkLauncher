@@ -3799,6 +3799,26 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     }
 
     private void loadWallpaper() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+        }
+        rootLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                int viewWidth = rootLayout.getWidth();
+                int viewHeight = rootLayout.getHeight();
+                if (viewWidth <= 0 || viewHeight <= 0) {
+                    rootLayout.post(this);
+                    return;
+                }
+                startWallpaperLoad(viewWidth, viewHeight);
+            }
+        });
+    }
+
+    private void startWallpaperLoad(final int viewWidth, final int viewHeight) {
         new Thread(() -> {
             try {
                 SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
@@ -3807,9 +3827,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 Bitmap wallpaper = null;
 
                 if (WallpaperHelper.hasWallpaper(this)) {
-                    int[] screenDimensions = WallpaperHelper.getScreenDimensions(this);
-                    wallpaper = WallpaperHelper.getWallpaperForScreenCached(this, screenDimensions[0],
-                            screenDimensions[1]);
+                    wallpaper = WallpaperHelper.getWallpaperForScreenCached(this, viewWidth, viewHeight);
                 }
 
                 final Bitmap finalWallpaper = wallpaper;
@@ -3819,12 +3837,6 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         wallpaperView.setVisibility(View.VISIBLE);
                         mainLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                         rootLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-
-                        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
-                            getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
-                        }
 
                         rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
                             int statusBarHeight = 0;

@@ -136,6 +136,8 @@ public final class DockBackdropHelper {
         final boolean blurEnabled = params.prefs.getInt(params.prefix + "_backdrop_blur", 0) == 1;
         final int opacityPercent = params.prefs.getInt("app_launcher_bg_opacity", 100);
         final int blurStrength = params.prefs.getInt("app_launcher_bg_blur_strength", 3);
+        final int rootWidth = params.parent.getWidth();
+        final int rootHeight = params.parent.getHeight();
 
         CAPTURE_EXECUTOR.execute(() -> {
             int[] screen = WallpaperHelper.getScreenDimensions(dockView.getContext());
@@ -145,7 +147,8 @@ public final class DockBackdropHelper {
             if (wallpaper == null) {
                 backdrop = buildSolidBackground(params, opacityPercent);
             } else {
-                backdrop = buildWallpaperBackdrop(wallpaper, left, top, width, height, params, opacityPercent);
+                backdrop = buildWallpaperBackdrop(wallpaper, left, top, width, height,
+                        rootWidth, rootHeight, params, opacityPercent);
             }
             dockView.post(() -> {
                 if (dockView.getParent() == params.parent) {
@@ -167,13 +170,24 @@ public final class DockBackdropHelper {
     }
 
     private static Drawable buildWallpaperBackdrop(Bitmap wallpaper, int left, int top, int width, int height,
-            Params params, int opacityPercent) {
+            int rootWidth, int rootHeight, Params params, int opacityPercent) {
         int bitmapWidth = width + 2 * EXPAND;
         int bitmapHeight = height + 2 * EXPAND;
 
         Bitmap bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawBitmap(wallpaper, EXPAND - left, EXPAND - top, null);
+
+        float drawScale = Math.max(rootWidth / (float) wallpaper.getWidth(),
+                rootHeight / (float) wallpaper.getHeight());
+        float drawWidth = wallpaper.getWidth() * drawScale;
+        float drawHeight = wallpaper.getHeight() * drawScale;
+        float drawLeft = (rootWidth - drawWidth) / 2f;
+        float drawTop = (rootHeight - drawHeight) / 2f;
+
+        android.graphics.Matrix matrix = new android.graphics.Matrix();
+        matrix.postScale(drawScale, drawScale);
+        matrix.postTranslate(drawLeft + EXPAND - left, drawTop + EXPAND - top);
+        canvas.drawBitmap(wallpaper, matrix, null);
 
         canvas.drawColor(WallpaperHelper.applyOpacity(params.surfaceColor, opacityPercent));
 
