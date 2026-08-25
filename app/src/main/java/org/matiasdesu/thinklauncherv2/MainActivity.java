@@ -64,9 +64,11 @@ import android.os.Build;
 import org.matiasdesu.thinklauncherv2.adapters.AppAdapter;
 import org.matiasdesu.thinklauncherv2.services.LockAccessibilityService;
 import org.matiasdesu.thinklauncherv2.services.MusicNotificationListenerService;
+import org.matiasdesu.thinklauncherv2.settings.MusicDockSettingsActivity;
 import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
 import org.matiasdesu.thinklauncherv2.ui.AppSelectorActivity;
 import org.matiasdesu.thinklauncherv2.ui.AppShortcutsDialog;
+import org.matiasdesu.thinklauncherv2.ui.MusicDockOptionsDialog;
 import org.matiasdesu.thinklauncherv2.ui.StrokeTextView;
 import org.matiasdesu.thinklauncherv2.ui.ShadowOutlineDrawable;
 import org.matiasdesu.thinklauncherv2.utils.AppNamePositionHelper;
@@ -1426,6 +1428,15 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         musicDockView = bar;
         bar.setVisibility(View.GONE);
 
+        View.OnLongClickListener musicDockLongPress = v -> {
+            showMusicDockOptionsDialog();
+            return true;
+        };
+        bar.setOnLongClickListener(musicDockLongPress);
+        prevButton.setOnLongClickListener(musicDockLongPress);
+        playPauseButton.setOnLongClickListener(musicDockLongPress);
+        nextButton.setOnLongClickListener(musicDockLongPress);
+
         if (bgEnabled) {
             DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "music_dock",
                     resolveAppBarThemeColor(prefs.getInt("music_dock_background_color", 0), true),
@@ -1633,6 +1644,30 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         } else {
             scheduleMusicDockHide();
         }
+    }
+
+    private void showMusicDockOptionsDialog() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean alwaysActive = prefs.getInt("music_dock_keep_active", 0) == 1;
+        new MusicDockOptionsDialog(this, alwaysActive, newValue -> {
+            prefs.edit().putInt("music_dock_keep_active", newValue ? 1 : 0).apply();
+            if (newValue) {
+                showMusicDock();
+            } else {
+                scheduleMusicDockHide();
+            }
+        }, () -> {
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
+            Intent intent = new Intent(MainActivity.this, MusicDockSettingsActivity.class);
+            intent.putExtra(MusicDockSettingsActivity.EXTRA_FROM_HOME, true);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            if (animate) {
+                overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
+        }).show();
     }
 
     private void showMusicDock() {

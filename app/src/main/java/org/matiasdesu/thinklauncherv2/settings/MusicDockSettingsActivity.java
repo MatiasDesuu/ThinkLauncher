@@ -15,6 +15,8 @@ import android.widget.ImageButton;
 
 public class MusicDockSettingsActivity extends BaseSettingsActivity {
 
+    public static final String EXTRA_FROM_HOME = "from_home";
+
     private static final int ICON_SIZE_MIN = 16;
     private static final int ICON_SIZE_MAX = 64;
     private static final int TEXT_SIZE_MIN = 10;
@@ -39,6 +41,18 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         return PREFIX + "_" + key;
     }
 
+    private boolean fromHome;
+
+    @Override
+    public void onBackPressed() {
+        if (fromHome) {
+            finish();
+            overridePendingTransition(0, screenAnimations ? R.anim.dialog_fade_out : 0);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     @Override
     protected int getLayoutResId() {
         return R.layout.activity_music_dock_settings;
@@ -47,6 +61,7 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fromHome = getIntent().getBooleanExtra(EXTRA_FROM_HOME, false);
 
         int bgColor = ThemeUtils.getBgColor(theme, this);
         LinearLayout root = findViewById(R.id.root_layout);
