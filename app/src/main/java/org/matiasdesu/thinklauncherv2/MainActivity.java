@@ -1362,9 +1362,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         int stripLength = 0;
         View titleSlot;
         if (vertical) {
-            lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing());
+            lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing())
+                    + getMusicDockTitleCrossExtra();
             stripLength = (int) (160 * density);
             FrameLayout titleContainer = new FrameLayout(this);
+            titleContainer.setClipChildren(false);
+            titleContainer.setClipToPadding(false);
             FrameLayout.LayoutParams innerParams = new FrameLayout.LayoutParams(
                     stripLength, lineHeight, Gravity.CENTER);
             titleView.setLayoutParams(innerParams);
@@ -1516,6 +1519,16 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         return iv;
     }
 
+    private int getMusicDockTitleCrossExtra() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        float density = getResources().getDisplayMetrics().density;
+        float extraDp = 2f;
+        if (prefs.getInt("music_dock_text_effect", 0) != 0) {
+            extraDp += 4f;
+        }
+        return (int) Math.ceil(extraDp * density);
+    }
+
     private void updateMusicDockTitleStripSize() {
         if (!(musicDockTitleView instanceof StrokeTextView)
                 || !(musicDockTitleSlot instanceof FrameLayout)) {
@@ -1525,7 +1538,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         CharSequence text = titleView.getText();
         float density = getResources().getDisplayMetrics().density;
         int maxLength = (int) (160 * density);
-        int lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing());
+        int lineHeight = (int) Math.ceil(titleView.getPaint().getFontSpacing())
+                + getMusicDockTitleCrossExtra();
         int textLength = 0;
         if (text != null && text.length() > 0) {
             titleView.measure(
@@ -3776,6 +3790,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
                 return;
             }
+            if (touchedMusicBar) {
+                launchPlayingApp();
+                return;
+            }
             if (touchedDockPkg != null) {
                 launchApp(touchedDockPkg);
             } else if (touchedSlotIndex >= 0) {
@@ -3898,10 +3916,22 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
         private View findMusicButton(float x, float y) {
             if (musicDockView == null || musicDockView.getParent() != rootLayout) return null;
-            for (int i = 0; i < musicDockView.getChildCount(); i++) {
-                View item = musicDockView.getChildAt(i);
-                if (item.getVisibility() == View.VISIBLE && isPointInsideView(x, y, item)) {
+            return findTaggedMusicButton(musicDockView, x, y);
+        }
+
+        private View findTaggedMusicButton(ViewGroup group, float x, float y) {
+            for (int i = group.getChildCount() - 1; i >= 0; i--) {
+                View item = group.getChildAt(i);
+                if (item.getVisibility() != View.VISIBLE) continue;
+                Object tag = item.getTag();
+                boolean isTransportButton = tag instanceof String
+                        && ("prev".equals(tag) || "play_pause".equals(tag) || "next".equals(tag));
+                if (isTransportButton && isPointInsideView(x, y, item)) {
                     return item;
+                }
+                if (item instanceof ViewGroup) {
+                    View found = findTaggedMusicButton((ViewGroup) item, x, y);
+                    if (found != null) return found;
                 }
             }
             return null;
