@@ -179,6 +179,7 @@ public class MainActivity extends Activity {
     private LinearLayout dockView;
     private LinearLayout musicDockView;
     private TextView musicDockTitleView;
+    private View musicDockTitleSlot;
     private ImageView musicDockPlayPause;
     private MediaSessionManager mediaSessionManager;
     private MediaController activeMediaController;
@@ -1341,6 +1342,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             bar.addView(prevButton);
             bar.addView(playPauseButton);
             bar.addView(nextButton);
+            musicDockTitleSlot = titleContainer;
         } else {
             bar.addView(prevButton);
             bar.addView(playPauseButton);
@@ -1349,6 +1351,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             titleParams.leftMargin = slotMargin;
             bar.addView(titleView, titleParams);
+            musicDockTitleSlot = titleView;
         }
 
         boolean borderEnabled = prefs.getInt("music_dock_border", 0) == 1;
@@ -1475,6 +1478,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
         musicDockView = null;
         musicDockTitleView = null;
+        musicDockTitleSlot = null;
         musicDockPlayPause = null;
         createMusicDock();
         updateMusicDockContent();
@@ -1567,6 +1571,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             }
         }
         if (best == null) {
+            setMusicDockTitle(null);
             scheduleMusicDockHide();
             return;
         }
@@ -1600,6 +1605,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         boolean playing = state == PlaybackState.STATE_PLAYING;
         boolean paused = state == PlaybackState.STATE_PAUSED;
         if (controller == null || (!playing && !paused)) {
+            setMusicDockTitle(null);
             scheduleMusicDockHide();
             return;
         }
@@ -1623,9 +1629,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 title = "";
             }
         }
-        if (musicDockTitleView != null) {
-            musicDockTitleView.setText(title);
-        }
+        setMusicDockTitle(title);
         if (musicDockPlayPause != null) {
             applyMusicTransportIcon(musicDockPlayPause,
                     playing ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
@@ -1634,6 +1638,21 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             showMusicDock();
         } else {
             scheduleMusicDockHide();
+        }
+    }
+
+    /**
+     * Show the track title, or collapse its slot entirely so the dock shrinks
+     * to just the transport buttons when there is nothing playing
+     */
+    private void setMusicDockTitle(String title) {
+        boolean hasTitle = title != null && !title.isEmpty();
+        if (musicDockTitleView != null) {
+            musicDockTitleView.setText(hasTitle ? title : "");
+        }
+        if (musicDockTitleSlot != null && musicDockTitleSlot.getVisibility()
+                != (hasTitle ? View.VISIBLE : View.GONE)) {
+            musicDockTitleSlot.setVisibility(hasTitle ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -1674,6 +1693,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
     private void hideMusicDock() {
         cancelMusicDockHide();
+        setMusicDockTitle(null);
         if (musicDockView != null && musicDockView.getVisibility() != View.GONE) {
             musicDockView.setVisibility(View.GONE);
             EinkRefreshHelper.refreshEink(getWindow(),
