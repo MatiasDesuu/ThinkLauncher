@@ -1428,15 +1428,6 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         musicDockView = bar;
         bar.setVisibility(View.GONE);
 
-        View.OnLongClickListener musicDockLongPress = v -> {
-            showMusicDockOptionsDialog();
-            return true;
-        };
-        bar.setOnLongClickListener(musicDockLongPress);
-        prevButton.setOnLongClickListener(musicDockLongPress);
-        playPauseButton.setOnLongClickListener(musicDockLongPress);
-        nextButton.setOnLongClickListener(musicDockLongPress);
-
         if (bgEnabled) {
             DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "music_dock",
                     resolveAppBarThemeColor(prefs.getInt("music_dock_background_color", 0), true),
@@ -1733,8 +1724,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
     }
 
-    private void musicSkipToPrevious() {
-        if (activeMediaController != null) {
+    private void launchPlayingApp() {
+        if (activeMediaController == null) return;
+        launchApp(activeMediaController.getPackageName());
+    }
+
+    private void musicSkipToPrevious() {        if (activeMediaController != null) {
             try {
                 activeMediaController.getTransportControls().skipToPrevious();
             } catch (Exception e) {
@@ -3518,6 +3513,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         private String touchedDockPrefix = null;
         private int touchedDockSlotIndex = -1;
         private View touchedMusicButton = null;
+        private boolean touchedMusicBar = false;
 
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final java.util.ArrayList<GesturePoint> touchPoints = new java.util.ArrayList<>();
@@ -3578,6 +3574,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     touchedSlotIndex = findTouchedSlot(event.getX(), event.getY());
                     touchedDockPkg = findDockPkg(event.getX(), event.getY());
                     touchedMusicButton = findMusicButton(event.getX(), event.getY());
+                    touchedMusicBar = isPointInsideView(event.getX(), event.getY(), musicDockView);
                     touchedClock = isPointInsideView(event.getX(), event.getY(), timeView);
                     touchedDate = isPointInsideView(event.getX(), event.getY(), dateView);
 
@@ -3585,8 +3582,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         isLongPress = true;
                         if (touchedDockPkg != null) {
                             showDockShortcuts(touchedDockPkg, touchedDockPrefix, touchedDockSlotIndex);
-                        } else if (touchedMusicButton != null) {
-                            // Long press on music transport buttons does nothing
+                        } else if (touchedMusicButton != null || touchedMusicBar) {
+                            showMusicDockOptionsDialog();
                         } else if (touchedSlotIndex >= 0) {
                             String pkg = appPackages.get(touchedSlotIndex);
                             java.util.List<ShortcutInfo> shortcuts = null;
@@ -3667,6 +3664,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     musicTogglePlayPause();
                 } else if ("next".equals(action)) {
                     musicSkipToNext();
+                } else {
+                    launchPlayingApp();
                 }
                 return;
             }
