@@ -1519,7 +1519,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         }
         mediaSessionsListener = null;
         detachMediaControllerCallback();
-        hideMusicDock();
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        if (prefs.getInt("music_dock_enabled", 0) != 1 || !hasNotificationListenerAccess()) {
+            hideMusicDock();
+        } else {
+            scheduleMusicDockHide();
+        }
     }
 
     private void detachMediaControllerCallback() {
@@ -1659,11 +1664,23 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             return;
         }
         if (musicDockView == null) return;
+        PlaybackState state = activeMediaController != null
+                ? activeMediaController.getPlaybackState() : null;
+        if (state != null && state.getState() == PlaybackState.STATE_PLAYING) {
+            showMusicDock();
+            return;
+        }
         int delaySeconds = prefs.getInt("music_dock_hide_delay", 0);
         if (musicDockHideRunnable == null) {
             musicDockHideRunnable = () -> {
-                if (getSharedPreferences("prefs", MODE_PRIVATE)
-                        .getInt("music_dock_keep_active", 0) != 1) {
+                SharedPreferences p = getSharedPreferences("prefs", MODE_PRIVATE);
+                if (p.getInt("music_dock_keep_active", 0) == 1) {
+                    return;
+                }
+                PlaybackState s = activeMediaController != null
+                        ? activeMediaController.getPlaybackState() : null;
+                boolean playing = s != null && s.getState() == PlaybackState.STATE_PLAYING;
+                if (!playing) {
                     hideMusicDock();
                 }
             };
@@ -2772,6 +2789,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        cancelMusicDockHide();
         if (prefsChangeListener != null) {
             getSharedPreferences("prefs", MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(prefsChangeListener);
         }
