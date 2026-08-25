@@ -233,11 +233,13 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
             background = background == 1 ? 0 : 1;
             backgroundValueTv.setText(background == 1 ? "ON" : "OFF");
             prefs.edit().putInt(p("background"), background).apply();
+            refreshVisibility();
         });
         plusBackground.setOnClickListener(v -> {
             background = background == 1 ? 0 : 1;
             backgroundValueTv.setText(background == 1 ? "ON" : "OFF");
             prefs.edit().putInt(p("background"), background).apply();
+            refreshVisibility();
         });
 
         minusBackdropOpacity.setOnClickListener(v -> {
@@ -359,8 +361,6 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
                 findViewById(R.id.text_size_layout),
                 findViewById(R.id.border_layout),
                 findViewById(R.id.background_layout),
-                findViewById(R.id.backdrop_opacity_layout),
-                findViewById(R.id.backdrop_blur_layout),
                 findViewById(R.id.style_button),
                 findViewById(R.id.position_button)
         };
@@ -368,8 +368,10 @@ public class MusicDockSettingsActivity extends BaseSettingsActivity {
         for (View v : views) {
             v.setVisibility(visibility);
         }
+        findViewById(R.id.backdrop_opacity_layout).setVisibility(
+                enabled == 1 && background == 1 ? View.VISIBLE : View.GONE);
         findViewById(R.id.backdrop_blur_layout).setVisibility(
-                enabled == 1 && backdropOpacity == 1 ? View.VISIBLE : View.GONE);
+                enabled == 1 && background == 1 && backdropOpacity == 1 ? View.VISIBLE : View.GONE);
         findViewById(R.id.keep_active_layout).setVisibility(visibility);
         findViewById(R.id.hide_delay_layout).setVisibility(
                 enabled == 1 && keepActive == 0 ? View.VISIBLE : View.GONE);

@@ -1422,12 +1422,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         musicDockView = bar;
         bar.setVisibility(View.GONE);
 
-        DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "music_dock",
-                resolveAppBarThemeColor(prefs.getInt("music_dock_background_color", 0), true),
-                borderEnabled,
-                resolveAppBarThemeColor(prefs.getInt("music_dock_border_color", 0), false),
-                2 * density,
-                DialogEffectHelper.getCornerRadiusPx(this));
+        if (bgEnabled) {
+            DockBackdropHelper.applyBackdrop(bar, rootLayout, prefs, "music_dock",
+                    resolveAppBarThemeColor(prefs.getInt("music_dock_background_color", 0), true),
+                    borderEnabled,
+                    resolveAppBarThemeColor(prefs.getInt("music_dock_border_color", 0), false),
+                    2 * density,
+                    DialogEffectHelper.getCornerRadiusPx(this));
+        }
     }
 
     private ImageView createMusicTransportButton(int drawableRes, int sizePx, int margin,
