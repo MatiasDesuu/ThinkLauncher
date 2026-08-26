@@ -228,6 +228,9 @@ public class HideAppsActivity extends AppCompatActivity {
         installedAppLabels.add(2, "Calendar Screen");
         installedAppPackages.add(2, "calendar");
 
+        installedAppLabels.add(3, "Gallery");
+        installedAppPackages.add(3, "gallery");
+
         hiddenApps = new HashSet<>(prefs.getStringSet("hidden_apps", new HashSet<>()));
 
         loadApps(installedAppLabels, installedAppPackages);

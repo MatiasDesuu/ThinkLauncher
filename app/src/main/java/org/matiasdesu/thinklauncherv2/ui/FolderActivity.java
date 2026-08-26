@@ -393,6 +393,16 @@ public class FolderActivity extends AppCompatActivity {
             overridePendingTransition(0, animate ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
+        } else if ("gallery".equals(packageName)) {
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
+            Intent intent = new Intent(this, GalleryActivity.class);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(0, animate ? R.anim.dialog_fade_out : 0);
+            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+            return;
         } else if (packageName != null && packageName.startsWith("webapp_")) {
             SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
             String url = prefs.getString(packageName + "_url", "");
@@ -728,6 +738,7 @@ public class FolderActivity extends AppCompatActivity {
                             && !app.packageName.equals("notification_panel")
                             && !app.packageName.equals("koreader_history")
                             && !app.packageName.equals("calendar")
+                            && !app.packageName.equals("gallery")
                             && !app.packageName.equals("next_home_page")
                             && !app.packageName.equals("previous_home_page");
                     if (isRealApp) {

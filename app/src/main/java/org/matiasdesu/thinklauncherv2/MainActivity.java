@@ -1020,7 +1020,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || "calendar".equals(pkg) || "gallery".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
@@ -1029,9 +1029,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
-                                                        : "bigme_control_panel".equals(pkg) ? R.drawable.settings
-                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                        : R.drawable.folder;
+                                                        : "gallery".equals(pkg) ? R.drawable.gallery
+                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.settings
+                                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                                : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
@@ -1194,7 +1195,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || "calendar".equals(pkg) || "gallery".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
@@ -1203,9 +1204,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
-                                                        : "bigme_control_panel".equals(pkg) ? R.drawable.settings
-                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                        : R.drawable.folder;
+                                                        : "gallery".equals(pkg) ? R.drawable.gallery
+                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.settings
+                                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                                : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
@@ -2654,7 +2656,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     String pkg = appPackages.get(i);
                     boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                             || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                            || "calendar".equals(pkg)
+                            || "calendar".equals(pkg) || "gallery".equals(pkg)
                             || (pkg != null && pkg.startsWith("folder_"))
                             || (pkg != null && pkg.startsWith("webapp_"));
                     iconView.setTag(isSpecial ? "special" : "app");
@@ -2666,9 +2668,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                             : "notification_panel".equals(pkg) ? R.drawable.notifications
                                                     : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                             : "calendar".equals(pkg) ? R.drawable.date
-                                                                    : (pkg != null && pkg.startsWith("webapp_"))
-                                                                            ? R.drawable.webapps
-                                                                            : R.drawable.folder;
+                                                                    : "gallery".equals(pkg) ? R.drawable.gallery
+                                                                            : (pkg != null && pkg.startsWith("webapp_"))
+                                                                                    ? R.drawable.webapps
+                                                                                    : R.drawable.folder;
                             Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                                     iconBackground, dynamicColors, invertIconColors, iconShape);
                             iconView.setImageDrawable(specialIcon);
@@ -2975,7 +2978,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         if (pkg.startsWith("folder_") || pkg.startsWith("webapp_")) return false;
         if (pkg.equals("launcher_settings") || pkg.equals("app_launcher") ||
                 pkg.equals("notification_panel") || pkg.equals("koreader_history") ||
-                pkg.equals("calendar") || pkg.equals("next_home_page") ||
+                pkg.equals("calendar") || pkg.equals("gallery") || pkg.equals("next_home_page") ||
                 pkg.equals("previous_home_page")) return false;
         return true;
     }
@@ -3069,6 +3072,18 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             boolean animate = prefs.getInt("screen_animations", 0) == 1;
             Intent intent = new Intent(MainActivity.this,
                     org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            if (animate) {
+                overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
+        } else if ("gallery".equals(packageName)) {
+            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
+            Intent intent = new Intent(MainActivity.this,
+                    org.matiasdesu.thinklauncherv2.ui.GalleryActivity.class);
             if (!animate) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             }
@@ -3342,6 +3357,16 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         iconView.setImageResource(R.drawable.date);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
+                } else if ("gallery".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.gallery,
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.gallery);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
                 } else if (appPackages.get(position).startsWith("folder_")) {
                     if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
@@ -3448,6 +3473,16 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         iconView.clearColorFilter();
                     } else {
                         iconView.setImageResource(R.drawable.date);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
+                } else if ("gallery".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.gallery,
+                                theme, iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.gallery);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("folder_")) {
@@ -4429,6 +4464,19 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     iconView.clearColorFilter();
                 } else {
                     iconView.setImageResource(R.drawable.date);
+                    iconView.setColorFilter(getSpecialIconColor());
+                }
+                iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
+                slotLayout.addView(iconView);
+            } else if ("gallery".equals(appPackages.get(index))) {
+                if (dynamicIcons || iconBackground) {
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.gallery, theme,
+                            iconBackground, dynamicColors, invertIconColors, iconShape);
+                    iconView.setImageDrawable(specialIcon);
+                    iconView.clearColorFilter();
+                } else {
+                    iconView.setImageResource(R.drawable.gallery);
                     iconView.setColorFilter(getSpecialIconColor());
                 }
                 iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
