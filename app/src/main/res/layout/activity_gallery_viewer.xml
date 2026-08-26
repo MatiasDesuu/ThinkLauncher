@@ -31,17 +31,10 @@
                 android:src="@drawable/back_arrow"
                 android:tint="?attr/text_color" />
 
-            <TextView
-                android:id="@+id/image_counter"
+            <View
                 android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="8dp"
-                android:text="1 / 1"
-                android:textColor="?attr/text_color"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/delete_button"

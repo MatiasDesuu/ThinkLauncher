@@ -1021,6 +1021,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
                     || "calendar".equals(pkg) || "gallery".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || "bigme_eink_settings".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
@@ -1030,9 +1031,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
                                                         : "gallery".equals(pkg) ? R.drawable.gallery
-                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.settings
-                                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                                : R.drawable.folder;
+                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
+                                                                        : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
+                                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                                        : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
@@ -1196,6 +1198,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
                     || "calendar".equals(pkg) || "gallery".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || "bigme_eink_settings".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
@@ -1205,9 +1208,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
                                                         : "gallery".equals(pkg) ? R.drawable.gallery
-                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.settings
-                                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                                : R.drawable.folder;
+                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
+                                                                        : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
+                                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                                        : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
@@ -2656,7 +2660,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     String pkg = appPackages.get(i);
                     boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                             || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                            || "calendar".equals(pkg) || "gallery".equals(pkg)
+                            || "calendar".equals(pkg) || "gallery".equals(pkg) || "bigme_control_panel".equals(pkg)
                             || (pkg != null && pkg.startsWith("folder_"))
                             || (pkg != null && pkg.startsWith("webapp_"));
                     iconView.setTag(isSpecial ? "special" : "app");
@@ -4390,7 +4394,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             String pkg = appPackages.get(index);
             boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg)
+                    || "calendar".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             iconView.setTag(isSpecial ? "special" : "app");
@@ -4490,6 +4494,19 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     iconView.clearColorFilter();
                 } else {
                     iconView.setImageResource(R.drawable.notifications);
+                    iconView.setColorFilter(getSpecialIconColor());
+                }
+                iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
+                slotLayout.addView(iconView);
+            } else if ("bigme_control_panel".equals(appPackages.get(index))) {
+                if (dynamicIcons || iconBackground) {
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.generic_app, theme,
+                            iconBackground, dynamicColors, invertIconColors, iconShape);
+                    iconView.setImageDrawable(specialIcon);
+                    iconView.clearColorFilter();
+                } else {
+                    iconView.setImageResource(R.drawable.generic_app);
                     iconView.setColorFilter(getSpecialIconColor());
                 }
                 iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);

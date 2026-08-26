@@ -8,9 +8,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.media.ExifInterface;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,7 +42,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private boolean appLauncherAnimations;
     private SharedPreferences prefs;
     private ZoomableImageView imageView;
-    private TextView imageCounter;
+    private TextView pageIndicator;
 
     private ArrayList<Long> imageIds;
     private ArrayList<String> imageNames;
@@ -86,8 +88,8 @@ public class GalleryViewerActivity extends AppCompatActivity {
         bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
         imageView = findViewById(R.id.gallery_image_view);
-        imageCounter = findViewById(R.id.image_counter);
-        ThemeUtils.applyTextColor(imageCounter, theme, this);
+        pageIndicator = findViewById(R.id.page_indicator);
+        ThemeUtils.applyTextColor(pageIndicator, theme, this);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -124,8 +126,9 @@ public class GalleryViewerActivity extends AppCompatActivity {
                     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                         if (e1 == null || e2 == null) return false;
                         float xDiff = e2.getX() - e1.getX();
-                        if (Math.abs(xDiff) > 100 && Math.abs(velocityX) > 100
-                                && Math.abs(xDiff) > Math.abs(yDiff(e1, e2))) {
+                        float yDiff = e2.getY() - e1.getY();
+                        if (Math.abs(xDiff) > 80 && Math.abs(velocityX) > 80
+                                && Math.abs(xDiff) > Math.abs(yDiff)) {
                             if (imageView.getCurrentScale() <= 1.0f) {
                                 if (xDiff < 0) {
                                     navigateNext();
@@ -137,11 +140,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
                         }
                         return false;
                     }
-
-                    private float yDiff(MotionEvent e1, MotionEvent e2) {
-                        return e2.getY() - e1.getY();
-                    }
                 });
+
+        imageView.setOnTouchListener((v, event) -> {
+            swipeDetector.onTouchEvent(event);
+            return true;
+        });
 
         findViewById(R.id.prev_page_button).setOnClickListener(v -> navigatePrevious());
         findViewById(R.id.next_page_button).setOnClickListener(v -> navigateNext());
@@ -173,8 +177,9 @@ public class GalleryViewerActivity extends AppCompatActivity {
             try {
                 Uri uri = ContentUris.withAppendedId(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
-                Bitmap bitmap = BitmapFactory.decodeStream(
+                Bitmap rawBitmap = BitmapFactory.decodeStream(
                         getContentResolver().openInputStream(uri));
+                final Bitmap bitmap = (rawBitmap != null) ? applyExifOrientation(uri, rawBitmap) : null;
                 runOnUiThread(() -> {
                     if (bitmap != null) {
                         imageView.setImageBitmap(bitmap);
@@ -192,7 +197,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private void updateCounter() {
         String text = (currentIndex + 1) + " / " + imageIds.size();
-        imageCounter.setText(text);
+        pageIndicator.setText(text);
     }
 
     private void confirmDelete() {
@@ -230,6 +235,71 @@ public class GalleryViewerActivity extends AppCompatActivity {
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
         } catch (Exception e) {
             Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Bitmap applyExifOrientation(Uri uri, Bitmap bitmap) {
+        try {
+            android.content.ContentResolver resolver = getContentResolver();
+            android.database.Cursor cursor = resolver.query(uri,
+                    new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+            String filePath = null;
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    filePath = cursor.getString(0);
+                }
+                cursor.close();
+            }
+            if (filePath == null) return bitmap;
+
+            ExifInterface exif = new ExifInterface(filePath);
+            int orientation = exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            int rotation = 0;
+            boolean flip = false;
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotation = 90;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotation = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotation = 270;
+                    break;
+                case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                    flip = true;
+                    break;
+                case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                    rotation = 180;
+                    flip = true;
+                    break;
+                case ExifInterface.ORIENTATION_TRANSPOSE:
+                    rotation = 90;
+                    flip = true;
+                    break;
+                case ExifInterface.ORIENTATION_TRANSVERSE:
+                    rotation = 270;
+                    flip = true;
+                    break;
+                default:
+                    return bitmap;
+            }
+            Matrix matrix = new Matrix();
+            if (rotation != 0) {
+                matrix.postRotate(rotation);
+            }
+            if (flip) {
+                matrix.postScale(-1, 1, bitmap.getWidth() / 2f, bitmap.getHeight() / 2f);
+            }
+            Bitmap rotated = Bitmap.createBitmap(bitmap, 0, 0,
+                    bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            if (rotated != bitmap) {
+                bitmap.recycle();
+            }
+            return rotated;
+        } catch (Exception e) {
+            return bitmap;
         }
     }
 

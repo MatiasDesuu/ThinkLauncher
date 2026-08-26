@@ -160,7 +160,7 @@ public class AppOptionsDialog extends Dialog {
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
                 || packageName.equals("notification_panel") || packageName.equals("koreader_history")
                 || packageName.equals("calendar") || packageName.equals("gallery")
-                || packageName.equals("bigme_control_panel"))) {
+                || packageName.equals("bigme_control_panel") || packageName.equals("bigme_eink_settings"))) {
             uninstallButton.setVisibility(View.GONE);
         } else {
             uninstallButton.setVisibility(View.VISIBLE);

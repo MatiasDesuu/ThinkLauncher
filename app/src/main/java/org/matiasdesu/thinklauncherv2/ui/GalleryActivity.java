@@ -352,7 +352,6 @@ public class GalleryActivity extends AppCompatActivity {
             ThemeUtils.applyTextColor(holder.filename, theme, GalleryActivity.this);
             FontHelper.applyToViewTree(GalleryActivity.this, holder.itemView);
 
-            holder.thumbnail.setImageBitmap(null);
             holder.thumbnail.setTag(globalPosition);
 
             thumbnailExecutor.execute(() -> {
