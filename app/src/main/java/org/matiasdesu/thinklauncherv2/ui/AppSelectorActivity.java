@@ -38,6 +38,9 @@ import org.matiasdesu.thinklauncherv2.ui.RenameDialog;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
+import android.os.Build;
+import android.content.pm.PackageManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -242,12 +245,28 @@ public class AppSelectorActivity extends AppCompatActivity {
                 installedAppLabels.add(specialIndex + 4, "Calendar Screen");
                 installedAppPackages.add(specialIndex + 4, "calendar");
 
-                if (position == -1) {
-                    installedAppLabels.add(specialIndex + 5, "Next Home Page");
-                    installedAppPackages.add(specialIndex + 5, "next_home_page");
+                installedAppLabels.add(specialIndex + 5, "Gallery");
+                installedAppPackages.add(specialIndex + 5, "gallery");
 
-                    installedAppLabels.add(specialIndex + 6, "Previous Home Page");
-                    installedAppPackages.add(specialIndex + 6, "previous_home_page");
+                boolean isBigme = false;
+                try {
+                    getPackageManager().getPackageInfo("com.xrz.sys.control", 0);
+                    isBigme = true;
+                } catch (PackageManager.NameNotFoundException e) {
+                    isBigme = false;
+                }
+                if (isBigme) {
+                    installedAppLabels.add(specialIndex + 6, "Bigme Control Panel");
+                    installedAppPackages.add(specialIndex + 6, "bigme_control_panel");
+                }
+
+                if (position == -1) {
+                    int offset = isBigme ? 7 : 6;
+                    installedAppLabels.add(specialIndex + offset, "Next Home Page");
+                    installedAppPackages.add(specialIndex + offset, "next_home_page");
+
+                    installedAppLabels.add(specialIndex + offset + 1, "Previous Home Page");
+                    installedAppPackages.add(specialIndex + offset + 1, "previous_home_page");
                 }
             }
         }
@@ -262,8 +281,11 @@ public class AppSelectorActivity extends AppCompatActivity {
             installedAppLabels.add(3, "Calendar Screen");
             installedAppPackages.add(3, "calendar");
 
-            installedAppLabels.add(4, "Folder");
-            installedAppPackages.add(4, "folder");
+            installedAppLabels.add(4, "Gallery");
+            installedAppPackages.add(4, "gallery");
+
+            installedAppLabels.add(5, "Folder");
+            installedAppPackages.add(5, "folder");
         }
 
         originalApps = new ArrayList<>();

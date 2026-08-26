@@ -120,7 +120,8 @@ public class AppOptionsDialog extends Dialog {
         if (packageName != null && (packageName.startsWith("folder_")
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
                 || packageName.equals("notification_panel") || packageName.equals("koreader_history")
-                || packageName.equals("calendar"))) {
+                || packageName.equals("calendar") || packageName.equals("gallery")
+                || packageName.equals("bigme_control_panel"))) {
             moreInfoButton.setVisibility(View.GONE);
         } else {
             moreInfoButton.setVisibility(View.VISIBLE);
@@ -158,7 +159,8 @@ public class AppOptionsDialog extends Dialog {
         if (packageName != null && (packageName.startsWith("webapp_") || packageName.startsWith("folder_")
                 || packageName.equals("launcher_settings") || packageName.equals("app_launcher")
                 || packageName.equals("notification_panel") || packageName.equals("koreader_history")
-                || packageName.equals("calendar"))) {
+                || packageName.equals("calendar") || packageName.equals("gallery")
+                || packageName.equals("bigme_control_panel"))) {
             uninstallButton.setVisibility(View.GONE);
         } else {
             uninstallButton.setVisibility(View.VISIBLE);

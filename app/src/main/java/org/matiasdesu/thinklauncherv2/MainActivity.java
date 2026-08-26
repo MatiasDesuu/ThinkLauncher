@@ -1020,7 +1020,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"))
+                    || "calendar".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
                 int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
@@ -1028,8 +1029,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
-                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                : R.drawable.folder;
+                                                        : "bigme_control_panel".equals(pkg) ? R.drawable.settings
+                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                        : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
@@ -1192,7 +1194,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || (pkg != null && pkg.startsWith("folder_"))
+                    || "calendar".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
                 int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
@@ -1200,8 +1203,9 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                 : "notification_panel".equals(pkg) ? R.drawable.notifications
                                         : "koreader_history".equals(pkg) ? R.drawable.koreader
                                                 : "calendar".equals(pkg) ? R.drawable.date
-                                                        : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                : R.drawable.folder;
+                                                        : "bigme_control_panel".equals(pkg) ? R.drawable.settings
+                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                        : R.drawable.folder;
                 Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
                         appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
                 iv.setImageDrawable(specialIcon);
@@ -3086,6 +3090,23 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 }
             } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
+            }
+        } else if ("bigme_control_panel".equals(packageName)) {
+            try {
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName("com.xrz.sys.control",
+                        "com.xrz.settings.ControlCenterActivity"));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                boolean animate = getSharedPreferences("prefs", MODE_PRIVATE).getInt("screen_animations", 0) == 1;
+                if (!animate) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
+                startActivity(intent);
+                if (animate) {
+                    overridePendingTransition(R.anim.dialog_fade_in, 0);
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Bigme Control Panel not available", Toast.LENGTH_SHORT).show();
             }
         } else if ("next_home_page".equals(packageName)) {
             int current = homePagesManager.getCurrentPage();

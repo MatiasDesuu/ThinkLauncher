@@ -317,6 +317,31 @@ public class AppLauncherActivity extends AppCompatActivity {
             overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
             new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
             return;
+        } else if ("gallery".equals(packageName)) {
+            Intent intent = new Intent(this, GalleryActivity.class);
+            if (!appLauncherAnimations) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            startActivity(intent);
+            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
+            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+            return;
+        } else if ("bigme_control_panel".equals(packageName)) {
+            try {
+                Intent intent = new Intent();
+                intent.setComponent(new android.content.ComponentName("com.xrz.sys.control",
+                        "com.xrz.settings.ControlCenterActivity"));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                if (!appLauncherAnimations) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                }
+                startActivity(intent);
+                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
+                new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+                return;
+            } catch (Exception e) {
+                android.widget.Toast.makeText(this, "Bigme Control Panel not available", android.widget.Toast.LENGTH_SHORT).show();
+            }
         } else if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
@@ -423,6 +448,9 @@ public class AppLauncherActivity extends AppCompatActivity {
 
             labels.add(2, "Calendar Screen");
             packages.add(2, "calendar");
+
+            labels.add(3, "Gallery");
+            packages.add(3, "gallery");
 
             runOnUiThread(() -> {
                 targetLabels.clear();
