@@ -13,8 +13,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.media.ExifInterface;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -120,31 +118,16 @@ public class GalleryViewerActivity extends AppCompatActivity {
             return;
         }
 
-        GestureDetector swipeDetector = new GestureDetector(this,
-                new GestureDetector.SimpleOnGestureListener() {
-                    @Override
-                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                        if (e1 == null || e2 == null) return false;
-                        float xDiff = e2.getX() - e1.getX();
-                        float yDiff = e2.getY() - e1.getY();
-                        if (Math.abs(xDiff) > 80 && Math.abs(velocityX) > 80
-                                && Math.abs(xDiff) > Math.abs(yDiff)) {
-                            if (imageView.getCurrentScale() <= 1.0f) {
-                                if (xDiff < 0) {
-                                    navigateNext();
-                                } else {
-                                    navigatePrevious();
-                                }
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-                });
+        imageView.setOnSwipeListener(new ZoomableImageView.OnSwipeListener() {
+            @Override
+            public void onSwipeLeft() {
+                navigateNext();
+            }
 
-        imageView.setOnTouchListener((v, event) -> {
-            swipeDetector.onTouchEvent(event);
-            return true;
+            @Override
+            public void onSwipeRight() {
+                navigatePrevious();
+            }
         });
 
         findViewById(R.id.prev_page_button).setOnClickListener(v -> navigatePrevious());

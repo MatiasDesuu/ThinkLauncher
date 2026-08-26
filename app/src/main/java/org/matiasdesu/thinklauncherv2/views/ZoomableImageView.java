@@ -8,14 +8,11 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.animation.LinearInterpolator;
-import android.widget.Scroller;
 
 import androidx.appcompat.widget.AppCompatImageView;
 
 public class ZoomableImageView extends AppCompatImageView {
 
-    private static final float MIN_SCALE = 1.0f;
     private static final float MAX_SCALE = 4.0f;
 
     private Matrix matrix;
@@ -25,16 +22,19 @@ public class ZoomableImageView extends AppCompatImageView {
     private float currentScale = 1.0f;
     private float minScale = 1.0f;
     private PointF lastTouch = new PointF();
-    private PointF mid = new PointF();
     private int mode = NONE;
 
     private static final int NONE = 0;
     private static final int DRAG = 1;
-    private static final int ZOOM = 2;
 
     private ScaleGestureDetector scaleDetector;
     private GestureDetector gestureDetector;
-    private Scroller scroller;
+    private OnSwipeListener onSwipeListener;
+
+    public interface OnSwipeListener {
+        void onSwipeLeft();
+        void onSwipeRight();
+    }
 
     public ZoomableImageView(Context context) {
         super(context);
@@ -51,11 +51,14 @@ public class ZoomableImageView extends AppCompatImageView {
         init(context);
     }
 
+    public void setOnSwipeListener(OnSwipeListener listener) {
+        this.onSwipeListener = listener;
+    }
+
     private void init(Context context) {
         setScaleType(ScaleType.MATRIX);
         matrix = new Matrix();
         savedMatrix = new Matrix();
-        scroller = new Scroller(context, new LinearInterpolator());
 
         scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
@@ -96,6 +99,25 @@ public class ZoomableImageView extends AppCompatImageView {
                     setImageMatrix(matrix);
                 }
                 return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                if (currentScale <= minScale && onSwipeListener != null) {
+                    float xDiff = e2.getX() - e1.getX();
+                    float yDiff = e2.getY() - e1.getY();
+                    if (Math.abs(xDiff) > 80 && Math.abs(velocityX) > 80
+                            && Math.abs(xDiff) > Math.abs(yDiff)) {
+                        if (xDiff < 0) {
+                            onSwipeListener.onSwipeLeft();
+                        } else {
+                            onSwipeListener.onSwipeRight();
+                        }
+                        return true;
+                    }
+                }
+                return false;
             }
         });
 
