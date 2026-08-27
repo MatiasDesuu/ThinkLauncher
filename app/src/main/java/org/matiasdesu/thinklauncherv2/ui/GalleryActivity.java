@@ -51,6 +51,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     private static final int REQUEST_PERMISSION = 4001;
     private static final int REQUEST_VIEWER = 4002;
+    private static final int REQUEST_TRASH = 4003;
     private int theme;
     private boolean scrollAppList;
     private boolean opacityEnabled;
@@ -70,6 +71,7 @@ public class GalleryActivity extends AppCompatActivity {
     private int gridRows;
     private boolean showGridTitles;
     private boolean isTrashMode;
+    private boolean galleryModified;
     private SwipePageNavigator pageNavigator;
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
@@ -120,6 +122,7 @@ public class GalleryActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         backButton.setOnClickListener(v -> {
+            if (galleryModified) setResult(RESULT_OK);
             finish();
             overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         });
@@ -155,15 +158,13 @@ public class GalleryActivity extends AppCompatActivity {
                     },
                     () -> {
                         if (isTrashMode) {
-                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            startActivity(intent);
-                            overridePendingTransition(0, 0);
+                            if (galleryModified) setResult(RESULT_OK);
                             finish();
+                            overridePendingTransition(0, 0);
                         } else {
                             Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
                             intent.putExtra("trash_mode", true);
-                            startActivity(intent);
+                            startActivityForResult(intent, REQUEST_TRASH);
                             overridePendingTransition(0, 0);
                         }
                     }).show();
@@ -430,11 +431,19 @@ public class GalleryActivity extends AppCompatActivity {
         if (requestCode == REQUEST_VIEWER && resultCode == RESULT_OK) {
             restorePage = currentPage;
             loadImages();
+            if (isTrashMode) {
+                galleryModified = true;
+                setResult(RESULT_OK);
+            }
+        } else if (requestCode == REQUEST_TRASH && resultCode == RESULT_OK) {
+            restorePage = currentPage;
+            loadImages();
         }
     }
 
     @Override
     public void onBackPressed() {
+        if (galleryModified) setResult(RESULT_OK);
         finish();
         overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
     }
