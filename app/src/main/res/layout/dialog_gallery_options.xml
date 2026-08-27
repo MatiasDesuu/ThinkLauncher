@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="280dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/gallery_columns_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Grid Columns:"
+        android:textColor="?attr/text_color"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/btn_cols_2"
+            style="@style/DialogButton"
+            android:text="2"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_cols_3"
+            style="@style/DialogButton"
+            android:text="3"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_cols_4"
+            style="@style/DialogButton"
+            android:text="4"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_cols_5"
+            style="@style/DialogButton"
+            android:text="5"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_cols_6"
+            style="@style/DialogButton"
+            android:text="6"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rows_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/gallery_rows_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Grid Rows:"
+            android:textColor="?attr/text_color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/btn_rows_2"
+                style="@style/DialogButton"
+                android:text="2"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/btn_rows_3"
+                style="@style/DialogButton"
+                android:text="3"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_rows_4"
+            style="@style/DialogButton"
+            android:text="4"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_rows_5"
+            style="@style/DialogButton"
+            android:text="5"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_rows_6"
+            style="@style/DialogButton"
+            android:text="6"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/show_titles_button"
+        style="@style/DialogButton"
+        android:text="Titles: ON"
+        android:layout_width="match_parent"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

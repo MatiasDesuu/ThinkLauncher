@@ -62,6 +62,9 @@ public class GalleryActivity extends AppCompatActivity {
     private int currentPage = 0;
     private RecyclerView recyclerView;
     private boolean isGridView;
+    private int gridColumns;
+    private int gridRows;
+    private boolean showGridTitles;
     private SwipePageNavigator pageNavigator;
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
@@ -118,7 +121,38 @@ public class GalleryActivity extends AppCompatActivity {
         toggleViewButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         toggleViewButton.setOnClickListener(v -> toggleView());
 
+        titleView.setOnLongClickListener(v -> {
+            new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView,
+                    (columns, rows) -> {
+                        gridColumns = columns;
+                        gridRows = rows;
+                        prefs.edit()
+                                .putInt("gallery_grid_columns", columns)
+                                .putInt("gallery_grid_rows", rows)
+                                .apply();
+                        currentPage = 0;
+                        itemsPerPage = calculateItemsPerPage();
+                        if (isGridView) {
+                            recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
+                        }
+                        if (pageNavigator != null) {
+                            pageNavigator.setCurrentPage(0);
+                        }
+                        adapter.notifyDataSetChanged();
+                        updatePageIndicator();
+                    },
+                    show -> {
+                        showGridTitles = show;
+                        prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
+                        adapter.notifyDataSetChanged();
+                    }).show();
+            return true;
+        });
+
         isGridView = prefs.getBoolean("gallery_grid_view", true);
+        gridColumns = prefs.getInt("gallery_grid_columns", 3);
+        gridRows = prefs.getInt("gallery_grid_rows", 3);
+        showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
 
         recyclerView = findViewById(R.id.gallery_grid);
@@ -130,7 +164,7 @@ public class GalleryActivity extends AppCompatActivity {
         images = new ArrayList<>();
         adapter = new GalleryAdapter(images);
         if (isGridView) {
-            recyclerView.setLayoutManager(new GridLayoutManager(this, calculateSpanCount()));
+            recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
@@ -179,8 +213,7 @@ public class GalleryActivity extends AppCompatActivity {
         itemsPerPage = calculateItemsPerPage();
 
         if (isGridView) {
-            int spanCount = calculateSpanCount();
-            recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+            recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
@@ -194,12 +227,7 @@ public class GalleryActivity extends AppCompatActivity {
         EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
     }
 
-    private int calculateSpanCount() {
-        float screenWidthDp = getResources().getDisplayMetrics().widthPixels /
-                getResources().getDisplayMetrics().density;
-        if (screenWidthDp < 400) return 2;
-        return 3;
-    }
+
 
     private void requestPermissionAndLoad() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -279,6 +307,26 @@ public class GalleryActivity extends AppCompatActivity {
         });
     }
 
+    private int getGridItemSize() {
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        return screenWidth / gridColumns;
+    }
+
+    private int calculateGridRows() {
+        float screenHeightDp = getResources().getDisplayMetrics().heightPixels /
+                getResources().getDisplayMetrics().density;
+        int navBarHeightPx = 0;
+        try {
+            navBarHeightPx = getResources().getDimensionPixelSize(
+                    getResources().getIdentifier("navigation_bar_height", "dimen", "android"));
+        } catch (Exception e) {
+        }
+        screenHeightDp -= navBarHeightPx / getResources().getDisplayMetrics().density;
+        float recyclerHeightDp = screenHeightDp - 48 - 4 - 48;
+        float itemHeightDp = recyclerHeightDp / 3;
+        return Math.max(2, Math.min(6, (int) (recyclerHeightDp / itemHeightDp)));
+    }
+
     private int calculateItemsPerPage() {
         float screenHeightDp = getResources().getDisplayMetrics().heightPixels /
                 getResources().getDisplayMetrics().density;
@@ -296,10 +344,7 @@ public class GalleryActivity extends AppCompatActivity {
         float recyclerHeightDp = screenHeightDp - topHeightDp - dividerDp - bottomHeightDp;
 
         if (isGridView) {
-            float itemHeightDp = 120 + 20;
-            int spanCount = calculateSpanCount();
-            int rowsPerPage = Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
-            return rowsPerPage * spanCount;
+            return gridColumns * calculateGridRows();
         } else {
             float itemHeightDp = 64 + 20;
             return Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
@@ -426,6 +471,16 @@ public class GalleryActivity extends AppCompatActivity {
 
             if (holder instanceof GridViewHolder) {
                 GridViewHolder gvh = (GridViewHolder) holder;
+                int itemSize = getGridItemSize();
+                ViewGroup.LayoutParams lp = gvh.itemView.getLayoutParams();
+                if (lp == null) {
+                    lp = new ViewGroup.LayoutParams(itemSize, itemSize);
+                } else {
+                    lp.width = itemSize;
+                    lp.height = itemSize;
+                }
+                gvh.itemView.setLayoutParams(lp);
+                gvh.filename.setVisibility(showGridTitles ? View.VISIBLE : View.GONE);
                 gvh.filename.setText(image.name);
                 ThemeUtils.applyTextColor(gvh.filename, theme, GalleryActivity.this);
                 FontHelper.applyToViewTree(GalleryActivity.this, gvh.itemView);
