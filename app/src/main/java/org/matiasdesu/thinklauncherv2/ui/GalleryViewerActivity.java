@@ -104,6 +104,11 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
         imageNameView = findViewById(R.id.image_name);
         ThemeUtils.applyTextColor(imageNameView, theme, this);
+        imageNameView.setOnClickListener(v -> {
+            String n = (imageNames != null && currentIndex < imageNames.size()) ? imageNames.get(currentIndex) : "";
+            long d = (imageDates != null && currentIndex < imageDates.size()) ? imageDates.get(currentIndex) : 0;
+            new GalleryDetailsDialog(this, currentImageId, currentMediaType, n, d, 0, null).show();
+        });
 
         isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
         isFavoritesMode = getIntent().getBooleanExtra("favorites_mode", false);
