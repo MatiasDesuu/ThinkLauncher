@@ -16,7 +16,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
+import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 import android.widget.EditText;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -631,15 +635,7 @@ public class GalleryActivity extends AppCompatActivity {
             Toast.makeText(this, "Grant file access permission to rename folder", Toast.LENGTH_LONG).show();
             return;
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.NoAnimationDialog);
-        EditText input = new EditText(this);
-        input.setText(oldName);
-        input.setSelection(oldName.length());
-        input.setSingleLine(true);
-        builder.setTitle("Rename folder");
-        builder.setView(input);
-        builder.setPositiveButton("Rename", (d, which) -> {
-            String newName = input.getText().toString().trim();
+        new RenameDialog(this, oldName, newName -> {
             if (newName.isEmpty()) {
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
                 return;
@@ -726,14 +722,7 @@ public class GalleryActivity extends AppCompatActivity {
                     Toast.makeText(this, "Folder renamed", Toast.LENGTH_SHORT).show();
                 });
             });
-        });
-        builder.setNegativeButton("Cancel", null);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-        int surfaceColor = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.setup(dialog, theme);
-        android.view.View root = dialog.findViewById(android.R.id.content);
-        if (root != null) org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applySurface(root, theme, this, surfaceColor);
-        FontHelper.applyToViewTree(this, dialog.findViewById(android.R.id.content));
+        }).show();
     }
 
     private void updateTitle() {
@@ -1312,14 +1301,53 @@ public class GalleryActivity extends AppCompatActivity {
 
                 if (isFolder) {
                     GalleryFolder f = folder;
-                    gvh.itemView.setOnClickListener(v -> openFolder(f.folderName));
-                    gvh.itemView.setOnLongClickListener(v -> {
+                    gvh.itemView.setOnLongClickListener(null);
+                    gvh.itemView.setOnClickListener(null);
+                    final Handler h = new Handler(Looper.getMainLooper());
+                    final float slop = ViewConfiguration.get(gvh.itemView.getContext()).getScaledTouchSlop();
+                    final float[] down = new float[2];
+                    final boolean[] longFired = new boolean[1];
+                    final Runnable runnableLp = () -> {
+                        longFired[0] = true;
                         showFolderOptions(f.folderName);
-                        return true;
+                        android.view.ViewParent p = gvh.itemView.getParent();
+                        if (p != null) p.requestDisallowInterceptTouchEvent(true);
+                        if (recyclerView != null && recyclerView.getParent() != null) recyclerView.getParent().requestDisallowInterceptTouchEvent(true);
+                        gvh.itemView.getParent().requestDisallowInterceptTouchEvent(true);
+                    };
+                    gvh.itemView.setOnTouchListener((v, e) -> {
+                        switch (e.getActionMasked()) {
+                            case MotionEvent.ACTION_DOWN:
+                                down[0] = e.getX(); down[1] = e.getY();
+                                longFired[0] = false;
+                                h.postDelayed(runnableLp, ViewConfiguration.getLongPressTimeout());
+                                v.getParent().requestDisallowInterceptTouchEvent(false);
+                                break;
+                            case MotionEvent.ACTION_MOVE:
+                                if (!longFired[0] && (Math.abs(e.getX() - down[0]) > slop || Math.abs(e.getY() - down[1]) > slop)) {
+                                    h.removeCallbacks(runnableLp);
+                                }
+                                if (longFired[0]) return true;
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                h.removeCallbacks(runnableLp);
+                                if (longFired[0]) { longFired[0] = false; return true; }
+                                if (Math.abs(e.getX() - down[0]) < slop && Math.abs(e.getY() - down[1]) < slop) {
+                                    openFolder(f.folderName);
+                                    return true;
+                                }
+                                break;
+                            case MotionEvent.ACTION_CANCEL:
+                                h.removeCallbacks(runnableLp);
+                                longFired[0] = false;
+                                break;
+                        }
+                        return false;
                     });
                 } else {
-                    gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    gvh.itemView.setOnTouchListener(null);
                     gvh.itemView.setOnLongClickListener(null);
+                    gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
                 }
             } else if (holder instanceof ListViewHolder) {
                 ListViewHolder lvh = (ListViewHolder) holder;
@@ -1378,14 +1406,53 @@ public class GalleryActivity extends AppCompatActivity {
 
                 if (isFolder) {
                     GalleryFolder f = folder;
-                    lvh.itemView.setOnClickListener(v -> openFolder(f.folderName));
-                    lvh.itemView.setOnLongClickListener(v -> {
+                    lvh.itemView.setOnClickListener(null);
+                    lvh.itemView.setOnLongClickListener(null);
+                    final Handler h2 = new Handler(Looper.getMainLooper());
+                    final float slop2 = ViewConfiguration.get(lvh.itemView.getContext()).getScaledTouchSlop();
+                    final float[] down2 = new float[2];
+                    final boolean[] longFired2 = new boolean[1];
+                    final Runnable lp2 = () -> {
+                        longFired2[0] = true;
                         showFolderOptions(f.folderName);
-                        return true;
+                        android.view.ViewParent p2 = lvh.itemView.getParent();
+                        if (p2 != null) p2.requestDisallowInterceptTouchEvent(true);
+                        if (recyclerView != null && recyclerView.getParent() != null) recyclerView.getParent().requestDisallowInterceptTouchEvent(true);
+                        lvh.itemView.getParent().requestDisallowInterceptTouchEvent(true);
+                    };
+                    lvh.itemView.setOnTouchListener((v, e) -> {
+                        switch (e.getActionMasked()) {
+                            case MotionEvent.ACTION_DOWN:
+                                down2[0] = e.getX(); down2[1] = e.getY();
+                                longFired2[0] = false;
+                                h2.postDelayed(lp2, ViewConfiguration.getLongPressTimeout());
+                                v.getParent().requestDisallowInterceptTouchEvent(false);
+                                break;
+                            case MotionEvent.ACTION_MOVE:
+                                if (!longFired2[0] && (Math.abs(e.getX() - down2[0]) > slop2 || Math.abs(e.getY() - down2[1]) > slop2)) {
+                                    h2.removeCallbacks(lp2);
+                                }
+                                if (longFired2[0]) return true;
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                h2.removeCallbacks(lp2);
+                                if (longFired2[0]) { longFired2[0] = false; return true; }
+                                if (Math.abs(e.getX() - down2[0]) < slop2 && Math.abs(e.getY() - down2[1]) < slop2) {
+                                    openFolder(f.folderName);
+                                    return true;
+                                }
+                                break;
+                            case MotionEvent.ACTION_CANCEL:
+                                h2.removeCallbacks(lp2);
+                                longFired2[0] = false;
+                                break;
+                        }
+                        return false;
                     });
                 } else {
-                    lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    lvh.itemView.setOnTouchListener(null);
                     lvh.itemView.setOnLongClickListener(null);
+                    lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
                 }
             }
         }
