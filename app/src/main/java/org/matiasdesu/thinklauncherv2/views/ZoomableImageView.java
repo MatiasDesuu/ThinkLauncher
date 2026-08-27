@@ -5,9 +5,8 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
+import android.view.ViewConfiguration;
 
 import androidx.appcompat.widget.AppCompatImageView;
 
@@ -16,20 +15,25 @@ public class ZoomableImageView extends AppCompatImageView {
     private static final float MAX_SCALE = 4.0f;
 
     private Matrix matrix;
-    private Matrix savedMatrix;
     private int viewWidth;
     private int viewHeight;
     private float currentScale = 1.0f;
     private float minScale = 1.0f;
+
     private PointF lastTouch = new PointF();
-    private int mode = NONE;
+    private float lastPinchDist = 0;
+    private boolean isPinching = false;
+    private boolean isDragging = false;
 
-    private static final int NONE = 0;
-    private static final int DRAG = 1;
-
-    private ScaleGestureDetector scaleDetector;
-    private GestureDetector gestureDetector;
     private OnSwipeListener onSwipeListener;
+    private float downX;
+    private float downY;
+    private boolean couldBeFling;
+
+    private long lastTapTime = 0;
+    private float lastTapX = 0;
+    private float lastTapY = 0;
+    private int doubleTapSlop;
 
     public interface OnSwipeListener {
         void onSwipeLeft();
@@ -38,121 +42,27 @@ public class ZoomableImageView extends AppCompatImageView {
 
     public ZoomableImageView(Context context) {
         super(context);
-        init(context);
+        init();
     }
 
     public ZoomableImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        init();
     }
 
     public ZoomableImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init();
     }
 
     public void setOnSwipeListener(OnSwipeListener listener) {
         this.onSwipeListener = listener;
     }
 
-    private void init(Context context) {
+    private void init() {
         setScaleType(ScaleType.MATRIX);
         matrix = new Matrix();
-        savedMatrix = new Matrix();
-
-        scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-            @Override
-            public boolean onScale(ScaleGestureDetector detector) {
-                float scaleFactor = detector.getScaleFactor();
-                float newScale = currentScale * scaleFactor;
-                if (newScale >= minScale && newScale <= MAX_SCALE) {
-                    matrix.postScale(scaleFactor, scaleFactor, detector.getFocusX(), detector.getFocusY());
-                    currentScale = newScale;
-                    constrainMatrix();
-                    setImageMatrix(matrix);
-                }
-                return true;
-            }
-        });
-
-        gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onDoubleTap(MotionEvent e) {
-                if (currentScale > minScale) {
-                    resetZoom();
-                } else {
-                    float targetScale = MAX_SCALE / 2f;
-                    float factor = targetScale / currentScale;
-                    matrix.postScale(factor, factor, e.getX(), e.getY());
-                    currentScale = targetScale;
-                    constrainMatrix();
-                    setImageMatrix(matrix);
-                }
-                return true;
-            }
-
-            @Override
-            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                if (currentScale > minScale) {
-                    matrix.postTranslate(-distanceX, -distanceY);
-                    constrainMatrix();
-                    setImageMatrix(matrix);
-                }
-                return true;
-            }
-
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if (e1 == null || e2 == null) return false;
-                if (currentScale <= minScale && onSwipeListener != null) {
-                    float xDiff = e2.getX() - e1.getX();
-                    float yDiff = e2.getY() - e1.getY();
-                    if (Math.abs(xDiff) > 80 && Math.abs(velocityX) > 80
-                            && Math.abs(xDiff) > Math.abs(yDiff)) {
-                        if (xDiff < 0) {
-                            onSwipeListener.onSwipeLeft();
-                        } else {
-                            onSwipeListener.onSwipeRight();
-                        }
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
-
-        setOnTouchListener((v, event) -> {
-            scaleDetector.onTouchEvent(event);
-            gestureDetector.onTouchEvent(event);
-
-            if (!scaleDetector.isInProgress()) {
-                switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_DOWN:
-                        savedMatrix.set(matrix);
-                        lastTouch.set(event.getX(), event.getY());
-                        mode = DRAG;
-                        break;
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
-                        mode = NONE;
-                        break;
-                    case MotionEvent.ACTION_POINTER_UP:
-                        mode = NONE;
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        if (mode == DRAG && !scaleDetector.isInProgress()) {
-                            float dx = event.getX() - lastTouch.x;
-                            float dy = event.getY() - lastTouch.y;
-                            matrix.set(savedMatrix);
-                            matrix.postTranslate(dx, dy);
-                            constrainMatrix();
-                            setImageMatrix(matrix);
-                        }
-                        break;
-                }
-            }
-            return true;
-        });
+        doubleTapSlop = ViewConfiguration.get(getContext()).getScaledDoubleTapSlop();
     }
 
     @Override
@@ -169,7 +79,6 @@ public class ZoomableImageView extends AppCompatImageView {
 
         float drawableWidth = d.getIntrinsicWidth();
         float drawableHeight = d.getIntrinsicHeight();
-
         if (drawableWidth <= 0 || drawableHeight <= 0) return;
 
         float scaleX = (float) viewWidth / drawableWidth;
@@ -177,16 +86,159 @@ public class ZoomableImageView extends AppCompatImageView {
         minScale = Math.min(scaleX, scaleY);
         currentScale = minScale;
 
-        float scaledWidth = drawableWidth * minScale;
-        float scaledHeight = drawableHeight * minScale;
-
-        float dx = (viewWidth - scaledWidth) / 2f;
-        float dy = (viewHeight - scaledHeight) / 2f;
+        float dx = (viewWidth - drawableWidth * minScale) / 2f;
+        float dy = (viewHeight - drawableHeight * minScale) / 2f;
 
         matrix.reset();
         matrix.setScale(minScale, minScale);
         matrix.postTranslate(dx, dy);
         setImageMatrix(matrix);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (getDrawable() == null) return false;
+
+        int action = event.getActionMasked();
+
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                lastTouch.set(event.getX(), event.getY());
+                isDragging = false;
+                couldBeFling = true;
+                downX = event.getX();
+                downY = event.getY();
+                getParent().requestDisallowInterceptTouchEvent(true);
+                return true;
+
+            case MotionEvent.ACTION_POINTER_DOWN:
+                if (event.getPointerCount() >= 2) {
+                    isPinching = true;
+                    isDragging = false;
+                    couldBeFling = false;
+                    float dx = event.getX(0) - event.getX(1);
+                    float dy = event.getY(0) - event.getY(1);
+                    lastPinchDist = (float) Math.sqrt(dx * dx + dy * dy);
+                }
+                return true;
+
+            case MotionEvent.ACTION_MOVE:
+                if (isPinching && event.getPointerCount() >= 2) {
+                    float dx = event.getX(0) - event.getX(1);
+                    float dy = event.getY(0) - event.getY(1);
+                    float dist = (float) Math.sqrt(dx * dx + dy * dy);
+
+                    if (lastPinchDist > 0) {
+                        float ratio = dist / lastPinchDist;
+                        float newScale = currentScale * ratio;
+                        newScale = Math.max(minScale, Math.min(MAX_SCALE, newScale));
+
+                        float focusX = (event.getX(0) + event.getX(1)) / 2f;
+                        float focusY = (event.getY(0) + event.getY(1)) / 2f;
+
+                        float scaleFactor = newScale / currentScale;
+                        matrix.postScale(scaleFactor, scaleFactor, focusX, focusY);
+                        currentScale = newScale;
+                        constrainMatrix();
+                        setImageMatrix(matrix);
+                    }
+                    lastPinchDist = dist;
+                } else if (!isPinching) {
+                    float x = event.getX();
+                    float y = event.getY();
+                    float dx = x - lastTouch.x;
+                    float dy = y - lastTouch.y;
+
+                    if (currentScale > minScale) {
+                        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                            isDragging = true;
+                        }
+                        matrix.postTranslate(dx, dy);
+                        constrainMatrix();
+                        setImageMatrix(matrix);
+                    } else {
+                        if (Math.abs(x - downX) > doubleTapSlop) {
+                            isDragging = true;
+                        }
+                    }
+
+                    lastTouch.set(x, y);
+                }
+                return true;
+
+            case MotionEvent.ACTION_POINTER_UP:
+                int pointerIndex = event.getActionIndex();
+                int remainingCount = event.getPointerCount() - 1;
+
+                if (isPinching && remainingCount < 2) {
+                    isPinching = false;
+                    if (remainingCount == 1) {
+                        int otherIndex = (pointerIndex == 0) ? 1 : 0;
+                        lastTouch.set(event.getX(otherIndex), event.getY(otherIndex));
+                    }
+                }
+                return true;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                float upX = event.getX();
+                float upY = event.getY();
+
+                if (!isPinching) {
+                    long now = System.currentTimeMillis();
+
+                    if (!isDragging) {
+                        float dxTap = upX - lastTapX;
+                        float dyTap = upY - lastTapY;
+                        float thisMoveX = upX - downX;
+                        float thisMoveY = upY - downY;
+                        boolean isDoubleTap = (now - lastTapTime) < 300
+                                && Math.abs(dxTap) < doubleTapSlop
+                                && Math.abs(dyTap) < doubleTapSlop
+                                && Math.abs(thisMoveX) < doubleTapSlop
+                                && Math.abs(thisMoveY) < doubleTapSlop;
+
+                        if (isDoubleTap) {
+                            handleDoubleTap(upX, upY);
+                            lastTapTime = 0;
+                        } else {
+                            lastTapTime = now;
+                            lastTapX = upX;
+                            lastTapY = upY;
+                        }
+                    } else if (onSwipeListener != null && currentScale <= minScale) {
+                        float flingDist = upX - downX;
+                        if (Math.abs(flingDist) > 80) {
+                            if (flingDist < 0) {
+                                onSwipeListener.onSwipeLeft();
+                            } else {
+                                onSwipeListener.onSwipeRight();
+                            }
+                        }
+                    }
+                }
+
+                isPinching = false;
+                isDragging = false;
+                couldBeFling = false;
+                getParent().requestDisallowInterceptTouchEvent(false);
+                return true;
+        }
+
+        return super.onTouchEvent(event);
+    }
+
+    private void handleDoubleTap(float x, float y) {
+        if (currentScale > minScale) {
+            resetZoom();
+        } else {
+            float targetScale = Math.min(MAX_SCALE / 2f, minScale * 3f);
+            float factor = targetScale / currentScale;
+            matrix.postScale(factor, factor, x, y);
+            currentScale = targetScale;
+            constrainMatrix();
+            setImageMatrix(matrix);
+        }
     }
 
     private void constrainMatrix() {
@@ -217,7 +269,9 @@ public class ZoomableImageView extends AppCompatImageView {
             if (translateY + drawableHeight < viewHeight) dy = viewHeight - translateY - drawableHeight;
         }
 
-        matrix.postTranslate(dx, dy);
+        if (dx != 0 || dy != 0) {
+            matrix.postTranslate(dx, dy);
+        }
     }
 
     public float getCurrentScale() {
