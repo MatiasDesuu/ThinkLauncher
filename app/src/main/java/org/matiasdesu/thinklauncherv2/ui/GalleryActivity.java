@@ -143,8 +143,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         ImageView folderButton = findViewById(R.id.folder_button);
         folderButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
-        if (isTrashMode) folderButton.setVisibility(View.GONE);
-        else folderButton.setVisibility(View.VISIBLE);
+        updateFolderButtonIcon();
         folderButton.setOnClickListener(v -> toggleFolderView());
 
         titleView.setOnClickListener(v -> {
@@ -477,6 +476,19 @@ public class GalleryActivity extends AppCompatActivity {
         else titleView.setText("Gallery");
     }
 
+    private void updateFolderButtonIcon() {
+        ImageView folderButton = findViewById(R.id.folder_button);
+        if (folderButton == null) return;
+        if (isTrashMode || selectedFolder != null) {
+            folderButton.setVisibility(View.GONE);
+            return;
+        }
+        folderButton.setVisibility(View.VISIBLE);
+        boolean showGallery = isFolderView;
+        folderButton.setImageResource(showGallery ? R.drawable.gallery_view : R.drawable.folder_view);
+        folderButton.setContentDescription(showGallery ? "Gallery" : "Folders");
+    }
+
         private void toggleFolderView() {
         if (isTrashMode) return;
         if (selectedFolder != null) {
@@ -515,6 +527,7 @@ public class GalleryActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         updatePageIndicator();
         updateTitle();
+        updateFolderButtonIcon();
         EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
     }
 
@@ -539,6 +552,7 @@ public class GalleryActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         updatePageIndicator();
         updateTitle();
+        updateFolderButtonIcon();
         EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
     }
 
@@ -565,6 +579,7 @@ public class GalleryActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             updatePageIndicator();
             updateTitle();
+            updateFolderButtonIcon();
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
             return;
         }
@@ -588,6 +603,7 @@ public class GalleryActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             updatePageIndicator();
             updateTitle();
+            updateFolderButtonIcon();
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
             return;
         }
@@ -667,16 +683,19 @@ public class GalleryActivity extends AppCompatActivity {
         long[] idsArray = new long[currentImages.size()];
         String[] namesArray = new String[currentImages.size()];
         int[] typesArray = new int[currentImages.size()];
+        long[] datesArray = new long[currentImages.size()];
         for (int i = 0; i < currentImages.size(); i++) {
             idsArray[i] = currentImages.get(i).id;
             namesArray[i] = currentImages.get(i).name;
             typesArray[i] = currentImages.get(i).mediaType;
+            datesArray[i] = currentImages.get(i).dateAdded;
         }
         Intent intent = new Intent(this, GalleryViewerActivity.class);
         intent.putExtra("current_index", viewerIndex);
         intent.putExtra("image_ids", idsArray);
         intent.putExtra("image_names", namesArray);
         intent.putExtra("media_types", typesArray);
+        intent.putExtra("image_dates", datesArray);
         intent.putExtra("trash_mode", isTrashMode);
         startActivityForResult(intent, REQUEST_VIEWER);
         overridePendingTransition(0, appLauncherAnimations ? 0 : 0);

@@ -26,7 +26,10 @@ import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,10 +47,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private ArrayList<Long> imageIds;
     private ArrayList<String> imageNames;
     private ArrayList<Integer> mediaTypes;
+    private ArrayList<Long> imageDates;
     private int currentIndex;
     private long currentImageId;
     private int currentMediaType;
     private boolean isTrashMode;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault());
 
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
     private boolean imageDeleted = false;
@@ -122,6 +127,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
         long[] idsArray = getIntent().getLongArrayExtra("image_ids");
         String[] namesArray = getIntent().getStringArrayExtra("image_names");
         int[] typesArray = getIntent().getIntArrayExtra("media_types");
+        long[] datesArray = getIntent().getLongArrayExtra("image_dates");
         if (idsArray != null) {
             imageIds = new ArrayList<>();
             for (long id : idsArray) imageIds.add(id);
@@ -135,6 +141,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
             for (int t : typesArray) mediaTypes.add(t);
         } else if (imageIds != null) {
             for (int i = 0; i < imageIds.size(); i++) mediaTypes.add(GalleryTrashHelper.TYPE_IMAGE);
+        }
+        imageDates = new ArrayList<>();
+        if (datesArray != null) {
+            for (long d : datesArray) imageDates.add(d);
+        } else if (imageIds != null) {
+            for (int i = 0; i < imageIds.size(); i++) imageDates.add(0L);
         }
         currentIndex = getIntent().getIntExtra("current_index", 0);
 
@@ -202,8 +214,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
         if (imageIds.isEmpty()) return;
         String text = (currentIndex + 1) + " / " + imageIds.size();
         pageIndicator.setText(text);
-
-        if (imageNames != null && currentIndex < imageNames.size()) {
+        if (imageDates != null && currentIndex < imageDates.size()) {
+            long d = imageDates.get(currentIndex);
+            if (d != 0) imageNameView.setText(dateFormat.format(new Date(d * 1000)));
+            else if (imageNames != null && currentIndex < imageNames.size()) imageNameView.setText(imageNames.get(currentIndex));
+            else imageNameView.setText("");
+        } else if (imageNames != null && currentIndex < imageNames.size()) {
             imageNameView.setText(imageNames.get(currentIndex));
         } else {
             imageNameView.setText("");
@@ -238,6 +254,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             imageIds.remove(removedIndex);
             if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
             if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
+            if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
@@ -269,6 +286,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             imageIds.remove(removedIndex);
             if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
             if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
+            if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Image restored", Toast.LENGTH_SHORT).show();
@@ -305,6 +323,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             imageIds.remove(deletedIndex);
             if (imageNames != null && deletedIndex < imageNames.size()) imageNames.remove(deletedIndex);
             if (mediaTypes != null && deletedIndex < mediaTypes.size()) mediaTypes.remove(deletedIndex);
+            if (imageDates != null && deletedIndex < imageDates.size()) imageDates.remove(deletedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
