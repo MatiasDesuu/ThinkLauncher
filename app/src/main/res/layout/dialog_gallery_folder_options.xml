@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="280dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/folder_name_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/text_color"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/pin_button"
+        style="@style/DialogButton"
+        android:layout_width="match_parent"
+        android:text="Pin to top" />
+
+    <TextView
+        android:id="@+id/rename_button"
+        style="@style/DialogButton"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp"
+        android:text="Rename" />
+
+    <TextView
+        android:id="@+id/open_button"
+        style="@style/DialogButton"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp"
+        android:text="Open" />
+
+</LinearLayout>

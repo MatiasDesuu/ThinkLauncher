@@ -30,6 +30,16 @@
             android:visibility="gone"
             android:padding="4dp" />
 
+        <ImageView
+            android:id="@+id/pinned_indicator"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="4dp"
+            android:src="@drawable/pin"
+            android:visibility="gone"
+            android:padding="2dp" />
+
     </FrameLayout>
 
     <TextView

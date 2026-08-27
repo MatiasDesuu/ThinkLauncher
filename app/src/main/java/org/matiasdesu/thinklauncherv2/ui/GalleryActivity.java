@@ -1,6 +1,7 @@
 package org.matiasdesu.thinklauncherv2.ui;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -10,10 +11,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.widget.EditText;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -484,7 +488,7 @@ public class GalleryActivity extends AppCompatActivity {
                     GalleryImage thumb = list.get(0);
                     folders.add(new GalleryFolder(e.getKey(), thumb.folderPath, list.size(), thumb.id, thumb.mediaType));
                 }
-                Collections.sort(folders, (a, b) -> a.folderName.compareToIgnoreCase(b.folderName));
+                sortFolders();
                 updateDisplayItems();
                 itemsPerPage = calculateItemsPerPage();
                 applyGridLayoutManager();
@@ -568,6 +572,168 @@ public class GalleryActivity extends AppCompatActivity {
         if (galleryGroupMode == GROUP_MONTH) return monthSeparatorFormat.format(d);
         if (galleryGroupMode == GROUP_YEAR) return yearSeparatorFormat.format(d);
         return "";
+    }
+
+    private void sortFolders() {
+        Set<String> pinned = prefs.getStringSet("gallery_pinned_folders", new HashSet<>());
+        if (pinned == null) pinned = new HashSet<>();
+        final Set<String> pinnedFinal = pinned;
+        Collections.sort(folders, (a, b) -> {
+            boolean ap = pinnedFinal.contains(a.folderName);
+            boolean bp = pinnedFinal.contains(b.folderName);
+            if (ap != bp) return ap ? -1 : 1;
+            return a.folderName.compareToIgnoreCase(b.folderName);
+        });
+    }
+
+    private boolean isFolderPinned(String folderName) {
+        Set<String> pinned = prefs.getStringSet("gallery_pinned_folders", new HashSet<>());
+        return pinned != null && pinned.contains(folderName);
+    }
+
+    private void toggleFolderPin(String folderName) {
+        Set<String> pinned = prefs.getStringSet("gallery_pinned_folders", new HashSet<>());
+        if (pinned == null) pinned = new HashSet<>();
+        Set<String> updated = new HashSet<>(pinned);
+        if (updated.contains(folderName)) updated.remove(folderName);
+        else updated.add(folderName);
+        prefs.edit().putStringSet("gallery_pinned_folders", updated).apply();
+        sortFolders();
+        updateDisplayItems();
+        currentPage = 0;
+        itemsPerPage = calculateItemsPerPage();
+        applyGridLayoutManager();
+        recomputePagination();
+        if (pageNavigator != null) {
+            pageNavigator.setCurrentPage(0);
+            pageNavigator.setTotalItems(displayItems.size());
+        }
+        adapter.notifyDataSetChanged();
+        updatePageIndicator();
+        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+    }
+
+    private void showFolderOptions(String folderName) {
+        boolean pinned = isFolderPinned(folderName);
+        new GalleryFolderOptionsDialog(this, folderName, pinned, () -> toggleFolderPin(folderName), () -> openFolder(folderName), () -> renameFolder(folderName)).show();
+    }
+
+    private void renameFolder(String oldName) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            try {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } catch (Exception e) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent);
+            }
+            Toast.makeText(this, "Grant file access permission to rename folder", Toast.LENGTH_LONG).show();
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.NoAnimationDialog);
+        EditText input = new EditText(this);
+        input.setText(oldName);
+        input.setSelection(oldName.length());
+        input.setSingleLine(true);
+        builder.setTitle("Rename folder");
+        builder.setView(input);
+        builder.setPositiveButton("Rename", (d, which) -> {
+            String newName = input.getText().toString().trim();
+            if (newName.isEmpty()) {
+                Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (newName.equals(oldName)) return;
+            if (newName.contains("/") || newName.contains("\\") || newName.contains(":")) {
+                Toast.makeText(this, "Invalid name", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String oldPath = null;
+            for (GalleryFolder f : folders) if (f.folderName.equals(oldName)) { oldPath = f.folderPath; break; }
+            if (oldPath == null) {
+                for (GalleryImage img : allMedia) if (oldName.equals(img.folderName) && img.folderPath != null) { oldPath = new File(img.folderPath).getParent(); if (oldPath == null) oldPath = img.folderPath; break; }
+                if (oldPath != null) oldPath = oldPath + File.separator + oldName;
+            }
+            if (oldPath == null) {
+                Toast.makeText(this, "Folder path not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            File oldDir = new File(oldPath);
+            if (!oldDir.exists() || !oldDir.isDirectory()) {
+                File fallback = null;
+                for (GalleryImage img : allMedia) if (oldName.equals(img.folderName)) {
+                    String p = img.folderPath;
+                    if (p != null) { File pf = new File(p); File parent = pf.getParentFile(); if (parent != null && parent.getName().equals(oldName)) { fallback = parent; break; } }
+                }
+                if (fallback != null) oldDir = fallback;
+            }
+            if (!oldDir.exists()) {
+                Toast.makeText(this, "Folder not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            File newDir = new File(oldDir.getParent(), newName);
+            if (newDir.exists()) {
+                Toast.makeText(this, "Folder already exists", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final File finalOldDir = oldDir;
+            final File finalNewDir = newDir;
+            final String finalOldName = oldName;
+            final String finalNewName = newName;
+            thumbnailExecutor.execute(() -> {
+                boolean success = finalOldDir.renameTo(finalNewDir);
+                if (!success) {
+                    boolean allMoved = true;
+                    File[] files = finalOldDir.listFiles();
+                    if (files != null) {
+                        finalNewDir.mkdirs();
+                        for (File f : files) {
+                            File dest = new File(finalNewDir, f.getName());
+                            if (!f.renameTo(dest)) allMoved = false;
+                        }
+                        if (allMoved) finalOldDir.delete();
+                        success = allMoved && finalNewDir.exists();
+                    }
+                }
+                boolean finalSuccess = success;
+                runOnUiThread(() -> {
+                    if (!finalSuccess) {
+                        Toast.makeText(this, "Failed to rename folder", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Set<String> pinned = prefs.getStringSet("gallery_pinned_folders", new HashSet<>());
+                    if (pinned != null && pinned.contains(finalOldName)) {
+                        Set<String> updated = new HashSet<>(pinned);
+                        updated.remove(finalOldName);
+                        updated.add(finalNewName);
+                        prefs.edit().putStringSet("gallery_pinned_folders", updated).apply();
+                    }
+                    try {
+                        getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.DATA + " LIKE ?", new String[]{finalOldDir.getAbsolutePath() + "/%"});
+                        getContentResolver().delete(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DATA + " LIKE ?", new String[]{finalOldDir.getAbsolutePath() + "/%"});
+                    } catch (Exception ignored) {}
+                    File[] toScan = finalNewDir.listFiles();
+                    if (toScan != null && toScan.length > 0) {
+                        String[] paths = new String[toScan.length];
+                        for (int i = 0; i < toScan.length; i++) paths[i] = toScan[i].getAbsolutePath();
+                        MediaScannerConnection.scanFile(this, paths, null, null);
+                    } else {
+                        MediaScannerConnection.scanFile(this, new String[]{finalNewDir.getAbsolutePath()}, null, null);
+                    }
+                    if (selectedFolder != null && selectedFolder.equals(finalOldName)) selectedFolder = finalNewName;
+                    loadImages();
+                    Toast.makeText(this, "Folder renamed", Toast.LENGTH_SHORT).show();
+                });
+            });
+        });
+        builder.setNegativeButton("Cancel", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        int surfaceColor = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.setup(dialog, theme);
+        android.view.View root = dialog.findViewById(android.R.id.content);
+        if (root != null) org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applySurface(root, theme, this, surfaceColor);
+        FontHelper.applyToViewTree(this, dialog.findViewById(android.R.id.content));
     }
 
     private void updateTitle() {
@@ -1114,6 +1280,15 @@ public class GalleryActivity extends AppCompatActivity {
                 } else {
                     gvh.videoIndicator.setVisibility(View.GONE);
                 }
+                if (isFolder && isFolderPinned(folder.folderName)) {
+                    gvh.pinnedIndicator.setVisibility(View.VISIBLE);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(gvh.pinnedIndicator, txt, bg, GalleryActivity.this);
+                    gvh.pinnedIndicator.setColorFilter(txt);
+                } else {
+                    gvh.pinnedIndicator.setVisibility(View.GONE);
+                }
                 gvh.thumbnail.setImageBitmap(null);
                 gvh.thumbnail.setTag(globalPosition);
                 final long fThumbId = thumbId;
@@ -1138,8 +1313,13 @@ public class GalleryActivity extends AppCompatActivity {
                 if (isFolder) {
                     GalleryFolder f = folder;
                     gvh.itemView.setOnClickListener(v -> openFolder(f.folderName));
+                    gvh.itemView.setOnLongClickListener(v -> {
+                        showFolderOptions(f.folderName);
+                        return true;
+                    });
                 } else {
                     gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    gvh.itemView.setOnLongClickListener(null);
                 }
             } else if (holder instanceof ListViewHolder) {
                 ListViewHolder lvh = (ListViewHolder) holder;
@@ -1164,6 +1344,15 @@ public class GalleryActivity extends AppCompatActivity {
                     lvh.videoIndicator.setColorFilter(txt);
                 } else {
                     lvh.videoIndicator.setVisibility(View.GONE);
+                }
+                if (isFolder && isFolderPinned(folder.folderName)) {
+                    lvh.pinnedIndicator.setVisibility(View.VISIBLE);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(lvh.pinnedIndicator, txt, bg, GalleryActivity.this);
+                    lvh.pinnedIndicator.setColorFilter(txt);
+                } else {
+                    lvh.pinnedIndicator.setVisibility(View.GONE);
                 }
 
                 lvh.thumbnail.setImageBitmap(null);
@@ -1190,8 +1379,13 @@ public class GalleryActivity extends AppCompatActivity {
                 if (isFolder) {
                     GalleryFolder f = folder;
                     lvh.itemView.setOnClickListener(v -> openFolder(f.folderName));
+                    lvh.itemView.setOnLongClickListener(v -> {
+                        showFolderOptions(f.folderName);
+                        return true;
+                    });
                 } else {
                     lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    lvh.itemView.setOnLongClickListener(null);
                 }
             }
         }
@@ -1208,12 +1402,14 @@ public class GalleryActivity extends AppCompatActivity {
             ImageView thumbnail;
             TextView filename;
             ImageView videoIndicator;
+            ImageView pinnedIndicator;
 
             GridViewHolder(View itemView) {
                 super(itemView);
                 thumbnail = itemView.findViewById(R.id.gallery_thumbnail);
                 filename = itemView.findViewById(R.id.gallery_filename);
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
+                pinnedIndicator = itemView.findViewById(R.id.pinned_indicator);
             }
         }
 
@@ -1222,6 +1418,7 @@ public class GalleryActivity extends AppCompatActivity {
             TextView filename;
             TextView date;
             ImageView videoIndicator;
+            ImageView pinnedIndicator;
 
             ListViewHolder(View itemView) {
                 super(itemView);
@@ -1229,6 +1426,7 @@ public class GalleryActivity extends AppCompatActivity {
                 filename = itemView.findViewById(R.id.gallery_filename);
                 date = itemView.findViewById(R.id.gallery_date);
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
+                pinnedIndicator = itemView.findViewById(R.id.pinned_indicator);
             }
         }
 
