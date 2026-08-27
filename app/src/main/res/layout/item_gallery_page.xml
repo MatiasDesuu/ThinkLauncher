@@ -26,4 +26,57 @@
         android:visibility="gone"
         android:padding="8dp" />
 
+    <LinearLayout
+        android:id="@+id/video_controls"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:visibility="gone"
+        android:background="#00000000">
+
+        <TextView
+            android:id="@+id/video_current_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00"
+            android:textSize="12sp"
+            android:textColor="?attr/text_color"
+            android:minWidth="40dp"
+            android:gravity="center"
+            android:textAlignment="center" />
+
+        <FrameLayout
+            android:id="@+id/video_seek_container"
+            android:layout_width="0dp"
+            android:layout_height="16dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:clickable="true"
+            android:focusable="false">
+
+            <View
+                android:id="@+id/video_progress"
+                android:layout_width="0dp"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/video_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00"
+            android:textSize="12sp"
+            android:textColor="?attr/text_color"
+            android:minWidth="40dp"
+            android:gravity="center"
+            android:textAlignment="center" />
+
+    </LinearLayout>
+
 </FrameLayout>
