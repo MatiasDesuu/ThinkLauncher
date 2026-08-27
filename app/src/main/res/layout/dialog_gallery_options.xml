@@ -129,4 +129,11 @@
         android:layout_width="match_parent"
         android:layout_marginTop="16dp" />
 
+    <TextView
+        android:id="@+id/trash_button"
+        style="@style/DialogButton"
+        android:text="Trash"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>

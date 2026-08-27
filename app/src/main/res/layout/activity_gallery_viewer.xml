@@ -44,6 +44,15 @@
                 android:layout_gravity="center_vertical" />
 
             <ImageView
+                android:id="@+id/restore_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/restore"
+                android:visibility="gone"
+                android:tint="?attr/text_color" />
+
+            <ImageView
                 android:id="@+id/delete_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"

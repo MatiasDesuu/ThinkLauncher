@@ -18,10 +18,15 @@ public class DeleteImageDialog extends Dialog {
 
     public DeleteImageDialog(Context context, OnConfirmCallback callback) {
         super(context, R.style.NoAnimationDialog);
-        init(callback);
+        init(callback, null, null);
     }
 
-    private void init(OnConfirmCallback callback) {
+    public DeleteImageDialog(Context context, String message, String confirmText, OnConfirmCallback callback) {
+        super(context, R.style.NoAnimationDialog);
+        init(callback, message, confirmText);
+    }
+
+    private void init(OnConfirmCallback callback, String message, String confirmText) {
         SharedPreferences prefs = getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         setContentView(R.layout.dialog_delete_image);
@@ -35,8 +40,11 @@ public class DeleteImageDialog extends Dialog {
         DialogEffectHelper.applyButtonTheme(cancelButton, theme, getContext(), surfaceColor);
         cancelButton.setOnClickListener(v -> dismiss());
 
+        TextView messageView = findViewById(R.id.dialog_message);
+        if (message != null) messageView.setText(message);
         TextView deleteButton = findViewById(R.id.delete_button);
         DialogEffectHelper.applyButtonTheme(deleteButton, theme, getContext(), surfaceColor);
+        if (confirmText != null) deleteButton.setText(confirmText);
         deleteButton.setOnClickListener(v -> {
             callback.onConfirm();
             dismiss();

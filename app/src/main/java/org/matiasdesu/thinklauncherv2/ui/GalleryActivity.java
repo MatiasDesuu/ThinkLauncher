@@ -33,14 +33,17 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -66,6 +69,7 @@ public class GalleryActivity extends AppCompatActivity {
     private int gridColumns;
     private int gridRows;
     private boolean showGridTitles;
+    private boolean isTrashMode;
     private SwipePageNavigator pageNavigator;
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
@@ -92,6 +96,7 @@ public class GalleryActivity extends AppCompatActivity {
         theme = prefs.getInt("theme", 0);
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
+        isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
@@ -110,6 +115,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         TextView titleView = findViewById(R.id.gallery_title);
         ThemeUtils.applyTextColor(titleView, theme, this);
+        if (isTrashMode) titleView.setText("Trash");
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -123,7 +129,7 @@ public class GalleryActivity extends AppCompatActivity {
         toggleViewButton.setOnClickListener(v -> toggleView());
 
         titleView.setOnLongClickListener(v -> {
-            new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView, !scrollAppList,
+            new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView, !scrollAppList, isTrashMode,
                     (columns, rows) -> {
                         gridColumns = columns;
                         gridRows = rows;
@@ -146,6 +152,20 @@ public class GalleryActivity extends AppCompatActivity {
                         showGridTitles = show;
                         prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
                         adapter.notifyDataSetChanged();
+                    },
+                    () -> {
+                        if (isTrashMode) {
+                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            startActivity(intent);
+                            overridePendingTransition(0, 0);
+                            finish();
+                        } else {
+                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                            intent.putExtra("trash_mode", true);
+                            startActivity(intent);
+                            overridePendingTransition(0, 0);
+                        }
                     }).show();
             return true;
         });
@@ -155,6 +175,8 @@ public class GalleryActivity extends AppCompatActivity {
         gridRows = prefs.getInt("gallery_grid_rows", 3);
         showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
+        ImageView toggleBtn = findViewById(R.id.toggle_view_button);
+        if (toggleBtn != null) toggleBtn.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
 
         recyclerView = findViewById(R.id.gallery_grid);
         View topLayout = findViewById(R.id.top_layout);
@@ -293,9 +315,18 @@ public class GalleryActivity extends AppCompatActivity {
                 return;
             }
 
+            Set<Long> allIds = new HashSet<>();
+            for (GalleryImage img : loaded) allIds.add(img.id);
+            GalleryTrashHelper.pruneInvalidIds(GalleryActivity.this, allIds);
+            List<GalleryImage> filtered = new ArrayList<>();
+            for (GalleryImage img : loaded) {
+                boolean trashed = GalleryTrashHelper.isTrashed(GalleryActivity.this, img.id);
+                if (isTrashMode ? trashed : !trashed) filtered.add(img);
+            }
+
             runOnUiThread(() -> {
                 images.clear();
-                images.addAll(loaded);
+                images.addAll(filtered);
                 itemsPerPage = calculateItemsPerPage();
                 int totalPages = (int) Math.ceil((double) images.size() / itemsPerPage);
                 if (restorePage >= 0) {
@@ -387,6 +418,7 @@ public class GalleryActivity extends AppCompatActivity {
         intent.putExtra("current_index", position);
         intent.putExtra("image_ids", idsArray);
         intent.putExtra("image_names", namesArray);
+        intent.putExtra("trash_mode", isTrashMode);
 
         startActivityForResult(intent, REQUEST_VIEWER);
         overridePendingTransition(0, appLauncherAnimations ? 0 : 0);

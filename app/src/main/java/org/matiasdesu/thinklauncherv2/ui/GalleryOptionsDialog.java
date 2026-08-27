@@ -22,26 +22,52 @@ public class GalleryOptionsDialog extends Dialog {
         void onShowTitlesChanged(boolean show);
     }
 
+    public interface OnTrashClickCallback {
+        void onTrashClick();
+    }
+
     private OnGridChangedCallback gridCallback;
     private OnShowTitlesChangedCallback titlesCallback;
+    private OnTrashClickCallback trashCallback;
     private int currentColumns;
     private int currentRows;
     private boolean currentShowTitles;
     private boolean isGridView;
     private boolean hasPagination;
+    private boolean isTrashMode;
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
-                                boolean isGridView, boolean hasPagination,
-                                OnGridChangedCallback gridCallback,
-                                OnShowTitlesChangedCallback titlesCallback) {
+                                 boolean isGridView, boolean hasPagination,
+                                 OnGridChangedCallback gridCallback,
+                                 OnShowTitlesChangedCallback titlesCallback) {
         super(context, R.style.NoAnimationDialog);
         this.gridCallback = gridCallback;
         this.titlesCallback = titlesCallback;
+        this.trashCallback = null;
         this.currentColumns = columns;
         this.currentRows = rows;
         this.currentShowTitles = showTitles;
         this.isGridView = isGridView;
         this.hasPagination = hasPagination;
+        this.isTrashMode = false;
+        init();
+    }
+
+    public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
+                                 boolean isGridView, boolean hasPagination, boolean isTrashMode,
+                                 OnGridChangedCallback gridCallback,
+                                 OnShowTitlesChangedCallback titlesCallback,
+                                 OnTrashClickCallback trashCallback) {
+        super(context, R.style.NoAnimationDialog);
+        this.gridCallback = gridCallback;
+        this.titlesCallback = titlesCallback;
+        this.trashCallback = trashCallback;
+        this.currentColumns = columns;
+        this.currentRows = rows;
+        this.currentShowTitles = showTitles;
+        this.isGridView = isGridView;
+        this.hasPagination = hasPagination;
+        this.isTrashMode = isTrashMode;
         init();
     }
 
@@ -100,6 +126,20 @@ public class GalleryOptionsDialog extends Dialog {
         showTitlesButton.setOnClickListener(v -> {
             titlesCallback.onShowTitlesChanged(!currentShowTitles);
             dismiss();
+        });
+
+        TextView trashButton = findViewById(R.id.trash_button);
+        DialogEffectHelper.applyButtonTheme(trashButton, theme, getContext(), surfaceColor);
+        trashButton.setText(isTrashMode ? "Gallery" : "Trash");
+        trashButton.setOnClickListener(v -> {
+            dismiss();
+            if (trashCallback != null) {
+                trashCallback.onTrashClick();
+            } else {
+                android.content.Intent intent = new android.content.Intent(getContext(), GalleryActivity.class);
+                intent.putExtra("trash_mode", true);
+                getContext().startActivity(intent);
+            }
         });
     }
 }

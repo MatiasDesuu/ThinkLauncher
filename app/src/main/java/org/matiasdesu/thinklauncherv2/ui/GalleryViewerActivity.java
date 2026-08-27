@@ -22,6 +22,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
@@ -44,6 +45,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private ArrayList<String> imageNames;
     private int currentIndex;
     private long currentImageId;
+    private boolean isTrashMode;
 
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
     private boolean imageDeleted = false;
@@ -92,13 +94,24 @@ public class GalleryViewerActivity extends AppCompatActivity {
         imageNameView = findViewById(R.id.image_name);
         ThemeUtils.applyTextColor(imageNameView, theme, this);
 
+        isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
+
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         backButton.setOnClickListener(v -> onBackPressed());
 
         ImageView deleteButton = findViewById(R.id.delete_button);
         deleteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
-        deleteButton.setOnClickListener(v -> confirmDelete());
+        ImageView restoreButton = findViewById(R.id.restore_button);
+        restoreButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        if (isTrashMode) {
+            restoreButton.setVisibility(View.VISIBLE);
+            restoreButton.setOnClickListener(v -> restoreCurrentImage());
+            deleteButton.setOnClickListener(v -> confirmPermanentDelete());
+        } else {
+            restoreButton.setVisibility(View.GONE);
+            deleteButton.setOnClickListener(v -> confirmMoveToTrash());
+        }
 
         ImageView shareButton = findViewById(R.id.share_button);
         shareButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -121,8 +134,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
             finish();
             return;
         }
+        if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+            currentImageId = imageIds.get(currentIndex);
+        }
 
-        // Set up ViewPager2 with adapter
         adapter = new GalleryPagerAdapter(imageIds, loadExecutor);
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(currentIndex, false);
@@ -182,12 +197,21 @@ public class GalleryViewerActivity extends AppCompatActivity {
         }
     }
 
-    private void confirmDelete() {
+    private void confirmMoveToTrash() {
+        new DeleteImageDialog(this, "Move to trash?", "Move to trash", this::moveToTrash).show();
+    }
+
+    private void confirmPermanentDelete() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             requestManageStoragePermission();
             return;
         }
-        new DeleteImageDialog(this, this::deleteCurrentImage).show();
+        new DeleteImageDialog(this, "Delete permanently? This cannot be undone.", "Delete", this::deletePermanently).show();
+    }
+
+    private void confirmDelete() {
+        if (isTrashMode) confirmPermanentDelete();
+        else confirmMoveToTrash();
     }
 
     private void requestManageStoragePermission() {
@@ -202,43 +226,99 @@ public class GalleryViewerActivity extends AppCompatActivity {
         Toast.makeText(this, "Grant file access permission to delete images", Toast.LENGTH_LONG).show();
     }
 
-    private void deleteCurrentImage() {
+    private void moveToTrash() {
+        try {
+            GalleryTrashHelper.moveToTrash(this, currentImageId);
+            imageDeleted = true;
+            int removedIndex = currentIndex;
+            imageIds.remove(removedIndex);
+            if (imageNames != null && removedIndex < imageNames.size()) {
+                imageNames.remove(removedIndex);
+            }
+            if (imageIds.isEmpty()) {
+                setResult(RESULT_OK);
+                Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+            if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) currentImageId = imageIds.get(currentIndex);
+            adapter.notifyItemRemoved(removedIndex);
+            adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
+            viewPager.post(() -> {
+                viewPager.setCurrentItem(currentIndex, false);
+                updateCounter();
+            });
+            Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to move to trash", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void restoreCurrentImage() {
+        try {
+            GalleryTrashHelper.restore(this, currentImageId);
+            imageDeleted = true;
+            int removedIndex = currentIndex;
+            imageIds.remove(removedIndex);
+            if (imageNames != null && removedIndex < imageNames.size()) {
+                imageNames.remove(removedIndex);
+            }
+            if (imageIds.isEmpty()) {
+                setResult(RESULT_OK);
+                Toast.makeText(this, "Image restored", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+            if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) currentImageId = imageIds.get(currentIndex);
+            adapter.notifyItemRemoved(removedIndex);
+            adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
+            viewPager.post(() -> {
+                viewPager.setCurrentItem(currentIndex, false);
+                updateCounter();
+            });
+            Toast.makeText(this, "Image restored", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to restore image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void deletePermanently() {
         try {
             Uri uri = ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
             getContentResolver().delete(uri, null, null);
+            GalleryTrashHelper.removeFromTrash(this, currentImageId);
             imageDeleted = true;
-
             int deletedIndex = currentIndex;
             imageIds.remove(deletedIndex);
             if (imageNames != null && deletedIndex < imageNames.size()) {
                 imageNames.remove(deletedIndex);
             }
-
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
-
-            if (currentIndex >= imageIds.size()) {
-                currentIndex = imageIds.size() - 1;
-            }
-
+            if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) currentImageId = imageIds.get(currentIndex);
             adapter.notifyItemRemoved(deletedIndex);
             adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
-
-            // Post to ensure ViewPager2 updates after adapter notification
             viewPager.post(() -> {
                 viewPager.setCurrentItem(currentIndex, false);
                 updateCounter();
             });
-
             Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void deleteCurrentImage() {
+        if (isTrashMode) deletePermanently();
+        else moveToTrash();
     }
 
     @Override
