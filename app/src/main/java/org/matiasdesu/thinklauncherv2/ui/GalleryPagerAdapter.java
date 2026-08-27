@@ -159,14 +159,14 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                 if (videoControls != null) {
                     android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
                     d.setColor(bg);
-                    d.setStroke((int) (1 * ctx.getResources().getDisplayMetrics().density), txt);
+                    d.setStroke((int) (2 * ctx.getResources().getDisplayMetrics().density), txt);
                     org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyCornerRadius(d, ctx);
                     videoControls.setBackground(d);
                 }
                 if (seekContainer != null) {
                     android.graphics.drawable.GradientDrawable sd = new android.graphics.drawable.GradientDrawable();
                     sd.setColor(bg);
-                    sd.setStroke((int) (1 * ctx.getResources().getDisplayMetrics().density), txt);
+                    sd.setStroke((int) (2 * ctx.getResources().getDisplayMetrics().density), txt);
                     org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyCornerRadius(sd, ctx);
                     seekContainer.setBackground(sd);
                     seekContainer.setClipToOutline(true);
