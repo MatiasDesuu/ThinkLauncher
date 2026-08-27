@@ -329,7 +329,18 @@ public class GalleryActivity extends AppCompatActivity {
         float recyclerHeightDp = screenHeightDp - topHeightDp - dividerDp - bottomHeightDp;
 
         if (isGridView) {
-            return gridColumns * gridRows;
+            int itemSize = getGridItemSize();
+            float density = getResources().getDisplayMetrics().density;
+            int textAreaHeight = showGridTitles ? (int) (28 * density) : 0;
+            int itemHeightPx = itemSize + textAreaHeight;
+            int recyclerHeightPx = getResources().getDisplayMetrics().heightPixels
+                    - (int) (topHeightDp * density)
+                    - (int) (dividerDp * density)
+                    - (int) (bottomHeightDp * density)
+                    - navBarHeightPx;
+            int fittingRows = Math.max(1, recyclerHeightPx / itemHeightPx);
+            int rows = Math.min(gridRows, fittingRows);
+            return gridColumns * rows;
         } else {
             float itemHeightDp = 64 + 20;
             return Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
