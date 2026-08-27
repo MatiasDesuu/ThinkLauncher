@@ -88,6 +88,7 @@ public class GalleryActivity extends AppCompatActivity {
     private String selectedFolder;
     private boolean galleryModified;
     private SwipePageNavigator pageNavigator;
+    private final List<Integer> pageStartIndices = new ArrayList<>();
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
@@ -176,8 +177,10 @@ public class GalleryActivity extends AppCompatActivity {
                         currentPage = 0;
                         itemsPerPage = calculateItemsPerPage();
                         applyGridLayoutManager();
+                        recomputePagination();
                         if (pageNavigator != null) {
                             pageNavigator.setCurrentPage(0);
+                            pageNavigator.setTotalItems(displayItems.size());
                         }
                         adapter.notifyDataSetChanged();
                         updatePageIndicator();
@@ -199,6 +202,7 @@ public class GalleryActivity extends AppCompatActivity {
                         currentPage = 0;
                         itemsPerPage = calculateItemsPerPage();
                         applyGridLayoutManager();
+                        recomputePagination();
                         if (pageNavigator != null) {
                             pageNavigator.setCurrentPage(0);
                             pageNavigator.setTotalItems(displayItems.size());
@@ -270,7 +274,8 @@ public class GalleryActivity extends AppCompatActivity {
 
                         @Override
                         public int getTotalPages() {
-                            return (int) Math.ceil((double) displayItems.size() / itemsPerPage);
+                            if (pageStartIndices.isEmpty()) return 1;
+                            return pageStartIndices.size();
                         }
 
                         @Override
@@ -298,9 +303,11 @@ public class GalleryActivity extends AppCompatActivity {
         currentPage = 0;
         itemsPerPage = calculateItemsPerPage();
         applyGridLayoutManager();
+        recomputePagination();
 
         if (pageNavigator != null) {
             pageNavigator.setCurrentPage(0);
+            pageNavigator.setTotalItems(displayItems.size());
         }
 
         adapter.notifyDataSetChanged();
@@ -315,7 +322,7 @@ public class GalleryActivity extends AppCompatActivity {
             glm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
-                    int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+                    int globalPosition = getGlobalPosition(currentPage, position);
                     if (globalPosition >= displayItems.size()) return 1;
                     Object obj = displayItems.get(globalPosition);
                     if (obj instanceof GallerySeparator) return gridColumns;
@@ -470,12 +477,15 @@ public class GalleryActivity extends AppCompatActivity {
                 updateDisplayItems();
                 itemsPerPage = calculateItemsPerPage();
                 applyGridLayoutManager();
-                int totalPages = (int) Math.ceil((double) displayItems.size() / itemsPerPage);
                 if (restorePage >= 0) {
-                    currentPage = Math.min(restorePage, Math.max(0, totalPages - 1));
+                    int saved = restorePage;
                     restorePage = -1;
+                    recomputePagination();
+                    int totalPages = pageStartIndices.isEmpty() ? 1 : pageStartIndices.size();
+                    currentPage = Math.min(saved, Math.max(0, totalPages - 1));
                 } else {
                     currentPage = 0;
+                    recomputePagination();
                 }
                 if (pageNavigator != null) {
                     pageNavigator.setCurrentPage(currentPage);
@@ -600,6 +610,7 @@ public class GalleryActivity extends AppCompatActivity {
         updateDisplayItems();
         itemsPerPage = calculateItemsPerPage();
         applyGridLayoutManager();
+        recomputePagination();
         if (pageNavigator != null) {
             pageNavigator.setCurrentPage(0);
             pageNavigator.setTotalItems(displayItems.size());
@@ -624,6 +635,7 @@ public class GalleryActivity extends AppCompatActivity {
         updateDisplayItems();
         itemsPerPage = calculateItemsPerPage();
         applyGridLayoutManager();
+        recomputePagination();
         if (pageNavigator != null) {
             pageNavigator.setCurrentPage(0);
             pageNavigator.setTotalItems(displayItems.size());
@@ -650,6 +662,7 @@ public class GalleryActivity extends AppCompatActivity {
             updateDisplayItems();
             itemsPerPage = calculateItemsPerPage();
             applyGridLayoutManager();
+            recomputePagination();
             if (pageNavigator != null) {
                 pageNavigator.setCurrentPage(0);
                 pageNavigator.setTotalItems(displayItems.size());
@@ -673,6 +686,7 @@ public class GalleryActivity extends AppCompatActivity {
             updateDisplayItems();
             itemsPerPage = calculateItemsPerPage();
             applyGridLayoutManager();
+            recomputePagination();
             if (pageNavigator != null) {
                 pageNavigator.setCurrentPage(0);
                 pageNavigator.setTotalItems(displayItems.size());
@@ -729,6 +743,114 @@ public class GalleryActivity extends AppCompatActivity {
         }
     }
 
+    private void recomputePagination() {
+        pageStartIndices.clear();
+        if (scrollAppList) {
+            return;
+        }
+        if (displayItems.isEmpty()) {
+            pageStartIndices.add(0);
+            return;
+        }
+        if (galleryGroupMode == GROUP_NONE || isFolderView) {
+            for (int i = 0; i < displayItems.size(); i += itemsPerPage) {
+                pageStartIndices.add(i);
+            }
+            if (pageStartIndices.isEmpty()) pageStartIndices.add(0);
+            if (currentPage >= pageStartIndices.size()) currentPage = pageStartIndices.size() - 1;
+            if (currentPage < 0) currentPage = 0;
+            return;
+        }
+        float density = getResources().getDisplayMetrics().density;
+        int navBarHeightPx = 0;
+        try {
+            navBarHeightPx = getResources().getDimensionPixelSize(getResources().getIdentifier("navigation_bar_height", "dimen", "android"));
+        } catch (Exception e) {
+        }
+        int recyclerHeightPx = getResources().getDisplayMetrics().heightPixels
+                - (int) (48 * density) - (int) (4 * density) - (int) (48 * density) - navBarHeightPx;
+        if (recyclerHeightPx <= 0) {
+            pageStartIndices.add(0);
+            return;
+        }
+        int separatorHeightPx = (int) (36 * density);
+        if (isGridView) {
+            int itemSize = getGridItemSize();
+            int textAreaHeight = showGridTitles ? (int) (28 * density) : 0;
+            int rowHeightPx = itemSize + textAreaHeight;
+            pageStartIndices.add(0);
+            int pageHeightUsed = 0;
+            int rowSlotsUsed = 0;
+            for (int i = 0; i < displayItems.size(); i++) {
+                Object obj = displayItems.get(i);
+                if (obj instanceof GallerySeparator) {
+                    if (rowSlotsUsed != 0) {
+                        rowSlotsUsed = 0;
+                    }
+                    if (pageHeightUsed + separatorHeightPx > recyclerHeightPx) {
+                        pageHeightUsed = 0;
+                        rowSlotsUsed = 0;
+                        pageStartIndices.add(i);
+                    }
+                    pageHeightUsed += separatorHeightPx;
+                } else {
+                    if (rowSlotsUsed == 0) {
+                        if (pageHeightUsed + rowHeightPx > recyclerHeightPx) {
+                            pageHeightUsed = 0;
+                            pageStartIndices.add(i);
+                        }
+                        pageHeightUsed += rowHeightPx;
+                        rowSlotsUsed = 1;
+                        if (rowSlotsUsed == gridColumns) rowSlotsUsed = 0;
+                    } else {
+                        rowSlotsUsed++;
+                        if (rowSlotsUsed == gridColumns) rowSlotsUsed = 0;
+                    }
+                }
+            }
+        } else {
+            int imageHeightPx = (int) ((64 + 20) * density);
+            pageStartIndices.add(0);
+            int pageHeightUsed = 0;
+            for (int i = 0; i < displayItems.size(); i++) {
+                Object obj = displayItems.get(i);
+                int needed = (obj instanceof GallerySeparator) ? separatorHeightPx : imageHeightPx;
+                if (pageHeightUsed + needed > recyclerHeightPx) {
+                    pageHeightUsed = 0;
+                    pageStartIndices.add(i);
+                }
+                pageHeightUsed += needed;
+            }
+        }
+        if (pageStartIndices.isEmpty()) pageStartIndices.add(0);
+        if (currentPage >= pageStartIndices.size()) currentPage = pageStartIndices.size() - 1;
+        if (currentPage < 0) currentPage = 0;
+    }
+
+    private int getPageItemCount(int page) {
+        if (scrollAppList) return displayItems.size();
+        if (page < 0 || page >= pageStartIndices.size()) return 0;
+        int start = pageStartIndices.get(page);
+        int end = (page + 1 < pageStartIndices.size()) ? pageStartIndices.get(page + 1) : displayItems.size();
+        return end - start;
+    }
+
+    private int getGlobalPosition(int page, int position) {
+        if (scrollAppList) return position;
+        if (page < 0 || page >= pageStartIndices.size()) return position;
+        return pageStartIndices.get(page) + position;
+    }
+
+    private int findPageForGlobalPosition(int globalPos) {
+        if (scrollAppList) return 0;
+        for (int p = 0; p < pageStartIndices.size(); p++) {
+            int start = pageStartIndices.get(p);
+            int end = (p + 1 < pageStartIndices.size()) ? pageStartIndices.get(p + 1) : displayItems.size();
+            if (globalPos >= start && globalPos < end) return p;
+        }
+        return 0;
+    }
+
     private void updatePageIndicator() {
         TextView pageIndicator = findViewById(R.id.page_indicator);
         View bottomDivider = findViewById(R.id.bottom_divider);
@@ -742,9 +864,10 @@ public class GalleryActivity extends AppCompatActivity {
         pageIndicator.setVisibility(View.VISIBLE);
         bottomDivider.setVisibility(View.VISIBLE);
         bottomBar.setVisibility(View.VISIBLE);
-        int totalPages = (int) Math.ceil((double) displayItems.size() / itemsPerPage);
+        int totalPages = pageStartIndices.isEmpty() ? 1 : pageStartIndices.size();
         if (totalPages == 0) totalPages = 1;
-        pageIndicator.setText((currentPage + 1) + " / " + totalPages);
+        int displayPage = Math.min(currentPage, totalPages - 1);
+        pageIndicator.setText((displayPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
     }
 
@@ -875,7 +998,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         @Override
         public int getItemViewType(int position) {
-            int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+            int globalPosition = getGlobalPosition(currentPage, position);
             if (globalPosition < items.size() && items.get(globalPosition) instanceof GallerySeparator) {
                 return VIEW_TYPE_SEPARATOR;
             }
@@ -901,7 +1024,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+            int globalPosition = getGlobalPosition(currentPage, position);
             if (globalPosition >= items.size()) return;
 
             Object obj = items.get(globalPosition);
@@ -1067,8 +1190,7 @@ public class GalleryActivity extends AppCompatActivity {
             if (scrollAppList) {
                 return items.size();
             }
-            int start = currentPage * itemsPerPage;
-            return Math.min(itemsPerPage, items.size() - start);
+            return getPageItemCount(currentPage);
         }
 
         class GridViewHolder extends RecyclerView.ViewHolder {
