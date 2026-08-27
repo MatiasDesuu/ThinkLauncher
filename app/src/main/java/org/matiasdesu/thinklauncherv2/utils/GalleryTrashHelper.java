@@ -18,7 +18,7 @@ public final class GalleryTrashHelper {
 
     private static String keyFor(long id, int type) {
         if (type == TYPE_VIDEO) return "video:" + id;
-        return String.valueOf(id);
+        return "image:" + id;
     }
 
     private static String legacyKeyFor(long id) {
