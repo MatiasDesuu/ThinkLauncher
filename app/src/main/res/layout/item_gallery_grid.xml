@@ -6,8 +6,6 @@
     android:gravity="center_horizontal"
     android:layout_marginLeft="1dp"
     android:layout_marginRight="1dp"
-    android:layout_marginTop="1dp"
-    android:layout_marginBottom="1dp"
     android:background="@android:color/transparent">
 
     <ImageView
