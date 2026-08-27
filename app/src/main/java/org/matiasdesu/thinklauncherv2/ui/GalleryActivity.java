@@ -60,6 +60,7 @@ public class GalleryActivity extends AppCompatActivity {
     private GalleryAdapter adapter;
     private int itemsPerPage;
     private int currentPage = 0;
+    private int restorePage = -1;
     private RecyclerView recyclerView;
     private boolean isGridView;
     private int gridColumns;
@@ -296,9 +297,15 @@ public class GalleryActivity extends AppCompatActivity {
                 images.clear();
                 images.addAll(loaded);
                 itemsPerPage = calculateItemsPerPage();
-                currentPage = 0;
+                int totalPages = (int) Math.ceil((double) images.size() / itemsPerPage);
+                if (restorePage >= 0) {
+                    currentPage = Math.min(restorePage, Math.max(0, totalPages - 1));
+                    restorePage = -1;
+                } else {
+                    currentPage = 0;
+                }
                 if (pageNavigator != null) {
-                    pageNavigator.setCurrentPage(0);
+                    pageNavigator.setCurrentPage(currentPage);
                     pageNavigator.setTotalItems(images.size());
                 }
                 adapter.notifyDataSetChanged();
@@ -389,6 +396,7 @@ public class GalleryActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_VIEWER && resultCode == RESULT_OK) {
+            restorePage = currentPage;
             loadImages();
         }
     }
