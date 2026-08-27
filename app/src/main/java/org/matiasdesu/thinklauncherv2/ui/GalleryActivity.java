@@ -1317,10 +1317,8 @@ public class GalleryActivity extends AppCompatActivity {
                 boolean gIsFav = !isFolder && image != null && favSetG != null && (favSetG.contains("image:" + image.id) || favSetG.contains("video:" + image.id) || favSetG.contains(String.valueOf(image.id)));
                 if (gIsFav) {
                     gvh.favoriteIndicator.setVisibility(View.VISIBLE);
-                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
-                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
-                    ThemeUtils.applyButtonBorder(gvh.favoriteIndicator, txt, bg, GalleryActivity.this);
-                    gvh.favoriteIndicator.setColorFilter(txt);
+                    gvh.favoriteIndicator.setBackground(null);
+                    gvh.favoriteIndicator.setColorFilter(ThemeUtils.getTextColor(theme, GalleryActivity.this));
                 } else {
                     gvh.favoriteIndicator.setVisibility(View.GONE);
                 }
@@ -1432,10 +1430,8 @@ public class GalleryActivity extends AppCompatActivity {
                 boolean lIsFav = !isFolder && image != null && favSetL != null && (favSetL.contains("image:" + image.id) || favSetL.contains("video:" + image.id) || favSetL.contains(String.valueOf(image.id)));
                 if (lIsFav) {
                     lvh.favoriteIndicator.setVisibility(View.VISIBLE);
-                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
-                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
-                    ThemeUtils.applyButtonBorder(lvh.favoriteIndicator, txt, bg, GalleryActivity.this);
-                    lvh.favoriteIndicator.setColorFilter(txt);
+                    lvh.favoriteIndicator.setBackground(null);
+                    lvh.favoriteIndicator.setColorFilter(ThemeUtils.getTextColor(theme, GalleryActivity.this));
                 } else {
                     lvh.favoriteIndicator.setVisibility(View.GONE);
                 }
