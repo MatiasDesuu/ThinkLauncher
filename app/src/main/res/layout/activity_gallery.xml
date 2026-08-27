@@ -40,8 +40,17 @@
                 android:padding="8dp"
                 android:text="Gallery"
                 android:textColor="?attr/text_color"
-                android:textSize="24sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/toggle_view_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/view_list"
+                android:contentDescription="Toggle view"
+                android:tint="?attr/text_color" />
 
         </LinearLayout>
 
@@ -94,7 +103,7 @@
                 android:layout_marginRight="16dp"
                 android:text="1 / 1"
                 android:textColor="?attr/text_color"
-                android:textSize="24sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <ImageView

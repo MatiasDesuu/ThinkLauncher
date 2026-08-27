@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
@@ -35,8 +36,11 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,12 +57,15 @@ public class GalleryActivity extends AppCompatActivity {
     private SharedPreferences prefs;
 
     private List<GalleryImage> images;
-    private GalleryGridAdapter adapter;
+    private GalleryAdapter adapter;
     private int itemsPerPage;
     private int currentPage = 0;
     private RecyclerView recyclerView;
+    private boolean isGridView;
+    private SwipePageNavigator pageNavigator;
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -107,6 +114,11 @@ public class GalleryActivity extends AppCompatActivity {
             overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
         });
 
+        ImageView toggleViewButton = findViewById(R.id.toggle_view_button);
+        toggleViewButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        toggleViewButton.setOnClickListener(v -> toggleView());
+
+        isGridView = prefs.getBoolean("gallery_grid_view", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
 
         recyclerView = findViewById(R.id.gallery_grid);
@@ -116,16 +128,23 @@ public class GalleryActivity extends AppCompatActivity {
                 topLayout, recyclerView, container);
 
         images = new ArrayList<>();
-        adapter = new GalleryGridAdapter(images);
-
-        int spanCount = calculateSpanCount();
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, spanCount);
-        recyclerView.setLayoutManager(gridLayoutManager);
+        adapter = new GalleryAdapter(images);
+        if (isGridView) {
+            recyclerView.setLayoutManager(new GridLayoutManager(this, calculateSpanCount()));
+        } else {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        }
         recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         recyclerView.setAdapter(adapter);
 
+        setupPageNavigator(container);
+        updatePageIndicator();
+        requestPermissionAndLoad();
+    }
+
+    private void setupPageNavigator(View container) {
         if (!scrollAppList) {
-            new SwipePageNavigator(this, recyclerView, container,
+            pageNavigator = new SwipePageNavigator(this, recyclerView, container,
                     new SwipePageNavigator.PageChangeCallback() {
                         @Override
                         public void onPageChanged(int newPage) {
@@ -145,10 +164,34 @@ public class GalleryActivity extends AppCompatActivity {
                             GalleryActivity.this.updatePageIndicator();
                         }
                     }, theme);
+        } else {
+            pageNavigator = null;
+        }
+    }
+
+    private void toggleView() {
+        isGridView = !isGridView;
+        prefs.edit().putBoolean("gallery_grid_view", isGridView).apply();
+        ImageView toggleButton = findViewById(R.id.toggle_view_button);
+        toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+
+        currentPage = 0;
+        itemsPerPage = calculateItemsPerPage();
+
+        if (isGridView) {
+            int spanCount = calculateSpanCount();
+            recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+        } else {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
         }
 
+        if (pageNavigator != null) {
+            pageNavigator.setCurrentPage(0);
+        }
+
+        adapter.notifyDataSetChanged();
         updatePageIndicator();
-        requestPermissionAndLoad();
+        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
     }
 
     private int calculateSpanCount() {
@@ -226,6 +269,10 @@ public class GalleryActivity extends AppCompatActivity {
                 images.addAll(loaded);
                 itemsPerPage = calculateItemsPerPage();
                 currentPage = 0;
+                if (pageNavigator != null) {
+                    pageNavigator.setCurrentPage(0);
+                    pageNavigator.setTotalItems(images.size());
+                }
                 adapter.notifyDataSetChanged();
                 updatePageIndicator();
             });
@@ -248,10 +295,15 @@ public class GalleryActivity extends AppCompatActivity {
         float bottomHeightDp = 48;
         float recyclerHeightDp = screenHeightDp - topHeightDp - dividerDp - bottomHeightDp;
 
-        float itemHeightDp = 120 + 20 + 12;
-        int spanCount = calculateSpanCount();
-        int rowsPerPage = Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
-        return rowsPerPage * spanCount;
+        if (isGridView) {
+            float itemHeightDp = 120 + 20;
+            int spanCount = calculateSpanCount();
+            int rowsPerPage = Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
+            return rowsPerPage * spanCount;
+        } else {
+            float itemHeightDp = 64 + 20;
+            return Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
+        }
     }
 
     private void updatePageIndicator() {
@@ -336,51 +388,98 @@ public class GalleryActivity extends AppCompatActivity {
         }
     }
 
-    private class GalleryGridAdapter extends RecyclerView.Adapter<GalleryGridAdapter.ViewHolder> {
+    private class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        private static final int VIEW_TYPE_GRID = 0;
+        private static final int VIEW_TYPE_LIST = 1;
 
         private final List<GalleryImage> items;
 
-        GalleryGridAdapter(List<GalleryImage> items) {
+        GalleryAdapter(List<GalleryImage> items) {
             this.items = items;
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_gallery_image, parent, false);
-            return new ViewHolder(view);
+        public int getItemViewType(int position) {
+            return isGridView ? VIEW_TYPE_GRID : VIEW_TYPE_LIST;
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            if (viewType == VIEW_TYPE_GRID) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_gallery_grid, parent, false);
+                return new GridViewHolder(view);
+            } else {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_gallery_list, parent, false);
+                return new ListViewHolder(view);
+            }
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
             if (globalPosition >= items.size()) return;
 
             GalleryImage image = items.get(globalPosition);
-            holder.filename.setText(image.name);
-            ThemeUtils.applyTextColor(holder.filename, theme, GalleryActivity.this);
-            FontHelper.applyToViewTree(GalleryActivity.this, holder.itemView);
 
-            holder.thumbnail.setTag(globalPosition);
+            if (holder instanceof GridViewHolder) {
+                GridViewHolder gvh = (GridViewHolder) holder;
+                gvh.filename.setText(image.name);
+                ThemeUtils.applyTextColor(gvh.filename, theme, GalleryActivity.this);
+                FontHelper.applyToViewTree(GalleryActivity.this, gvh.itemView);
+                gvh.thumbnail.setImageBitmap(null);
+                gvh.thumbnail.setTag(globalPosition);
 
-            thumbnailExecutor.execute(() -> {
-                try {
-                    Uri thumbUri = ContentUris.withAppendedId(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, image.id);
-                    Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
-                            new android.util.Size(200, 200), null);
-                    if (thumb != null) {
-                        holder.thumbnail.post(() -> {
-                            if (Integer.valueOf(globalPosition).equals(holder.thumbnail.getTag())) {
-                                holder.thumbnail.setImageBitmap(thumb);
-                            }
-                        });
+                thumbnailExecutor.execute(() -> {
+                    try {
+                        Uri thumbUri = ContentUris.withAppendedId(
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, image.id);
+                        Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
+                                new android.util.Size(200, 200), null);
+                        if (thumb != null) {
+                            gvh.thumbnail.post(() -> {
+                                if (Integer.valueOf(globalPosition).equals(gvh.thumbnail.getTag())) {
+                                    gvh.thumbnail.setImageBitmap(thumb);
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
                     }
-                } catch (Exception e) {
-                }
-            });
+                });
 
-            holder.itemView.setOnClickListener(v -> openImage(globalPosition));
+                gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+            } else if (holder instanceof ListViewHolder) {
+                ListViewHolder lvh = (ListViewHolder) holder;
+                lvh.filename.setText(image.name);
+                lvh.date.setText(dateFormat.format(new Date(image.dateAdded * 1000)));
+                ThemeUtils.applyTextColor(lvh.filename, theme, GalleryActivity.this);
+                ThemeUtils.applyTextColor(lvh.date, theme, GalleryActivity.this);
+                FontHelper.applyToViewTree(GalleryActivity.this, lvh.itemView);
+
+                lvh.thumbnail.setImageBitmap(null);
+                lvh.thumbnail.setTag(globalPosition);
+
+                thumbnailExecutor.execute(() -> {
+                    try {
+                        Uri thumbUri = ContentUris.withAppendedId(
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, image.id);
+                        Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
+                                new android.util.Size(200, 200), null);
+                        if (thumb != null) {
+                            lvh.thumbnail.post(() -> {
+                                if (Integer.valueOf(globalPosition).equals(lvh.thumbnail.getTag())) {
+                                    lvh.thumbnail.setImageBitmap(thumb);
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
+                    }
+                });
+
+                lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+            }
         }
 
         @Override
@@ -392,14 +491,27 @@ public class GalleryActivity extends AppCompatActivity {
             return Math.min(itemsPerPage, items.size() - start);
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        class GridViewHolder extends RecyclerView.ViewHolder {
             ImageView thumbnail;
             TextView filename;
 
-            ViewHolder(View itemView) {
+            GridViewHolder(View itemView) {
                 super(itemView);
                 thumbnail = itemView.findViewById(R.id.gallery_thumbnail);
                 filename = itemView.findViewById(R.id.gallery_filename);
+            }
+        }
+
+        class ListViewHolder extends RecyclerView.ViewHolder {
+            ImageView thumbnail;
+            TextView filename;
+            TextView date;
+
+            ListViewHolder(View itemView) {
+                super(itemView);
+                thumbnail = itemView.findViewById(R.id.gallery_thumbnail);
+                filename = itemView.findViewById(R.id.gallery_filename);
+                date = itemView.findViewById(R.id.gallery_date);
             }
         }
     }
