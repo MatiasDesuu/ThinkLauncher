@@ -103,6 +103,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
         deleteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         deleteButton.setOnClickListener(v -> confirmDelete());
 
+        ImageView shareButton = findViewById(R.id.share_button);
+        shareButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        shareButton.setOnClickListener(v -> shareCurrentImage());
+
         long[] idsArray = getIntent().getLongArrayExtra("image_ids");
         String[] namesArray = getIntent().getStringArrayExtra("image_names");
         if (idsArray != null) {
@@ -179,6 +183,20 @@ public class GalleryViewerActivity extends AppCompatActivity {
                         Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show());
             }
         });
+    }
+
+    private void shareCurrentImage() {
+        try {
+            Uri uri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("image/*");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.app_name)));
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to share image", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateCounter() {

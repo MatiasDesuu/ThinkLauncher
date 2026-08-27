@@ -78,41 +78,58 @@
             android:layout_height="2dp"
             android:background="?attr/text_color" />
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="48dp">
 
-            <ImageView
-                android:id="@+id/prev_page_button"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:padding="12dp"
-                android:src="@drawable/back_arrow"
-                android:tint="?attr/text_color" />
-
-            <TextView
-                android:id="@+id/page_indicator"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:text="1 / 1"
-                android:textColor="?attr/text_color"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/prev_page_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="12dp"
+                    android:src="@drawable/back_arrow"
+                    android:tint="?attr/text_color" />
+
+                <TextView
+                    android:id="@+id/page_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:text="1 / 1"
+                    android:textColor="?attr/text_color"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/next_page_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="12dp"
+                    android:src="@drawable/forward_arrow"
+                    android:tint="?attr/text_color" />
+
+            </LinearLayout>
 
             <ImageView
-                android:id="@+id/next_page_button"
+                android:id="@+id/share_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:padding="12dp"
-                android:src="@drawable/forward_arrow"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/share"
                 android:tint="?attr/text_color" />
 
-        </LinearLayout>
+        </FrameLayout>
 
     </LinearLayout>
 
