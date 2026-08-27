@@ -31,6 +31,7 @@
             style="@style/DialogButton"
             android:text="2"
             android:layout_weight="1"
+            android:minWidth="0dp"
             android:layout_marginEnd="4dp" />
 
         <TextView
@@ -38,6 +39,7 @@
             style="@style/DialogButton"
             android:text="3"
             android:layout_weight="1"
+            android:minWidth="0dp"
             android:layout_marginEnd="4dp" />
 
         <TextView
@@ -45,6 +47,7 @@
             style="@style/DialogButton"
             android:text="4"
             android:layout_weight="1"
+            android:minWidth="0dp"
             android:layout_marginEnd="4dp" />
 
         <TextView
@@ -52,13 +55,15 @@
             style="@style/DialogButton"
             android:text="5"
             android:layout_weight="1"
+            android:minWidth="0dp"
             android:layout_marginEnd="4dp" />
 
         <TextView
             android:id="@+id/btn_cols_6"
             style="@style/DialogButton"
             android:text="6"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:minWidth="0dp" />
 
     </LinearLayout>
 
@@ -89,6 +94,7 @@
                 style="@style/DialogButton"
                 android:text="2"
                 android:layout_weight="1"
+                android:minWidth="0dp"
                 android:layout_marginEnd="4dp" />
 
             <TextView
@@ -96,6 +102,7 @@
                 style="@style/DialogButton"
                 android:text="3"
                 android:layout_weight="1"
+                android:minWidth="0dp"
                 android:layout_marginEnd="4dp" />
 
         <TextView
@@ -103,6 +110,7 @@
             style="@style/DialogButton"
             android:text="4"
             android:layout_weight="1"
+            android:minWidth="0dp"
             android:layout_marginEnd="4dp" />
 
         <TextView
@@ -110,13 +118,15 @@
             style="@style/DialogButton"
             android:text="5"
             android:layout_weight="1"
+            android:minWidth="0dp"
             android:layout_marginEnd="4dp" />
 
         <TextView
             android:id="@+id/btn_rows_6"
             style="@style/DialogButton"
             android:text="6"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:minWidth="0dp" />
 
     </LinearLayout>
 
