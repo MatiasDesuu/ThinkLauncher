@@ -138,9 +138,8 @@ public class FolderActivity extends AppCompatActivity {
         folderNameText = findViewById(R.id.folder_name_text);
         folderNameText.setText(folderName);
         ThemeUtils.applyTextColor(folderNameText, theme, this);
-        folderNameText.setOnLongClickListener(v -> {
+        folderNameText.setOnClickListener(v -> {
             new FolderOptionsDialog(this, sortMode,
-                    // On change folder name
                     () -> {
                         new RenameDialog(this, folderName, newName -> {
                             folderName = newName;
@@ -148,7 +147,6 @@ public class FolderActivity extends AppCompatActivity {
                             saveFolderName(folderId, folderName);
                         }).show();
                     },
-                    // On toggle sort
                     () -> {
                         sortMode = (sortMode + 1) % 3;
                         prefs.edit().putInt(folderId + "_sort_mode", sortMode).apply();
@@ -157,11 +155,9 @@ public class FolderActivity extends AppCompatActivity {
                         folderAdapter.notifyDataSetChanged();
                         updatePageIndicator();
                     },
-                    // On reorder
                     () -> {
                         enterReorderMode();
                     }).show();
-            return true;
         });
 
         ImageView backButton = findViewById(R.id.back_button);

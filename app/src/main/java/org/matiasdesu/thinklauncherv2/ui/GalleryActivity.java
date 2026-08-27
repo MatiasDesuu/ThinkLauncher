@@ -131,7 +131,7 @@ public class GalleryActivity extends AppCompatActivity {
         toggleViewButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         toggleViewButton.setOnClickListener(v -> toggleView());
 
-        titleView.setOnLongClickListener(v -> {
+        titleView.setOnClickListener(v -> {
             new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView, !scrollAppList, isTrashMode,
                     (columns, rows) -> {
                         gridColumns = columns;
@@ -168,7 +168,6 @@ public class GalleryActivity extends AppCompatActivity {
                             overridePendingTransition(0, 0);
                         }
                     }).show();
-            return true;
         });
 
         isGridView = prefs.getBoolean("gallery_grid_view", true);

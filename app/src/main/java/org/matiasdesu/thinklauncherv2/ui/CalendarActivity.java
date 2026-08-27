@@ -119,14 +119,13 @@ public class CalendarActivity extends AppCompatActivity {
 
         TextView titleView = findViewById(R.id.calendar_title);
         ThemeUtils.applyTextColor(titleView, theme, this);
-        titleView.setOnLongClickListener(v -> {
+        titleView.setOnClickListener(v -> {
             new CalendarOptionsDialog(this, showAccount, eventLimit, highlightToday, showMonthSeparators,
                     showDaySeparators, highlightEventTimes, highlightStyle, () -> {
                 loadCalendarOptions();
                 itemsPerPage = calculateCalendarItemsPerPage();
                 loadEvents();
             }).show();
-            return true;
         });
 
         ImageView backButton = findViewById(R.id.back_button);
