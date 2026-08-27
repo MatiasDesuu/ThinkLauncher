@@ -43,6 +43,7 @@ import java.util.concurrent.Executors;
 public class GalleryActivity extends AppCompatActivity {
 
     private static final int REQUEST_PERMISSION = 4001;
+    private static final int REQUEST_VIEWER = 4002;
     private int theme;
     private boolean scrollAppList;
     private boolean opacityEnabled;
@@ -287,8 +288,16 @@ public class GalleryActivity extends AppCompatActivity {
         intent.putExtra("image_ids", idsArray);
         intent.putExtra("image_names", namesArray);
 
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_VIEWER);
         overridePendingTransition(0, appLauncherAnimations ? 0 : 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_VIEWER && resultCode == RESULT_OK) {
+            loadImages();
+        }
     }
 
     @Override

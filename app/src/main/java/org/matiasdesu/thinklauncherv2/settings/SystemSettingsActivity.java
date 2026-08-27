@@ -75,6 +75,17 @@ public class SystemSettingsActivity extends BaseSettingsActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
+        findViewById(R.id.files_access_button).setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } catch (Exception e) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent);
+            }
+        });
+
         findViewById(R.id.github_repo_button).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse("https://github.com/MatiasDesuu/ThinkLauncher"));

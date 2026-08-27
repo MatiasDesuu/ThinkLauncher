@@ -10,7 +10,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.media.ExifInterface;
 import android.view.View;
@@ -18,7 +20,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
@@ -48,6 +49,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private long currentImageId;
 
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
+    private boolean imageDeleted = false;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -91,10 +93,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
-        backButton.setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-        });
+        backButton.setOnClickListener(v -> onBackPressed());
 
         ImageView deleteButton = findViewById(R.id.delete_button);
         deleteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -184,12 +183,23 @@ public class GalleryViewerActivity extends AppCompatActivity {
     }
 
     private void confirmDelete() {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete image")
-                .setMessage("Delete this image?")
-                .setPositiveButton("Delete", (d, w) -> deleteCurrentImage())
-                .setNegativeButton("Cancel", null)
-                .show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            requestManageStoragePermission();
+            return;
+        }
+        new DeleteImageDialog(this, this::deleteCurrentImage).show();
+    }
+
+    private void requestManageStoragePermission() {
+        try {
+            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        } catch (Exception e) {
+            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+            startActivity(intent);
+        }
+        Toast.makeText(this, "Grant file access permission to delete images", Toast.LENGTH_LONG).show();
     }
 
     private void deleteCurrentImage() {
@@ -197,6 +207,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             Uri uri = ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
             getContentResolver().delete(uri, null, null);
+            imageDeleted = true;
 
             imageIds.remove(currentIndex);
             if (imageNames != null && currentIndex < imageNames.size()) {
@@ -204,6 +215,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             }
 
             if (imageIds.isEmpty()) {
+                setResult(RESULT_OK);
                 Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
                 finish();
                 return;
@@ -288,6 +300,9 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        if (imageDeleted) {
+            setResult(RESULT_OK);
+        }
         finish();
         overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
     }
