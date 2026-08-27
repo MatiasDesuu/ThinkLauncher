@@ -35,9 +35,8 @@
     <TextView
         android:id="@+id/gallery_filename"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="28dp"
         android:gravity="center"
-        android:paddingTop="4dp"
         android:textColor="?attr/text_color"
         android:textSize="14sp"
         android:maxLines="1"
