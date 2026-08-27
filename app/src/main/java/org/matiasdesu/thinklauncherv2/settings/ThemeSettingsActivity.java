@@ -52,6 +52,7 @@ public class ThemeSettingsActivity extends BaseSettingsActivity {
         invertIconColors = prefs.getBoolean("invert_icon_colors", false);
         invertHomeColors = prefs.getBoolean("invert_home_colors", false);
 
+
         int bgColor = ThemeUtils.getBgColor(theme, this);
         LinearLayout root = findViewById(R.id.root_layout);
         root.setBackgroundColor(bgColor);

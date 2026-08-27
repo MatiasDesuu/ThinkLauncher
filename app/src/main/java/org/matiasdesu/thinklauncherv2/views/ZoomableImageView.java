@@ -25,15 +25,14 @@ public class ZoomableImageView extends AppCompatImageView {
     private boolean isPinching = false;
     private boolean isDragging = false;
 
-    private OnSwipeListener onSwipeListener;
     private float downX;
     private float downY;
-    private boolean couldBeFling;
+    private int doubleTapSlop;
+    private int touchSlop;
 
     private long lastTapTime = 0;
     private float lastTapX = 0;
     private float lastTapY = 0;
-    private int doubleTapSlop;
 
     public interface OnSwipeListener {
         void onSwipeLeft();
@@ -55,14 +54,11 @@ public class ZoomableImageView extends AppCompatImageView {
         init();
     }
 
-    public void setOnSwipeListener(OnSwipeListener listener) {
-        this.onSwipeListener = listener;
-    }
-
     private void init() {
         setScaleType(ScaleType.MATRIX);
         matrix = new Matrix();
         doubleTapSlop = ViewConfiguration.get(getContext()).getScaledDoubleTapSlop();
+        touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     }
 
     @Override
@@ -105,17 +101,20 @@ public class ZoomableImageView extends AppCompatImageView {
             case MotionEvent.ACTION_DOWN:
                 lastTouch.set(event.getX(), event.getY());
                 isDragging = false;
-                couldBeFling = true;
                 downX = event.getX();
                 downY = event.getY();
-                getParent().requestDisallowInterceptTouchEvent(true);
+                // Only block parent (ViewPager2) if zoomed in for panning
+                if (currentScale > minScale) {
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                }
                 return true;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() >= 2) {
                     isPinching = true;
                     isDragging = false;
-                    couldBeFling = false;
+                    // Block parent during pinch-to-zoom
+                    getParent().requestDisallowInterceptTouchEvent(true);
                     float dx = event.getX(0) - event.getX(1);
                     float dy = event.getY(0) - event.getY(1);
                     lastPinchDist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -150,15 +149,24 @@ public class ZoomableImageView extends AppCompatImageView {
                     float dy = y - lastTouch.y;
 
                     if (currentScale > minScale) {
+                        // Zoomed in: pan the image, block ViewPager2
                         if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
                             isDragging = true;
+                        }
+                        if (isDragging) {
+                            getParent().requestDisallowInterceptTouchEvent(true);
                         }
                         matrix.postTranslate(dx, dy);
                         constrainMatrix();
                         setImageMatrix(matrix);
                     } else {
-                        if (Math.abs(x - downX) > doubleTapSlop) {
+                        // At normal zoom: detect if this is a horizontal swipe
+                        float moveX = Math.abs(x - downX);
+                        float moveY = Math.abs(y - downY);
+                        if (moveX > touchSlop && moveX > moveY) {
+                            // Horizontal swipe detected at normal zoom - let ViewPager2 handle it
                             isDragging = true;
+                            getParent().requestDisallowInterceptTouchEvent(false);
                         }
                     }
 
@@ -188,6 +196,7 @@ public class ZoomableImageView extends AppCompatImageView {
                     long now = System.currentTimeMillis();
 
                     if (!isDragging) {
+                        // Detect double-tap
                         float dxTap = upX - lastTapX;
                         float dyTap = upY - lastTapY;
                         float thisMoveX = upX - downX;
@@ -206,21 +215,11 @@ public class ZoomableImageView extends AppCompatImageView {
                             lastTapX = upX;
                             lastTapY = upY;
                         }
-                    } else if (onSwipeListener != null && currentScale <= minScale) {
-                        float flingDist = upX - downX;
-                        if (Math.abs(flingDist) > 80) {
-                            if (flingDist < 0) {
-                                onSwipeListener.onSwipeLeft();
-                            } else {
-                                onSwipeListener.onSwipeRight();
-                            }
-                        }
                     }
                 }
 
                 isPinching = false;
                 isDragging = false;
-                couldBeFling = false;
                 getParent().requestDisallowInterceptTouchEvent(false);
                 return true;
         }
@@ -276,5 +275,9 @@ public class ZoomableImageView extends AppCompatImageView {
 
     public float getCurrentScale() {
         return currentScale;
+    }
+
+    public boolean isZoomed() {
+        return currentScale > minScale;
     }
 }

@@ -20,6 +20,7 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
     private int appIndexSidebar;
     private int dialogAnimations;
     private int appLaunchAnimation;
+    private boolean galleryAnimation;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -53,6 +54,7 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
         appIndexAnimation = prefs.getInt("app_index_animation", 0);
         dialogAnimations = prefs.getInt("dialog_animations", 0);
         appLaunchAnimation = prefs.getInt("app_launch_animation", 0);
+        galleryAnimation = prefs.getBoolean("gallery_animation", false);
 
         View appIndexAnimationContainer = findViewById(R.id.app_index_animation_container);
         TextView appIndexAnimationValueTv = appIndexAnimationContainer.findViewById(R.id.value_text);
@@ -128,6 +130,25 @@ public class AnimationSettingsActivity extends BaseSettingsActivity {
             appLaunchAnimation = (appLaunchAnimation + 1) % 2;
             appLaunchAnimationValueTv.setText(getOnOffText(appLaunchAnimation));
             prefs.edit().putInt("app_launch_animation", appLaunchAnimation).apply();
+        });
+
+        View galleryAnimationContainer = findViewById(R.id.gallery_animation_container);
+        TextView galleryAnimationValueTv = galleryAnimationContainer.findViewById(R.id.value_text);
+        galleryAnimationValueTv.setText(galleryAnimation ? "ON" : "OFF");
+
+        ImageButton minusGalleryBtn = galleryAnimationContainer.findViewById(R.id.btn_minus);
+        ImageButton plusGalleryBtn = galleryAnimationContainer.findViewById(R.id.btn_plus);
+
+        minusGalleryBtn.setOnClickListener(v -> {
+            galleryAnimation = !galleryAnimation;
+            galleryAnimationValueTv.setText(galleryAnimation ? "ON" : "OFF");
+            prefs.edit().putBoolean("gallery_animation", galleryAnimation).apply();
+        });
+
+        plusGalleryBtn.setOnClickListener(v -> {
+            galleryAnimation = !galleryAnimation;
+            galleryAnimationValueTv.setText(galleryAnimation ? "ON" : "OFF");
+            prefs.edit().putBoolean("gallery_animation", galleryAnimation).apply();
         });
 
         initPagination(this::refreshVisibility);

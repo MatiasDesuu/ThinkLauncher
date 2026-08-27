@@ -63,8 +63,8 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <org.matiasdesu.thinklauncherv2.views.ZoomableImageView
-                android:id="@+id/gallery_image_view"
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/gallery_view_pager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"

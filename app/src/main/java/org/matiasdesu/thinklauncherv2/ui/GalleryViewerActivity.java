@@ -6,32 +6,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.media.ExifInterface;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
-import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.views.ZoomableImageView;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,8 +33,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private int theme;
     private boolean appLauncherAnimations;
+    private boolean galleryAnimation;
     private SharedPreferences prefs;
-    private ZoomableImageView imageView;
+    private ViewPager2 viewPager;
+    private GalleryPagerAdapter adapter;
     private TextView pageIndicator;
     private TextView imageNameView;
 
@@ -72,6 +68,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
         prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         theme = prefs.getInt("theme", 0);
         appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
+        galleryAnimation = prefs.getBoolean("gallery_animation", false);
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme,
                 prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1));
         super.onCreate(savedInstanceState);
@@ -88,7 +85,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
         View bottomDivider = findViewById(R.id.bottom_divider);
         bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
-        imageView = findViewById(R.id.gallery_image_view);
+        viewPager = findViewById(R.id.gallery_view_pager);
         pageIndicator = findViewById(R.id.page_indicator);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
 
@@ -125,64 +122,38 @@ public class GalleryViewerActivity extends AppCompatActivity {
             return;
         }
 
-        imageView.setOnSwipeListener(new ZoomableImageView.OnSwipeListener() {
-            @Override
-            public void onSwipeLeft() {
-                navigateNext();
-            }
+        // Set up ViewPager2 with adapter
+        adapter = new GalleryPagerAdapter(imageIds, loadExecutor);
+        viewPager.setAdapter(adapter);
+        viewPager.setCurrentItem(currentIndex, false);
 
+        viewPager.setUserInputEnabled(galleryAnimation);
+
+        updateCounter();
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
-            public void onSwipeRight() {
-                navigatePrevious();
+            public void onPageSelected(int position) {
+                currentIndex = position;
+                currentImageId = imageIds.get(currentIndex);
+                updateCounter();
             }
         });
 
         findViewById(R.id.prev_page_button).setOnClickListener(v -> navigatePrevious());
         findViewById(R.id.next_page_button).setOnClickListener(v -> navigateNext());
-
-        loadCurrentImage();
     }
 
     private void navigateNext() {
         if (currentIndex < imageIds.size() - 1) {
-            currentIndex++;
-            loadCurrentImage();
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            viewPager.setCurrentItem(currentIndex + 1, galleryAnimation);
         }
     }
 
     private void navigatePrevious() {
         if (currentIndex > 0) {
-            currentIndex--;
-            loadCurrentImage();
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            viewPager.setCurrentItem(currentIndex - 1, galleryAnimation);
         }
-    }
-
-    private void loadCurrentImage() {
-        currentImageId = imageIds.get(currentIndex);
-        updateCounter();
-
-        loadExecutor.execute(() -> {
-            try {
-                Uri uri = ContentUris.withAppendedId(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
-                Bitmap rawBitmap = BitmapFactory.decodeStream(
-                        getContentResolver().openInputStream(uri));
-                final Bitmap bitmap = (rawBitmap != null) ? applyExifOrientation(uri, rawBitmap) : null;
-                runOnUiThread(() -> {
-                    if (bitmap != null) {
-                        imageView.setImageBitmap(bitmap);
-                        imageView.resetZoom();
-                    } else {
-                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } catch (Exception e) {
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show());
-            }
-        });
     }
 
     private void shareCurrentImage() {
@@ -200,6 +171,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     }
 
     private void updateCounter() {
+        if (imageIds.isEmpty()) return;
         String text = (currentIndex + 1) + " / " + imageIds.size();
         pageIndicator.setText(text);
 
@@ -237,9 +209,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
             getContentResolver().delete(uri, null, null);
             imageDeleted = true;
 
-            imageIds.remove(currentIndex);
-            if (imageNames != null && currentIndex < imageNames.size()) {
-                imageNames.remove(currentIndex);
+            int deletedIndex = currentIndex;
+            imageIds.remove(deletedIndex);
+            if (imageNames != null && deletedIndex < imageNames.size()) {
+                imageNames.remove(deletedIndex);
             }
 
             if (imageIds.isEmpty()) {
@@ -253,76 +226,18 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 currentIndex = imageIds.size() - 1;
             }
 
-            loadCurrentImage();
+            adapter.notifyItemRemoved(deletedIndex);
+            adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
+
+            // Post to ensure ViewPager2 updates after adapter notification
+            viewPager.post(() -> {
+                viewPager.setCurrentItem(currentIndex, false);
+                updateCounter();
+            });
+
             Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
-            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
         } catch (Exception e) {
             Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private Bitmap applyExifOrientation(Uri uri, Bitmap bitmap) {
-        try {
-            android.content.ContentResolver resolver = getContentResolver();
-            android.database.Cursor cursor = resolver.query(uri,
-                    new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-            String filePath = null;
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    filePath = cursor.getString(0);
-                }
-                cursor.close();
-            }
-            if (filePath == null) return bitmap;
-
-            ExifInterface exif = new ExifInterface(filePath);
-            int orientation = exif.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-            int rotation = 0;
-            boolean flip = false;
-            switch (orientation) {
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    rotation = 90;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_180:
-                    rotation = 180;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_270:
-                    rotation = 270;
-                    break;
-                case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
-                    flip = true;
-                    break;
-                case ExifInterface.ORIENTATION_FLIP_VERTICAL:
-                    rotation = 180;
-                    flip = true;
-                    break;
-                case ExifInterface.ORIENTATION_TRANSPOSE:
-                    rotation = 90;
-                    flip = true;
-                    break;
-                case ExifInterface.ORIENTATION_TRANSVERSE:
-                    rotation = 270;
-                    flip = true;
-                    break;
-                default:
-                    return bitmap;
-            }
-            Matrix matrix = new Matrix();
-            if (rotation != 0) {
-                matrix.postRotate(rotation);
-            }
-            if (flip) {
-                matrix.postScale(-1, 1, bitmap.getWidth() / 2f, bitmap.getHeight() / 2f);
-            }
-            Bitmap rotated = Bitmap.createBitmap(bitmap, 0, 0,
-                    bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-            if (rotated != bitmap) {
-                bitmap.recycle();
-            }
-            return rotated;
-        } catch (Exception e) {
-            return bitmap;
         }
     }
 
