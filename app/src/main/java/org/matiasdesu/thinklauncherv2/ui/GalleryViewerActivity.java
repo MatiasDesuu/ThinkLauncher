@@ -42,6 +42,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private ZoomableImageView imageView;
     private TextView pageIndicator;
+    private TextView imageNameView;
 
     private ArrayList<Long> imageIds;
     private ArrayList<String> imageNames;
@@ -90,6 +91,9 @@ public class GalleryViewerActivity extends AppCompatActivity {
         imageView = findViewById(R.id.gallery_image_view);
         pageIndicator = findViewById(R.id.page_indicator);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
+
+        imageNameView = findViewById(R.id.image_name);
+        ThemeUtils.applyTextColor(imageNameView, theme, this);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -180,6 +184,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private void updateCounter() {
         String text = (currentIndex + 1) + " / " + imageIds.size();
         pageIndicator.setText(text);
+
+        if (imageNames != null && currentIndex < imageNames.size()) {
+            imageNameView.setText(imageNames.get(currentIndex));
+        } else {
+            imageNameView.setText("");
+        }
     }
 
     private void confirmDelete() {

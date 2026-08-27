@@ -31,10 +31,17 @@
                 android:src="@drawable/back_arrow"
                 android:tint="?attr/text_color" />
 
-            <View
+            <TextView
+                android:id="@+id/image_name"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/text_color"
+                android:textSize="18sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:layout_gravity="center_vertical" />
 
             <ImageView
                 android:id="@+id/delete_button"
