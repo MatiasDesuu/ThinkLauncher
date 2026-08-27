@@ -26,6 +26,10 @@ public class GalleryOptionsDialog extends Dialog {
         void onTrashClick();
     }
 
+    public interface OnFavoritesClickCallback {
+        void onFavoritesClick();
+    }
+
     public interface OnGroupChangedCallback {
         void onGroupChanged(int groupMode);
     }
@@ -33,6 +37,7 @@ public class GalleryOptionsDialog extends Dialog {
     private OnGridChangedCallback gridCallback;
     private OnShowTitlesChangedCallback titlesCallback;
     private OnTrashClickCallback trashCallback;
+    private OnFavoritesClickCallback favoritesCallback;
     private OnGroupChangedCallback groupCallback;
     private int currentColumns;
     private int currentRows;
@@ -40,26 +45,30 @@ public class GalleryOptionsDialog extends Dialog {
     private boolean isGridView;
     private boolean hasPagination;
     private boolean isTrashMode;
+    private boolean isFavoritesMode;
     private int currentGroupMode;
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
-                                  boolean isGridView, boolean hasPagination, boolean isTrashMode,
+                                  boolean isGridView, boolean hasPagination, boolean isTrashMode, boolean isFavoritesMode,
                                   int groupMode,
                                   OnGridChangedCallback gridCallback,
                                   OnShowTitlesChangedCallback titlesCallback,
                                   OnGroupChangedCallback groupCallback,
-                                  OnTrashClickCallback trashCallback) {
+                                  OnTrashClickCallback trashCallback,
+                                  OnFavoritesClickCallback favoritesCallback) {
         super(context, R.style.NoAnimationDialog);
         this.gridCallback = gridCallback;
         this.titlesCallback = titlesCallback;
         this.groupCallback = groupCallback;
         this.trashCallback = trashCallback;
+        this.favoritesCallback = favoritesCallback;
         this.currentColumns = columns;
         this.currentRows = rows;
         this.currentShowTitles = showTitles;
         this.isGridView = isGridView;
         this.hasPagination = hasPagination;
         this.isTrashMode = isTrashMode;
+        this.isFavoritesMode = isFavoritesMode;
         this.currentGroupMode = groupMode;
         init();
     }
@@ -137,6 +146,14 @@ public class GalleryOptionsDialog extends Dialog {
         trashButton.setOnClickListener(v -> {
             dismiss();
             trashCallback.onTrashClick();
+        });
+
+        TextView favoritesButton = findViewById(R.id.favorites_button);
+        DialogEffectHelper.applyButtonTheme(favoritesButton, theme, getContext(), surfaceColor);
+        favoritesButton.setText(isFavoritesMode ? "Gallery" : "Favorites");
+        favoritesButton.setOnClickListener(v -> {
+            dismiss();
+            if (favoritesCallback != null) favoritesCallback.onFavoritesClick();
         });
     }
 

@@ -41,6 +41,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.GalleryFavoritesHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -92,11 +93,13 @@ public class GalleryActivity extends AppCompatActivity {
     private int folderGridRows;
     private boolean folderShowGridTitles;
     private boolean isTrashMode;
+    private boolean isFavoritesMode;
     private boolean isFolderView;
     private String selectedFolder;
     private boolean galleryModified;
     private SwipePageNavigator pageNavigator;
     private final List<Integer> pageStartIndices = new ArrayList<>();
+    private static final int REQUEST_FAVORITES = 4004;
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
@@ -131,6 +134,8 @@ public class GalleryActivity extends AppCompatActivity {
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
         isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
+        isFavoritesMode = getIntent().getBooleanExtra("favorites_mode", false);
+        if (isTrashMode && isFavoritesMode) isFavoritesMode = false;
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
@@ -169,7 +174,7 @@ public class GalleryActivity extends AppCompatActivity {
             int curRows = isFolderView ? folderGridRows : gridRows;
             boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
             boolean curIsGrid = isFolderView ? isFolderGridView : isGridView;
-            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode, galleryGroupMode,
+            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode, isFavoritesMode, galleryGroupMode,
                     (columns, rows) -> {
                         if (isFolderView) {
                             folderGridColumns = columns;
@@ -228,6 +233,18 @@ public class GalleryActivity extends AppCompatActivity {
                             Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
                             intent.putExtra("trash_mode", true);
                             startActivityForResult(intent, REQUEST_TRASH);
+                            overridePendingTransition(0, 0);
+                        }
+                    },
+                    () -> {
+                        if (isFavoritesMode) {
+                            if (galleryModified) setResult(RESULT_OK);
+                            finish();
+                            overridePendingTransition(0, 0);
+                        } else {
+                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                            intent.putExtra("favorites_mode", true);
+                            startActivityForResult(intent, REQUEST_FAVORITES);
                             overridePendingTransition(0, 0);
                         }
                     }).show();
@@ -470,10 +487,18 @@ public class GalleryActivity extends AppCompatActivity {
                 else allImageIds.add(img.id);
             }
             GalleryTrashHelper.pruneInvalidIds(GalleryActivity.this, allImageIds, allVideoIds);
+            GalleryFavoritesHelper.pruneInvalidIds(GalleryActivity.this, allImageIds, allVideoIds);
             List<GalleryImage> filtered = new ArrayList<>();
             for (GalleryImage img : loaded) {
                 boolean trashed = GalleryTrashHelper.isTrashed(GalleryActivity.this, img.id, img.mediaType);
-                if (isTrashMode ? trashed : !trashed) filtered.add(img);
+                boolean fav = GalleryFavoritesHelper.isFavorite(GalleryActivity.this, img.id, img.mediaType);
+                if (isTrashMode) {
+                    if (trashed) filtered.add(img);
+                } else if (isFavoritesMode) {
+                    if (!trashed && fav) filtered.add(img);
+                } else {
+                    if (!trashed) filtered.add(img);
+                }
             }
             runOnUiThread(() -> {
                 allMedia.clear();
@@ -520,6 +545,14 @@ public class GalleryActivity extends AppCompatActivity {
     private void updateDisplayItems() {
         displayItems.clear();
         if (isTrashMode) {
+            if (galleryGroupMode == GROUP_NONE) {
+                displayItems.addAll(allMedia);
+            } else {
+                addGroupedItems(allMedia);
+            }
+            return;
+        }
+        if (isFavoritesMode) {
             if (galleryGroupMode == GROUP_NONE) {
                 displayItems.addAll(allMedia);
             } else {
@@ -728,6 +761,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void updateTitle() {
         if (titleView == null) return;
         if (isTrashMode) titleView.setText("Trash");
+        else if (isFavoritesMode) titleView.setText("Favorites");
         else if (isFolderView) titleView.setText("Folders");
         else if (selectedFolder != null) titleView.setText(selectedFolder);
         else titleView.setText("Gallery");
@@ -736,7 +770,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void updateFolderButtonIcon() {
         ImageView folderButton = findViewById(R.id.folder_button);
         if (folderButton == null) return;
-        if (isTrashMode || selectedFolder != null) {
+        if (isTrashMode || isFavoritesMode || selectedFolder != null) {
             folderButton.setVisibility(View.GONE);
             return;
         }
@@ -747,7 +781,7 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
         private void toggleFolderView() {
-        if (isTrashMode) return;
+        if (isTrashMode || isFavoritesMode) return;
         if (selectedFolder != null) {
             selectedFolder = null;
             isFolderView = true;
@@ -1063,6 +1097,7 @@ public class GalleryActivity extends AppCompatActivity {
         intent.putExtra("media_types", typesArray);
         intent.putExtra("image_dates", datesArray);
         intent.putExtra("trash_mode", isTrashMode);
+        intent.putExtra("favorites_mode", isFavoritesMode);
         startActivityForResult(intent, REQUEST_VIEWER);
         overridePendingTransition(0, appLauncherAnimations ? 0 : 0);
     }
@@ -1073,11 +1108,11 @@ public class GalleryActivity extends AppCompatActivity {
         if (requestCode == REQUEST_VIEWER && resultCode == RESULT_OK) {
             restorePage = currentPage;
             loadImages();
-            if (isTrashMode) {
+            if (isTrashMode || isFavoritesMode) {
                 galleryModified = true;
                 setResult(RESULT_OK);
             }
-        } else if (requestCode == REQUEST_TRASH && resultCode == RESULT_OK) {
+        } else if ((requestCode == REQUEST_TRASH || requestCode == REQUEST_FAVORITES) && resultCode == RESULT_OK) {
             restorePage = currentPage;
             loadImages();
         }
@@ -1278,6 +1313,17 @@ public class GalleryActivity extends AppCompatActivity {
                 } else {
                     gvh.pinnedIndicator.setVisibility(View.GONE);
                 }
+                java.util.Set<String> favSetG = prefs.getStringSet("gallery_favorite_ids", null);
+                boolean gIsFav = !isFolder && image != null && favSetG != null && (favSetG.contains("image:" + image.id) || favSetG.contains("video:" + image.id) || favSetG.contains(String.valueOf(image.id)));
+                if (gIsFav) {
+                    gvh.favoriteIndicator.setVisibility(View.VISIBLE);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(gvh.favoriteIndicator, txt, bg, GalleryActivity.this);
+                    gvh.favoriteIndicator.setColorFilter(txt);
+                } else {
+                    gvh.favoriteIndicator.setVisibility(View.GONE);
+                }
                 gvh.thumbnail.setImageBitmap(null);
                 gvh.thumbnail.setTag(globalPosition);
                 final long fThumbId = thumbId;
@@ -1382,6 +1428,17 @@ public class GalleryActivity extends AppCompatActivity {
                 } else {
                     lvh.pinnedIndicator.setVisibility(View.GONE);
                 }
+                java.util.Set<String> favSetL = prefs.getStringSet("gallery_favorite_ids", null);
+                boolean lIsFav = !isFolder && image != null && favSetL != null && (favSetL.contains("image:" + image.id) || favSetL.contains("video:" + image.id) || favSetL.contains(String.valueOf(image.id)));
+                if (lIsFav) {
+                    lvh.favoriteIndicator.setVisibility(View.VISIBLE);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(lvh.favoriteIndicator, txt, bg, GalleryActivity.this);
+                    lvh.favoriteIndicator.setColorFilter(txt);
+                } else {
+                    lvh.favoriteIndicator.setVisibility(View.GONE);
+                }
 
                 lvh.thumbnail.setImageBitmap(null);
                 lvh.thumbnail.setTag(globalPosition);
@@ -1470,6 +1527,7 @@ public class GalleryActivity extends AppCompatActivity {
             TextView filename;
             ImageView videoIndicator;
             ImageView pinnedIndicator;
+            ImageView favoriteIndicator;
 
             GridViewHolder(View itemView) {
                 super(itemView);
@@ -1477,6 +1535,7 @@ public class GalleryActivity extends AppCompatActivity {
                 filename = itemView.findViewById(R.id.gallery_filename);
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
                 pinnedIndicator = itemView.findViewById(R.id.pinned_indicator);
+                favoriteIndicator = itemView.findViewById(R.id.favorite_indicator);
             }
         }
 
@@ -1486,6 +1545,7 @@ public class GalleryActivity extends AppCompatActivity {
             TextView date;
             ImageView videoIndicator;
             ImageView pinnedIndicator;
+            ImageView favoriteIndicator;
 
             ListViewHolder(View itemView) {
                 super(itemView);
@@ -1494,6 +1554,7 @@ public class GalleryActivity extends AppCompatActivity {
                 date = itemView.findViewById(R.id.gallery_date);
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
                 pinnedIndicator = itemView.findViewById(R.id.pinned_indicator);
+                favoriteIndicator = itemView.findViewById(R.id.favorite_indicator);
             }
         }
 

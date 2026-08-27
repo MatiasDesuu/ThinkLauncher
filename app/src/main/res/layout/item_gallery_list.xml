@@ -40,6 +40,16 @@
             android:visibility="gone"
             android:padding="2dp" />
 
+        <ImageView
+            android:id="@+id/favorite_indicator"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="top|start"
+            android:layout_margin="2dp"
+            android:src="@drawable/star_filled"
+            android:visibility="gone"
+            android:padding="2dp" />
+
     </FrameLayout>
 
     <LinearLayout

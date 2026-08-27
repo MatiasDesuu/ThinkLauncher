@@ -153,4 +153,11 @@
         android:layout_width="match_parent"
         android:layout_marginTop="8dp" />
 
+    <TextView
+        android:id="@+id/favorites_button"
+        style="@style/DialogButton"
+        android:text="Favorites"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>

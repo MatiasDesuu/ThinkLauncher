@@ -22,6 +22,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.GalleryFavoritesHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -52,10 +53,13 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private long currentImageId;
     private int currentMediaType;
     private boolean isTrashMode;
+    private boolean isFavoritesMode;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault());
 
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
     private boolean imageDeleted = false;
+    private boolean favoritesChanged = false;
+    private ImageView favoriteButton;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -102,6 +106,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
         ThemeUtils.applyTextColor(imageNameView, theme, this);
 
         isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
+        isFavoritesMode = getIntent().getBooleanExtra("favorites_mode", false);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -119,6 +124,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
             restoreButton.setVisibility(View.GONE);
             deleteButton.setOnClickListener(v -> moveToTrash());
         }
+
+        favoriteButton = findViewById(R.id.favorite_button);
+        favoriteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        favoriteButton.setOnClickListener(v -> toggleFavorite());
 
         ImageView shareButton = findViewById(R.id.share_button);
         shareButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -167,6 +176,8 @@ public class GalleryViewerActivity extends AppCompatActivity {
         viewPager.setUserInputEnabled(galleryAnimation);
 
         updateCounter();
+        updateFavoriteIcon();
+        viewPager.post(() -> updateFavoriteIcon());
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -175,6 +186,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 currentImageId = imageIds.get(currentIndex);
                 currentMediaType = position < mediaTypes.size() ? mediaTypes.get(position) : GalleryTrashHelper.TYPE_IMAGE;
                 updateCounter();
+                updateFavoriteIcon();
             }
         });
 
@@ -226,6 +238,60 @@ public class GalleryViewerActivity extends AppCompatActivity {
         }
     }
 
+    private void updateFavoriteIcon() {
+        if (favoriteButton == null) return;
+        SharedPreferences fp = getSharedPreferences("prefs", MODE_PRIVATE);
+        java.util.Set<String> s = fp.getStringSet("gallery_favorite_ids", null);
+        boolean fav = s != null && (s.contains("image:" + currentImageId) || s.contains("video:" + currentImageId) || s.contains(String.valueOf(currentImageId)));
+        if (isFavoritesMode) fav = true;
+        favoriteButton.setImageResource(fav ? R.drawable.star_filled : R.drawable.star_outline);
+        favoriteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        favoriteButton.setContentDescription(fav ? "Unfavorite" : "Favorite");
+    }
+
+    private void toggleFavorite() {
+        SharedPreferences fp = getSharedPreferences("prefs", MODE_PRIVATE);
+        java.util.Set<String> s = fp.getStringSet("gallery_favorite_ids", null);
+        boolean wasFav = s != null && (s.contains("image:" + currentImageId) || s.contains("video:" + currentImageId) || s.contains(String.valueOf(currentImageId)));
+        java.util.Set<String> cur = fp.getStringSet("gallery_favorite_ids", null);
+        java.util.Set<String> upd = cur == null ? new java.util.HashSet<>() : new java.util.HashSet<>(cur);
+        if (wasFav) {
+            upd.remove("image:" + currentImageId);
+            upd.remove("video:" + currentImageId);
+            upd.remove(String.valueOf(currentImageId));
+        } else {
+            upd.add(currentMediaType == GalleryTrashHelper.TYPE_VIDEO ? "video:" + currentImageId : "image:" + currentImageId);
+        }
+        fp.edit().putStringSet("gallery_favorite_ids", upd).apply();
+        favoritesChanged = true;
+        updateFavoriteIcon();
+        if (isFavoritesMode && wasFav) {
+            imageDeleted = true;
+            int removedIndex = currentIndex;
+            imageIds.remove(removedIndex);
+            if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
+            if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
+            if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
+            if (imageIds.isEmpty()) {
+                setResult(RESULT_OK);
+                finish();
+                return;
+            }
+            if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+                currentImageId = imageIds.get(currentIndex);
+                currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
+            }
+            adapter.notifyItemRemoved(removedIndex);
+            adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
+            viewPager.post(() -> {
+                viewPager.setCurrentItem(currentIndex, false);
+                updateCounter();
+                updateFavoriteIcon();
+            });
+        }
+    }
+
     private void confirmPermanentDelete() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             requestManageStoragePermission();
@@ -257,7 +323,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
             if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
-                Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
@@ -272,7 +337,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(currentIndex, false);
                 updateCounter();
             });
-            Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to move to trash", Toast.LENGTH_SHORT).show();
         }
@@ -289,7 +353,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
             if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
-                Toast.makeText(this, "Image restored", Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
@@ -304,7 +367,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(currentIndex, false);
                 updateCounter();
             });
-            Toast.makeText(this, "Image restored", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to restore image", Toast.LENGTH_SHORT).show();
         }
@@ -326,7 +388,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
             if (imageDates != null && deletedIndex < imageDates.size()) imageDates.remove(deletedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
-                Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
@@ -341,7 +402,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(currentIndex, false);
                 updateCounter();
             });
-            Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
         }
@@ -349,7 +409,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (imageDeleted) {
+        if (imageDeleted || favoritesChanged) {
             setResult(RESULT_OK);
         }
         finish();
