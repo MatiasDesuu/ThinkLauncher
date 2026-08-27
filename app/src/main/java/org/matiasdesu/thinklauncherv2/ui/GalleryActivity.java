@@ -257,6 +257,17 @@ public class GalleryActivity extends AppCompatActivity {
 
         setupPageNavigator(container);
         updatePageIndicator();
+        TextView pi = findViewById(R.id.page_indicator);
+        if (pi != null) {
+            pi.setOnClickListener(v -> {
+                if (scrollAppList || currentPage == 0) return;
+                currentPage = 0;
+                if (pageNavigator != null) pageNavigator.setCurrentPage(0);
+                adapter.notifyDataSetChanged();
+                updatePageIndicator();
+                EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            });
+        }
         requestPermissionAndLoad();
     }
 
