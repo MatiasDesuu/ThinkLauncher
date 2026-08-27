@@ -110,7 +110,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             deleteButton.setOnClickListener(v -> confirmPermanentDelete());
         } else {
             restoreButton.setVisibility(View.GONE);
-            deleteButton.setOnClickListener(v -> confirmMoveToTrash());
+            deleteButton.setOnClickListener(v -> moveToTrash());
         }
 
         ImageView shareButton = findViewById(R.id.share_button);
@@ -197,21 +197,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
         }
     }
 
-    private void confirmMoveToTrash() {
-        new DeleteImageDialog(this, "Move to trash?", "Move to trash", this::moveToTrash).show();
-    }
-
     private void confirmPermanentDelete() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             requestManageStoragePermission();
             return;
         }
         new DeleteImageDialog(this, "Delete permanently? This cannot be undone.", "Delete", this::deletePermanently).show();
-    }
-
-    private void confirmDelete() {
-        if (isTrashMode) confirmPermanentDelete();
-        else confirmMoveToTrash();
     }
 
     private void requestManageStoragePermission() {
@@ -314,11 +305,6 @@ public class GalleryViewerActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void deleteCurrentImage() {
-        if (isTrashMode) deletePermanently();
-        else moveToTrash();
     }
 
     @Override

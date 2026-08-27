@@ -37,23 +37,6 @@ public class GalleryOptionsDialog extends Dialog {
     private boolean isTrashMode;
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
-                                 boolean isGridView, boolean hasPagination,
-                                 OnGridChangedCallback gridCallback,
-                                 OnShowTitlesChangedCallback titlesCallback) {
-        super(context, R.style.NoAnimationDialog);
-        this.gridCallback = gridCallback;
-        this.titlesCallback = titlesCallback;
-        this.trashCallback = null;
-        this.currentColumns = columns;
-        this.currentRows = rows;
-        this.currentShowTitles = showTitles;
-        this.isGridView = isGridView;
-        this.hasPagination = hasPagination;
-        this.isTrashMode = false;
-        init();
-    }
-
-    public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
                                  boolean isGridView, boolean hasPagination, boolean isTrashMode,
                                  OnGridChangedCallback gridCallback,
                                  OnShowTitlesChangedCallback titlesCallback,
@@ -133,13 +116,7 @@ public class GalleryOptionsDialog extends Dialog {
         trashButton.setText(isTrashMode ? "Gallery" : "Trash");
         trashButton.setOnClickListener(v -> {
             dismiss();
-            if (trashCallback != null) {
-                trashCallback.onTrashClick();
-            } else {
-                android.content.Intent intent = new android.content.Intent(getContext(), GalleryActivity.class);
-                intent.putExtra("trash_mode", true);
-                getContext().startActivity(intent);
-            }
+            trashCallback.onTrashClick();
         });
     }
 }

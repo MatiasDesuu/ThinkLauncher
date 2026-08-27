@@ -176,8 +176,7 @@ public class GalleryActivity extends AppCompatActivity {
         gridRows = prefs.getInt("gallery_grid_rows", 3);
         showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
-        ImageView toggleBtn = findViewById(R.id.toggle_view_button);
-        if (toggleBtn != null) toggleBtn.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+        toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
 
         recyclerView = findViewById(R.id.gallery_grid);
         View topLayout = findViewById(R.id.top_layout);
