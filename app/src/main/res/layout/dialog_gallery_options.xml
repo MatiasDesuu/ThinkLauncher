@@ -140,6 +140,13 @@
         android:layout_marginTop="16dp" />
 
     <TextView
+        android:id="@+id/group_button"
+        style="@style/DialogButton"
+        android:text="Group: None"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
         android:id="@+id/trash_button"
         style="@style/DialogButton"
         android:text="Trash"

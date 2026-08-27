@@ -40,6 +40,7 @@ import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -90,6 +91,14 @@ public class GalleryActivity extends AppCompatActivity {
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
+    private final SimpleDateFormat daySeparatorFormat = new SimpleDateFormat("EEEE, MMM d, yyyy", Locale.getDefault());
+    private final SimpleDateFormat monthSeparatorFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+    private final SimpleDateFormat yearSeparatorFormat = new SimpleDateFormat("yyyy", Locale.getDefault());
+    private static final int GROUP_NONE = 0;
+    private static final int GROUP_DAY = 1;
+    private static final int GROUP_MONTH = 2;
+    private static final int GROUP_YEAR = 3;
+    private int galleryGroupMode;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -151,7 +160,7 @@ public class GalleryActivity extends AppCompatActivity {
             int curRows = isFolderView ? folderGridRows : gridRows;
             boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
             boolean curIsGrid = isFolderView ? isFolderGridView : isGridView;
-            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode,
+            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode, galleryGroupMode,
                     (columns, rows) -> {
                         if (isFolderView) {
                             folderGridColumns = columns;
@@ -166,9 +175,7 @@ public class GalleryActivity extends AppCompatActivity {
                         }
                         currentPage = 0;
                         itemsPerPage = calculateItemsPerPage();
-                        if (isGridView) {
-                            recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-                        }
+                        applyGridLayoutManager();
                         if (pageNavigator != null) {
                             pageNavigator.setCurrentPage(0);
                         }
@@ -185,6 +192,20 @@ public class GalleryActivity extends AppCompatActivity {
                             prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
                         }
                         adapter.notifyDataSetChanged();
+                    },
+                    mode -> {
+                        galleryGroupMode = mode;
+                        updateDisplayItems();
+                        currentPage = 0;
+                        itemsPerPage = calculateItemsPerPage();
+                        applyGridLayoutManager();
+                        if (pageNavigator != null) {
+                            pageNavigator.setCurrentPage(0);
+                            pageNavigator.setTotalItems(displayItems.size());
+                        }
+                        adapter.notifyDataSetChanged();
+                        updatePageIndicator();
+                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
                     },
                     () -> {
                         if (isTrashMode) {
@@ -208,6 +229,8 @@ public class GalleryActivity extends AppCompatActivity {
         folderGridColumns = prefs.getInt("gallery_folder_grid_columns", 3);
         folderGridRows = prefs.getInt("gallery_folder_grid_rows", 3);
         folderShowGridTitles = prefs.getBoolean("gallery_folder_grid_show_titles", true);
+        galleryGroupMode = prefs.getInt("gallery_group_by", GROUP_NONE);
+        if (galleryGroupMode < GROUP_NONE || galleryGroupMode > GROUP_YEAR) galleryGroupMode = GROUP_NONE;
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
         isFolderView = false;
@@ -224,11 +247,7 @@ public class GalleryActivity extends AppCompatActivity {
                 topLayout, recyclerView, container);
 
         adapter = new GalleryAdapter(displayItems);
-        if (isGridView) {
-            recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-        } else {
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        }
+        applyGridLayoutManager();
         recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         recyclerView.setAdapter(adapter);
 
@@ -278,12 +297,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         currentPage = 0;
         itemsPerPage = calculateItemsPerPage();
-
-        if (isGridView) {
-            recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-        } else {
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        }
+        applyGridLayoutManager();
 
         if (pageNavigator != null) {
             pageNavigator.setCurrentPage(0);
@@ -292,6 +306,26 @@ public class GalleryActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         updatePageIndicator();
         EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+    }
+
+    private void applyGridLayoutManager() {
+        if (recyclerView == null) return;
+        if (isGridView) {
+            GridLayoutManager glm = new GridLayoutManager(this, gridColumns);
+            glm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+                    if (globalPosition >= displayItems.size()) return 1;
+                    Object obj = displayItems.get(globalPosition);
+                    if (obj instanceof GallerySeparator) return gridColumns;
+                    return 1;
+                }
+            });
+            recyclerView.setLayoutManager(glm);
+        } else {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        }
     }
 
 
@@ -435,6 +469,7 @@ public class GalleryActivity extends AppCompatActivity {
                 Collections.sort(folders, (a, b) -> a.folderName.compareToIgnoreCase(b.folderName));
                 updateDisplayItems();
                 itemsPerPage = calculateItemsPerPage();
+                applyGridLayoutManager();
                 int totalPages = (int) Math.ceil((double) displayItems.size() / itemsPerPage);
                 if (restorePage >= 0) {
                     currentPage = Math.min(restorePage, Math.max(0, totalPages - 1));
@@ -456,16 +491,62 @@ public class GalleryActivity extends AppCompatActivity {
     private void updateDisplayItems() {
         displayItems.clear();
         if (isTrashMode) {
-            displayItems.addAll(allMedia);
+            if (galleryGroupMode == GROUP_NONE) {
+                displayItems.addAll(allMedia);
+            } else {
+                addGroupedItems(allMedia);
+            }
             return;
         }
         if (isFolderView) {
             displayItems.addAll(folders);
-        } else if (selectedFolder != null) {
-            for (GalleryImage img : allMedia) if (selectedFolder.equals(img.folderName)) displayItems.add(img);
-        } else {
-            displayItems.addAll(allMedia);
+            return;
         }
+        List<GalleryImage> source;
+        if (selectedFolder != null) {
+            source = new ArrayList<>();
+            for (GalleryImage img : allMedia) if (selectedFolder.equals(img.folderName)) source.add(img);
+        } else {
+            source = allMedia;
+        }
+        if (galleryGroupMode == GROUP_NONE) {
+            displayItems.addAll(source);
+        } else {
+            addGroupedItems(source);
+        }
+    }
+
+    private void addGroupedItems(List<GalleryImage> source) {
+        String lastKey = null;
+        for (GalleryImage img : source) {
+            String key = getGroupKey(img);
+            if (!key.equals(lastKey)) {
+                displayItems.add(new GallerySeparator(formatSeparator(img), key));
+                lastKey = key;
+            }
+            displayItems.add(img);
+        }
+    }
+
+    private String getGroupKey(GalleryImage img) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(img.dateAdded * 1000);
+        if (galleryGroupMode == GROUP_DAY) {
+            return cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.MONTH) + "-" + cal.get(Calendar.DAY_OF_MONTH);
+        } else if (galleryGroupMode == GROUP_MONTH) {
+            return cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.MONTH);
+        } else if (galleryGroupMode == GROUP_YEAR) {
+            return String.valueOf(cal.get(Calendar.YEAR));
+        }
+        return "";
+    }
+
+    private String formatSeparator(GalleryImage img) {
+        Date d = new Date(img.dateAdded * 1000);
+        if (galleryGroupMode == GROUP_DAY) return daySeparatorFormat.format(d);
+        if (galleryGroupMode == GROUP_MONTH) return monthSeparatorFormat.format(d);
+        if (galleryGroupMode == GROUP_YEAR) return yearSeparatorFormat.format(d);
+        return "";
     }
 
     private void updateTitle() {
@@ -515,11 +596,10 @@ public class GalleryActivity extends AppCompatActivity {
         }
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
         if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
-        if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-        else recyclerView.setLayoutManager(new LinearLayoutManager(this));
         currentPage = 0;
-        itemsPerPage = calculateItemsPerPage();
         updateDisplayItems();
+        itemsPerPage = calculateItemsPerPage();
+        applyGridLayoutManager();
         if (pageNavigator != null) {
             pageNavigator.setCurrentPage(0);
             pageNavigator.setTotalItems(displayItems.size());
@@ -540,11 +620,10 @@ public class GalleryActivity extends AppCompatActivity {
         showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
         if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
-        if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-        else recyclerView.setLayoutManager(new LinearLayoutManager(this));
         currentPage = 0;
         updateDisplayItems();
         itemsPerPage = calculateItemsPerPage();
+        applyGridLayoutManager();
         if (pageNavigator != null) {
             pageNavigator.setCurrentPage(0);
             pageNavigator.setTotalItems(displayItems.size());
@@ -567,11 +646,10 @@ public class GalleryActivity extends AppCompatActivity {
             showGridTitles = folderShowGridTitles;
             ImageView toggleButton = findViewById(R.id.toggle_view_button);
             if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
-            if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-            else recyclerView.setLayoutManager(new LinearLayoutManager(this));
             currentPage = 0;
-            itemsPerPage = calculateItemsPerPage();
             updateDisplayItems();
+            itemsPerPage = calculateItemsPerPage();
+            applyGridLayoutManager();
             if (pageNavigator != null) {
                 pageNavigator.setCurrentPage(0);
                 pageNavigator.setTotalItems(displayItems.size());
@@ -591,11 +669,10 @@ public class GalleryActivity extends AppCompatActivity {
             showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
             ImageView toggleButton = findViewById(R.id.toggle_view_button);
             if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
-            if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
-            else recyclerView.setLayoutManager(new LinearLayoutManager(this));
             currentPage = 0;
-            itemsPerPage = calculateItemsPerPage();
             updateDisplayItems();
+            itemsPerPage = calculateItemsPerPage();
+            applyGridLayoutManager();
             if (pageNavigator != null) {
                 pageNavigator.setCurrentPage(0);
                 pageNavigator.setTotalItems(displayItems.size());
@@ -774,10 +851,21 @@ public class GalleryActivity extends AppCompatActivity {
         }
     }
 
+    private static class GallerySeparator {
+        String label;
+        String key;
+
+        GallerySeparator(String label, String key) {
+            this.label = label;
+            this.key = key;
+        }
+    }
+
     private class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         private static final int VIEW_TYPE_GRID = 0;
         private static final int VIEW_TYPE_LIST = 1;
+        private static final int VIEW_TYPE_SEPARATOR = 2;
 
         private final List<Object> items;
 
@@ -787,12 +875,20 @@ public class GalleryActivity extends AppCompatActivity {
 
         @Override
         public int getItemViewType(int position) {
+            int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
+            if (globalPosition < items.size() && items.get(globalPosition) instanceof GallerySeparator) {
+                return VIEW_TYPE_SEPARATOR;
+            }
             return isGridView ? VIEW_TYPE_GRID : VIEW_TYPE_LIST;
         }
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            if (viewType == VIEW_TYPE_GRID) {
+            if (viewType == VIEW_TYPE_SEPARATOR) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_gallery_separator, parent, false);
+                return new SeparatorViewHolder(view);
+            } else if (viewType == VIEW_TYPE_GRID) {
                 View view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_gallery_grid, parent, false);
                 return new GridViewHolder(view);
@@ -809,6 +905,21 @@ public class GalleryActivity extends AppCompatActivity {
             if (globalPosition >= items.size()) return;
 
             Object obj = items.get(globalPosition);
+            if (obj instanceof GallerySeparator) {
+                GallerySeparator sep = (GallerySeparator) obj;
+                SeparatorViewHolder svh = (SeparatorViewHolder) holder;
+                svh.label.setText(sep.label);
+                ThemeUtils.applyTextColor(svh.label, theme, GalleryActivity.this);
+                FontHelper.applyToViewTree(GalleryActivity.this, svh.itemView);
+                if (isGridView) {
+                    ViewGroup.LayoutParams lp = svh.itemView.getLayoutParams();
+                    if (lp instanceof GridLayoutManager.LayoutParams) {
+                        ((GridLayoutManager.LayoutParams) lp).height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    }
+                }
+                svh.itemView.setOnClickListener(null);
+                return;
+            }
             boolean isFolder = obj instanceof GalleryFolder;
             GalleryImage image = null;
             GalleryFolder folder = null;
@@ -985,6 +1096,15 @@ public class GalleryActivity extends AppCompatActivity {
                 filename = itemView.findViewById(R.id.gallery_filename);
                 date = itemView.findViewById(R.id.gallery_date);
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
+            }
+        }
+
+        class SeparatorViewHolder extends RecyclerView.ViewHolder {
+            TextView label;
+
+            SeparatorViewHolder(View itemView) {
+                super(itemView);
+                label = itemView.findViewById(R.id.gallery_separator);
             }
         }
     }

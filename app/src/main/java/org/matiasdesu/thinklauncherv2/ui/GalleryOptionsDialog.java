@@ -26,24 +26,33 @@ public class GalleryOptionsDialog extends Dialog {
         void onTrashClick();
     }
 
+    public interface OnGroupChangedCallback {
+        void onGroupChanged(int groupMode);
+    }
+
     private OnGridChangedCallback gridCallback;
     private OnShowTitlesChangedCallback titlesCallback;
     private OnTrashClickCallback trashCallback;
+    private OnGroupChangedCallback groupCallback;
     private int currentColumns;
     private int currentRows;
     private boolean currentShowTitles;
     private boolean isGridView;
     private boolean hasPagination;
     private boolean isTrashMode;
+    private int currentGroupMode;
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
-                                 boolean isGridView, boolean hasPagination, boolean isTrashMode,
-                                 OnGridChangedCallback gridCallback,
-                                 OnShowTitlesChangedCallback titlesCallback,
-                                 OnTrashClickCallback trashCallback) {
+                                  boolean isGridView, boolean hasPagination, boolean isTrashMode,
+                                  int groupMode,
+                                  OnGridChangedCallback gridCallback,
+                                  OnShowTitlesChangedCallback titlesCallback,
+                                  OnGroupChangedCallback groupCallback,
+                                  OnTrashClickCallback trashCallback) {
         super(context, R.style.NoAnimationDialog);
         this.gridCallback = gridCallback;
         this.titlesCallback = titlesCallback;
+        this.groupCallback = groupCallback;
         this.trashCallback = trashCallback;
         this.currentColumns = columns;
         this.currentRows = rows;
@@ -51,6 +60,7 @@ public class GalleryOptionsDialog extends Dialog {
         this.isGridView = isGridView;
         this.hasPagination = hasPagination;
         this.isTrashMode = isTrashMode;
+        this.currentGroupMode = groupMode;
         init();
     }
 
@@ -111,6 +121,16 @@ public class GalleryOptionsDialog extends Dialog {
             dismiss();
         });
 
+        TextView groupButton = findViewById(R.id.group_button);
+        DialogEffectHelper.applyButtonTheme(groupButton, theme, getContext(), surfaceColor);
+        updateGroupText(groupButton);
+        groupButton.setOnClickListener(v -> {
+            currentGroupMode = (currentGroupMode + 1) % 4;
+            getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE).edit().putInt("gallery_group_by", currentGroupMode).apply();
+            if (groupCallback != null) groupCallback.onGroupChanged(currentGroupMode);
+            dismiss();
+        });
+
         TextView trashButton = findViewById(R.id.trash_button);
         DialogEffectHelper.applyButtonTheme(trashButton, theme, getContext(), surfaceColor);
         trashButton.setText(isTrashMode ? "Gallery" : "Trash");
@@ -118,5 +138,14 @@ public class GalleryOptionsDialog extends Dialog {
             dismiss();
             trashCallback.onTrashClick();
         });
+    }
+
+    private void updateGroupText(TextView btn) {
+        String label;
+        if (currentGroupMode == 1) label = "Day";
+        else if (currentGroupMode == 2) label = "Month";
+        else if (currentGroupMode == 3) label = "Year";
+        else label = "None";
+        btn.setText("Group: " + label);
     }
 }
