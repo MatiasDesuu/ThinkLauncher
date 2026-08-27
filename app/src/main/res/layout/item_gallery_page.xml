@@ -10,4 +10,20 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
+    <VideoView
+        android:id="@+id/page_video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/page_video_play"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_media_play"
+        android:visibility="gone"
+        android:padding="8dp" />
+
 </FrameLayout>

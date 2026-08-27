@@ -43,8 +43,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private ArrayList<Long> imageIds;
     private ArrayList<String> imageNames;
+    private ArrayList<Integer> mediaTypes;
     private int currentIndex;
     private long currentImageId;
+    private int currentMediaType;
     private boolean isTrashMode;
 
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
@@ -119,6 +121,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
         long[] idsArray = getIntent().getLongArrayExtra("image_ids");
         String[] namesArray = getIntent().getStringArrayExtra("image_names");
+        int[] typesArray = getIntent().getIntArrayExtra("media_types");
         if (idsArray != null) {
             imageIds = new ArrayList<>();
             for (long id : idsArray) imageIds.add(id);
@@ -126,6 +129,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
         if (namesArray != null) {
             imageNames = new ArrayList<>();
             for (String n : namesArray) imageNames.add(n);
+        }
+        mediaTypes = new ArrayList<>();
+        if (typesArray != null) {
+            for (int t : typesArray) mediaTypes.add(t);
+        } else if (imageIds != null) {
+            for (int i = 0; i < imageIds.size(); i++) mediaTypes.add(GalleryTrashHelper.TYPE_IMAGE);
         }
         currentIndex = getIntent().getIntExtra("current_index", 0);
 
@@ -136,9 +145,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
         }
         if (currentIndex >= 0 && currentIndex < imageIds.size()) {
             currentImageId = imageIds.get(currentIndex);
+            currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
         }
 
-        adapter = new GalleryPagerAdapter(imageIds, loadExecutor);
+        adapter = new GalleryPagerAdapter(imageIds, mediaTypes, loadExecutor);
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(currentIndex, false);
 
@@ -151,6 +161,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
             public void onPageSelected(int position) {
                 currentIndex = position;
                 currentImageId = imageIds.get(currentIndex);
+                currentMediaType = position < mediaTypes.size() ? mediaTypes.get(position) : GalleryTrashHelper.TYPE_IMAGE;
                 updateCounter();
             }
         });
@@ -173,10 +184,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private void shareCurrentImage() {
         try {
-            Uri uri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
+            Uri baseUri = currentMediaType == GalleryTrashHelper.TYPE_VIDEO
+                    ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Uri uri = ContentUris.withAppendedId(baseUri, currentImageId);
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("image/*");
+            shareIntent.setType(currentMediaType == GalleryTrashHelper.TYPE_VIDEO ? "video/*" : "image/*");
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, getString(R.string.app_name)));
@@ -219,13 +232,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private void moveToTrash() {
         try {
-            GalleryTrashHelper.moveToTrash(this, currentImageId);
+            GalleryTrashHelper.moveToTrash(this, currentImageId, currentMediaType);
             imageDeleted = true;
             int removedIndex = currentIndex;
             imageIds.remove(removedIndex);
-            if (imageNames != null && removedIndex < imageNames.size()) {
-                imageNames.remove(removedIndex);
-            }
+            if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
+            if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Moved to trash", Toast.LENGTH_SHORT).show();
@@ -233,7 +245,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 return;
             }
             if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
-            if (currentIndex >= 0 && currentIndex < imageIds.size()) currentImageId = imageIds.get(currentIndex);
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+                currentImageId = imageIds.get(currentIndex);
+                currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
+            }
             adapter.notifyItemRemoved(removedIndex);
             adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
             viewPager.post(() -> {
@@ -248,13 +263,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private void restoreCurrentImage() {
         try {
-            GalleryTrashHelper.restore(this, currentImageId);
+            GalleryTrashHelper.restore(this, currentImageId, currentMediaType);
             imageDeleted = true;
             int removedIndex = currentIndex;
             imageIds.remove(removedIndex);
-            if (imageNames != null && removedIndex < imageNames.size()) {
-                imageNames.remove(removedIndex);
-            }
+            if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
+            if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Image restored", Toast.LENGTH_SHORT).show();
@@ -262,7 +276,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 return;
             }
             if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
-            if (currentIndex >= 0 && currentIndex < imageIds.size()) currentImageId = imageIds.get(currentIndex);
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+                currentImageId = imageIds.get(currentIndex);
+                currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
+            }
             adapter.notifyItemRemoved(removedIndex);
             adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
             viewPager.post(() -> {
@@ -277,16 +294,17 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private void deletePermanently() {
         try {
-            Uri uri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, currentImageId);
+            Uri baseUri = currentMediaType == GalleryTrashHelper.TYPE_VIDEO
+                    ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Uri uri = ContentUris.withAppendedId(baseUri, currentImageId);
             getContentResolver().delete(uri, null, null);
-            GalleryTrashHelper.removeFromTrash(this, currentImageId);
+            GalleryTrashHelper.removeFromTrash(this, currentImageId, currentMediaType);
             imageDeleted = true;
             int deletedIndex = currentIndex;
             imageIds.remove(deletedIndex);
-            if (imageNames != null && deletedIndex < imageNames.size()) {
-                imageNames.remove(deletedIndex);
-            }
+            if (imageNames != null && deletedIndex < imageNames.size()) imageNames.remove(deletedIndex);
+            if (mediaTypes != null && deletedIndex < mediaTypes.size()) mediaTypes.remove(deletedIndex);
             if (imageIds.isEmpty()) {
                 setResult(RESULT_OK);
                 Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
@@ -294,7 +312,10 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 return;
             }
             if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
-            if (currentIndex >= 0 && currentIndex < imageIds.size()) currentImageId = imageIds.get(currentIndex);
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+                currentImageId = imageIds.get(currentIndex);
+                currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
+            }
             adapter.notifyItemRemoved(deletedIndex);
             adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
             viewPager.post(() -> {

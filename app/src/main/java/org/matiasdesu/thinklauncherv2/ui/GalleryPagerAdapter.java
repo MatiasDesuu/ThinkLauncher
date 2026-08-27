@@ -10,11 +10,14 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.views.ZoomableImageView;
 
 import java.util.ArrayList;
@@ -23,11 +26,24 @@ import java.util.concurrent.ExecutorService;
 public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapter.PageViewHolder> {
 
     private final ArrayList<Long> imageIds;
+    private final ArrayList<Integer> mediaTypes;
     private final ExecutorService loadExecutor;
 
     public GalleryPagerAdapter(ArrayList<Long> imageIds, ExecutorService loadExecutor) {
         this.imageIds = imageIds;
+        this.mediaTypes = null;
         this.loadExecutor = loadExecutor;
+    }
+
+    public GalleryPagerAdapter(ArrayList<Long> imageIds, ArrayList<Integer> mediaTypes, ExecutorService loadExecutor) {
+        this.imageIds = imageIds;
+        this.mediaTypes = mediaTypes;
+        this.loadExecutor = loadExecutor;
+    }
+
+    private int getMediaType(int position) {
+        if (mediaTypes != null && position < mediaTypes.size()) return mediaTypes.get(position);
+        return GalleryTrashHelper.TYPE_IMAGE;
     }
 
     @NonNull
@@ -41,7 +57,9 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
     @Override
     public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
         long imageId = imageIds.get(position);
-        holder.loadImage(imageId, loadExecutor);
+        int type = getMediaType(position);
+        if (type == GalleryTrashHelper.TYPE_VIDEO) holder.loadVideo(imageId);
+        else holder.loadImage(imageId, loadExecutor);
     }
 
     @Override
@@ -58,13 +76,21 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
     static class PageViewHolder extends RecyclerView.ViewHolder {
 
         private final ZoomableImageView imageView;
+        private final VideoView videoView;
+        private final ImageView playButton;
 
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.page_image_view);
+            videoView = itemView.findViewById(R.id.page_video_view);
+            playButton = itemView.findViewById(R.id.page_video_play);
         }
 
         void loadImage(long imageId, ExecutorService executor) {
+            videoView.setVisibility(View.GONE);
+            playButton.setVisibility(View.GONE);
+            videoView.stopPlayback();
+            imageView.setVisibility(View.VISIBLE);
             executor.execute(() -> {
                 try {
                     Uri uri = ContentUris.withAppendedId(
@@ -81,13 +107,59 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                         });
                     }
                 } catch (Exception e) {
-                    // Silently fail - image couldn't be loaded
                 }
             });
         }
 
+        void loadVideo(long videoId) {
+            imageView.setVisibility(View.GONE);
+            imageView.setImageBitmap(null);
+            videoView.setVisibility(View.VISIBLE);
+            playButton.setVisibility(View.VISIBLE);
+            try {
+                android.content.Context ctx = itemView.getContext();
+                android.content.SharedPreferences prefs = ctx.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE);
+                int theme = prefs.getInt("theme", 0);
+                int bg = org.matiasdesu.thinklauncherv2.utils.ThemeUtils.getBgColor(theme, ctx);
+                int txt = org.matiasdesu.thinklauncherv2.utils.ThemeUtils.getTextColor(theme, ctx);
+                org.matiasdesu.thinklauncherv2.utils.ThemeUtils.applyButtonBorder(playButton, txt, bg, ctx);
+                playButton.setColorFilter(txt);
+            } catch (Exception e) {
+            }
+            try {
+                Uri uri = ContentUris.withAppendedId(
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoId);
+                videoView.setVideoURI(uri);
+                videoView.seekTo(1);
+                playButton.setOnClickListener(v -> {
+                    if (videoView.isPlaying()) {
+                        videoView.pause();
+                        playButton.setVisibility(View.VISIBLE);
+                    } else {
+                        videoView.start();
+                        playButton.setVisibility(View.GONE);
+                    }
+                });
+                videoView.setOnClickListener(v -> {
+                    if (videoView.isPlaying()) {
+                        videoView.pause();
+                        playButton.setVisibility(View.VISIBLE);
+                    } else {
+                        videoView.start();
+                        playButton.setVisibility(View.GONE);
+                    }
+                });
+                videoView.setOnCompletionListener(mp -> playButton.setVisibility(View.VISIBLE));
+            } catch (Exception e) {
+            }
+        }
+
         void recycle() {
             imageView.setImageBitmap(null);
+            videoView.stopPlayback();
+            videoView.setVisibility(View.GONE);
+            playButton.setVisibility(View.GONE);
+            imageView.setVisibility(View.VISIBLE);
         }
 
         private Bitmap applyExifOrientation(android.content.Context context, Uri uri, Bitmap bitmap) {

@@ -254,10 +254,16 @@ public class GalleryActivity extends AppCompatActivity {
 
     private void requestPermissionAndLoad() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                    != PackageManager.PERMISSION_GRANTED) {
+            boolean needImages = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+                    != PackageManager.PERMISSION_GRANTED;
+            boolean needVideo = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO)
+                    != PackageManager.PERMISSION_GRANTED;
+            if (needImages || needVideo) {
+                ArrayList<String> perms = new ArrayList<>();
+                if (needImages) perms.add(Manifest.permission.READ_MEDIA_IMAGES);
+                if (needVideo) perms.add(Manifest.permission.READ_MEDIA_VIDEO);
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_PERMISSION);
+                        perms.toArray(new String[0]), REQUEST_PERMISSION);
                 return;
             }
         } else {
@@ -276,7 +282,9 @@ public class GalleryActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            boolean granted = false;
+            for (int r : grantResults) if (r == PackageManager.PERMISSION_GRANTED) granted = true;
+            if (granted) {
                 loadImages();
             } else {
                 Toast.makeText(this, "Gallery permission is required", Toast.LENGTH_SHORT).show();
@@ -306,21 +314,43 @@ public class GalleryActivity extends AppCompatActivity {
                         long dateAdded = cursor.getLong(2);
                         long size = cursor.getLong(3);
                         if (name == null || name.isEmpty()) name = "image_" + id;
-                        loaded.add(new GalleryImage(id, name, dateAdded, size));
+                        loaded.add(new GalleryImage(id, name, dateAdded, size, GalleryTrashHelper.TYPE_IMAGE));
                     }
+                    cursor.close();
                 }
             } catch (SecurityException e) {
                 runOnUiThread(() ->
                         Toast.makeText(this, "Gallery permission is required", Toast.LENGTH_SHORT).show());
                 return;
             }
+            try (Cursor cursor = getContentResolver().query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    projection, null, null, sortOrder)) {
+                if (cursor != null) {
+                    while (cursor.moveToNext()) {
+                        long id = cursor.getLong(0);
+                        String name = cursor.getString(1);
+                        long dateAdded = cursor.getLong(2);
+                        long size = cursor.getLong(3);
+                        if (name == null || name.isEmpty()) name = "video_" + id;
+                        loaded.add(new GalleryImage(id, name, dateAdded, size, GalleryTrashHelper.TYPE_VIDEO));
+                    }
+                    cursor.close();
+                }
+            } catch (SecurityException e) {
+            }
+            loaded.sort((a, b) -> Long.compare(b.dateAdded, a.dateAdded));
 
-            Set<Long> allIds = new HashSet<>();
-            for (GalleryImage img : loaded) allIds.add(img.id);
-            GalleryTrashHelper.pruneInvalidIds(GalleryActivity.this, allIds);
+            Set<Long> allImageIds = new HashSet<>();
+            Set<Long> allVideoIds = new HashSet<>();
+            for (GalleryImage img : loaded) {
+                if (img.mediaType == GalleryTrashHelper.TYPE_VIDEO) allVideoIds.add(img.id);
+                else allImageIds.add(img.id);
+            }
+            GalleryTrashHelper.pruneInvalidIds(GalleryActivity.this, allImageIds, allVideoIds);
             List<GalleryImage> filtered = new ArrayList<>();
             for (GalleryImage img : loaded) {
-                boolean trashed = GalleryTrashHelper.isTrashed(GalleryActivity.this, img.id);
+                boolean trashed = GalleryTrashHelper.isTrashed(GalleryActivity.this, img.id, img.mediaType);
                 if (isTrashMode ? trashed : !trashed) filtered.add(img);
             }
 
@@ -409,15 +439,18 @@ public class GalleryActivity extends AppCompatActivity {
 
         long[] idsArray = new long[images.size()];
         String[] namesArray = new String[images.size()];
+        int[] typesArray = new int[images.size()];
         for (int i = 0; i < images.size(); i++) {
             idsArray[i] = images.get(i).id;
             namesArray[i] = images.get(i).name;
+            typesArray[i] = images.get(i).mediaType;
         }
 
         Intent intent = new Intent(this, GalleryViewerActivity.class);
         intent.putExtra("current_index", position);
         intent.putExtra("image_ids", idsArray);
         intent.putExtra("image_names", namesArray);
+        intent.putExtra("media_types", typesArray);
         intent.putExtra("trash_mode", isTrashMode);
 
         startActivityForResult(intent, REQUEST_VIEWER);
@@ -468,12 +501,14 @@ public class GalleryActivity extends AppCompatActivity {
         String name;
         long dateAdded;
         long size;
+        int mediaType;
 
-        GalleryImage(long id, String name, long dateAdded, long size) {
+        GalleryImage(long id, String name, long dateAdded, long size, int mediaType) {
             this.id = id;
             this.name = name;
             this.dateAdded = dateAdded;
             this.size = size;
+            this.mediaType = mediaType;
         }
     }
 
@@ -512,6 +547,8 @@ public class GalleryActivity extends AppCompatActivity {
             if (globalPosition >= items.size()) return;
 
             GalleryImage image = items.get(globalPosition);
+            boolean isVideo = image.mediaType == GalleryTrashHelper.TYPE_VIDEO;
+            Uri baseUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
             if (holder instanceof GridViewHolder) {
                 GridViewHolder gvh = (GridViewHolder) holder;
@@ -526,20 +563,25 @@ public class GalleryActivity extends AppCompatActivity {
                     lp.height = itemSize + textAreaHeight;
                 }
                 gvh.itemView.setLayoutParams(lp);
-                ViewGroup.LayoutParams imageLp = gvh.thumbnail.getLayoutParams();
-                imageLp.height = itemSize;
-                gvh.thumbnail.setLayoutParams(imageLp);
                 gvh.filename.setVisibility(showGridTitles ? View.VISIBLE : View.GONE);
                 gvh.filename.setText(image.name);
                 ThemeUtils.applyTextColor(gvh.filename, theme, GalleryActivity.this);
                 FontHelper.applyToViewTree(GalleryActivity.this, gvh.itemView);
+                if (isVideo) {
+                    gvh.videoIndicator.setVisibility(View.VISIBLE);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(gvh.videoIndicator, txt, bg, GalleryActivity.this);
+                    gvh.videoIndicator.setColorFilter(txt);
+                } else {
+                    gvh.videoIndicator.setVisibility(View.GONE);
+                }
                 gvh.thumbnail.setImageBitmap(null);
                 gvh.thumbnail.setTag(globalPosition);
 
                 thumbnailExecutor.execute(() -> {
                     try {
-                        Uri thumbUri = ContentUris.withAppendedId(
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, image.id);
+                        Uri thumbUri = ContentUris.withAppendedId(baseUri, image.id);
                         Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
                                 new android.util.Size(200, 200), null);
                         if (thumb != null) {
@@ -561,14 +603,22 @@ public class GalleryActivity extends AppCompatActivity {
                 ThemeUtils.applyTextColor(lvh.filename, theme, GalleryActivity.this);
                 ThemeUtils.applyTextColor(lvh.date, theme, GalleryActivity.this);
                 FontHelper.applyToViewTree(GalleryActivity.this, lvh.itemView);
+                if (isVideo) {
+                    lvh.videoIndicator.setVisibility(View.VISIBLE);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(lvh.videoIndicator, txt, bg, GalleryActivity.this);
+                    lvh.videoIndicator.setColorFilter(txt);
+                } else {
+                    lvh.videoIndicator.setVisibility(View.GONE);
+                }
 
                 lvh.thumbnail.setImageBitmap(null);
                 lvh.thumbnail.setTag(globalPosition);
 
                 thumbnailExecutor.execute(() -> {
                     try {
-                        Uri thumbUri = ContentUris.withAppendedId(
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, image.id);
+                        Uri thumbUri = ContentUris.withAppendedId(baseUri, image.id);
                         Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
                                 new android.util.Size(200, 200), null);
                         if (thumb != null) {
@@ -598,11 +648,13 @@ public class GalleryActivity extends AppCompatActivity {
         class GridViewHolder extends RecyclerView.ViewHolder {
             ImageView thumbnail;
             TextView filename;
+            ImageView videoIndicator;
 
             GridViewHolder(View itemView) {
                 super(itemView);
                 thumbnail = itemView.findViewById(R.id.gallery_thumbnail);
                 filename = itemView.findViewById(R.id.gallery_filename);
+                videoIndicator = itemView.findViewById(R.id.video_indicator);
             }
         }
 
@@ -610,12 +662,14 @@ public class GalleryActivity extends AppCompatActivity {
             ImageView thumbnail;
             TextView filename;
             TextView date;
+            ImageView videoIndicator;
 
             ListViewHolder(View itemView) {
                 super(itemView);
                 thumbnail = itemView.findViewById(R.id.gallery_thumbnail);
                 filename = itemView.findViewById(R.id.gallery_filename);
                 date = itemView.findViewById(R.id.gallery_date);
+                videoIndicator = itemView.findViewById(R.id.video_indicator);
             }
         }
     }

@@ -8,13 +8,29 @@
     android:layout_marginRight="1dp"
     android:background="@android:color/transparent">
 
-    <ImageView
-        android:id="@+id/gallery_thumbnail"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:background="@android:color/transparent"
-        android:contentDescription="Thumbnail" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/gallery_thumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="@android:color/transparent"
+            android:contentDescription="Thumbnail" />
+
+        <ImageView
+            android:id="@+id/video_indicator"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_media_play"
+            android:visibility="gone"
+            android:padding="4dp" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/gallery_filename"
