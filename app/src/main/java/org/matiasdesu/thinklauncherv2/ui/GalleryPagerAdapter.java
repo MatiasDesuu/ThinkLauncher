@@ -183,7 +183,11 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                 seekContainer.setOnTouchListener((v, ev) -> {
                     if (videoView.getDuration() <= 0) return false;
                     int action = ev.getAction();
-                    if (action == MotionEvent.ACTION_DOWN) isDragging = true;
+                    if (action == MotionEvent.ACTION_DOWN) {
+                        isDragging = true;
+                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                        if (itemView.getParent() != null) itemView.getParent().requestDisallowInterceptTouchEvent(true);
+                    }
                     if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
                         float x = ev.getX();
                         int w = v.getWidth();
@@ -205,10 +209,25 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                         videoView.seekTo(pos);
                         if (currentTime != null) currentTime.setText(formatTime(pos));
                         isDragging = false;
+                        v.getParent().requestDisallowInterceptTouchEvent(false);
+                        if (itemView.getParent() != null) itemView.getParent().requestDisallowInterceptTouchEvent(false);
                         return true;
                     }
                     return false;
                 });
+                if (videoControls != null) {
+                    videoControls.setOnTouchListener((v, ev) -> {
+                        int a = ev.getAction();
+                        if (a == MotionEvent.ACTION_DOWN) {
+                            v.getParent().requestDisallowInterceptTouchEvent(true);
+                            if (itemView.getParent() != null) itemView.getParent().requestDisallowInterceptTouchEvent(true);
+                        } else if (a == MotionEvent.ACTION_UP || a == MotionEvent.ACTION_CANCEL) {
+                            v.getParent().requestDisallowInterceptTouchEvent(false);
+                            if (itemView.getParent() != null) itemView.getParent().requestDisallowInterceptTouchEvent(false);
+                        }
+                        return false;
+                    });
+                }
             }
             updateRunnable = new Runnable() {
                 @Override public void run() {
