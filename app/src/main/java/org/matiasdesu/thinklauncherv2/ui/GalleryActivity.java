@@ -655,6 +655,14 @@ public class GalleryActivity extends AppCompatActivity {
         new GalleryFolderOptionsDialog(this, folderName, pinned, () -> toggleFolderPin(folderName), () -> openFolder(folderName), () -> renameFolder(folderName)).show();
     }
 
+    private void showImageDetails(GalleryImage img) {
+        String fullPath = null;
+        if (img.folderPath != null && img.name != null) {
+            fullPath = new File(img.folderPath, img.name).getAbsolutePath();
+        }
+        new GalleryDetailsDialog(this, img.id, img.mediaType, img.name, img.dateAdded, img.size, fullPath).show();
+    }
+
     private void renameFolder(String oldName) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             try {
@@ -1389,9 +1397,50 @@ public class GalleryActivity extends AppCompatActivity {
                         return false;
                     });
                 } else {
-                    gvh.itemView.setOnTouchListener(null);
+                    final GalleryImage fImgG = image;
                     gvh.itemView.setOnLongClickListener(null);
-                    gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    gvh.itemView.setOnClickListener(null);
+                    final Handler hg = new Handler(Looper.getMainLooper());
+                    final float slopG = ViewConfiguration.get(gvh.itemView.getContext()).getScaledTouchSlop();
+                    final float[] downG = new float[2];
+                    final boolean[] longFiredG = new boolean[1];
+                    final Runnable lpG = () -> {
+                        longFiredG[0] = true;
+                        showImageDetails(fImgG);
+                        android.view.ViewParent pg = gvh.itemView.getParent();
+                        if (pg != null) pg.requestDisallowInterceptTouchEvent(true);
+                        if (recyclerView != null && recyclerView.getParent() != null) recyclerView.getParent().requestDisallowInterceptTouchEvent(true);
+                        gvh.itemView.getParent().requestDisallowInterceptTouchEvent(true);
+                    };
+                    gvh.itemView.setOnTouchListener((v, e) -> {
+                        switch (e.getActionMasked()) {
+                            case MotionEvent.ACTION_DOWN:
+                                downG[0] = e.getX(); downG[1] = e.getY();
+                                longFiredG[0] = false;
+                                hg.postDelayed(lpG, ViewConfiguration.getLongPressTimeout());
+                                v.getParent().requestDisallowInterceptTouchEvent(false);
+                                break;
+                            case MotionEvent.ACTION_MOVE:
+                                if (!longFiredG[0] && (Math.abs(e.getX() - downG[0]) > slopG || Math.abs(e.getY() - downG[1]) > slopG)) {
+                                    hg.removeCallbacks(lpG);
+                                }
+                                if (longFiredG[0]) return true;
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                hg.removeCallbacks(lpG);
+                                if (longFiredG[0]) { longFiredG[0] = false; return true; }
+                                if (Math.abs(e.getX() - downG[0]) < slopG && Math.abs(e.getY() - downG[1]) < slopG) {
+                                    openImage(globalPosition);
+                                    return true;
+                                }
+                                break;
+                            case MotionEvent.ACTION_CANCEL:
+                                hg.removeCallbacks(lpG);
+                                longFiredG[0] = false;
+                                break;
+                        }
+                        return false;
+                    });
                 }
             } else if (holder instanceof ListViewHolder) {
                 ListViewHolder lvh = (ListViewHolder) holder;
@@ -1503,9 +1552,50 @@ public class GalleryActivity extends AppCompatActivity {
                         return false;
                     });
                 } else {
-                    lvh.itemView.setOnTouchListener(null);
+                    final GalleryImage fImgL = image;
                     lvh.itemView.setOnLongClickListener(null);
-                    lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    lvh.itemView.setOnClickListener(null);
+                    final Handler hL = new Handler(Looper.getMainLooper());
+                    final float slopL = ViewConfiguration.get(lvh.itemView.getContext()).getScaledTouchSlop();
+                    final float[] downL = new float[2];
+                    final boolean[] longFiredL = new boolean[1];
+                    final Runnable lpL = () -> {
+                        longFiredL[0] = true;
+                        showImageDetails(fImgL);
+                        android.view.ViewParent pL = lvh.itemView.getParent();
+                        if (pL != null) pL.requestDisallowInterceptTouchEvent(true);
+                        if (recyclerView != null && recyclerView.getParent() != null) recyclerView.getParent().requestDisallowInterceptTouchEvent(true);
+                        lvh.itemView.getParent().requestDisallowInterceptTouchEvent(true);
+                    };
+                    lvh.itemView.setOnTouchListener((v, e) -> {
+                        switch (e.getActionMasked()) {
+                            case MotionEvent.ACTION_DOWN:
+                                downL[0] = e.getX(); downL[1] = e.getY();
+                                longFiredL[0] = false;
+                                hL.postDelayed(lpL, ViewConfiguration.getLongPressTimeout());
+                                v.getParent().requestDisallowInterceptTouchEvent(false);
+                                break;
+                            case MotionEvent.ACTION_MOVE:
+                                if (!longFiredL[0] && (Math.abs(e.getX() - downL[0]) > slopL || Math.abs(e.getY() - downL[1]) > slopL)) {
+                                    hL.removeCallbacks(lpL);
+                                }
+                                if (longFiredL[0]) return true;
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                hL.removeCallbacks(lpL);
+                                if (longFiredL[0]) { longFiredL[0] = false; return true; }
+                                if (Math.abs(e.getX() - downL[0]) < slopL && Math.abs(e.getY() - downL[1]) < slopL) {
+                                    openImage(globalPosition);
+                                    return true;
+                                }
+                                break;
+                            case MotionEvent.ACTION_CANCEL:
+                                hL.removeCallbacks(lpL);
+                                longFiredL[0] = false;
+                                break;
+                        }
+                        return false;
+                    });
                 }
             }
         }

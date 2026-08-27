@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="280dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/detail_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/text_color"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/detail_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/text_color"
+        android:textSize="12sp"
+        android:maxLines="2"
+        android:ellipsize="middle"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/detail_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/text_color"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/detail_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/text_color"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/detail_resolution"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/text_color"
+        android:textSize="12sp"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/close_button"
+        style="@style/DialogButton"
+        android:layout_width="match_parent"
+        android:text="Close" />
+
+</LinearLayout>
