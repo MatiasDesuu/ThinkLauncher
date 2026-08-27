@@ -28,9 +28,10 @@ public class GalleryOptionsDialog extends Dialog {
     private int currentRows;
     private boolean currentShowTitles;
     private boolean isGridView;
+    private boolean hasPagination;
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
-                                boolean isGridView,
+                                boolean isGridView, boolean hasPagination,
                                 OnGridChangedCallback gridCallback,
                                 OnShowTitlesChangedCallback titlesCallback) {
         super(context, R.style.NoAnimationDialog);
@@ -40,6 +41,7 @@ public class GalleryOptionsDialog extends Dialog {
         this.currentRows = rows;
         this.currentShowTitles = showTitles;
         this.isGridView = isGridView;
+        this.hasPagination = hasPagination;
         init();
     }
 
@@ -56,13 +58,8 @@ public class GalleryOptionsDialog extends Dialog {
         TextView colsLabel = findViewById(R.id.gallery_columns_label);
         colsLabel.setTextColor(ThemeUtils.getTextColor(theme, getContext()));
 
-        View rowsContainer = findViewById(R.id.rows_container);
-        if (isGridView) {
-            rowsContainer.setVisibility(View.GONE);
-        } else {
-            TextView rowsLabel = findViewById(R.id.gallery_rows_label);
-            rowsLabel.setTextColor(ThemeUtils.getTextColor(theme, getContext()));
-        }
+        TextView rowsLabel = findViewById(R.id.gallery_rows_label);
+        rowsLabel.setTextColor(ThemeUtils.getTextColor(theme, getContext()));
 
         int[] colButtons = {R.id.btn_cols_2, R.id.btn_cols_3, R.id.btn_cols_4, R.id.btn_cols_5, R.id.btn_cols_6};
         int[] colValues = {2, 3, 4, 5, 6};
@@ -93,6 +90,9 @@ public class GalleryOptionsDialog extends Dialog {
                 dismiss();
             });
         }
+
+        View rowsContainer = findViewById(R.id.rows_container);
+        rowsContainer.setVisibility(hasPagination ? View.VISIBLE : View.GONE);
 
         TextView showTitlesButton = findViewById(R.id.show_titles_button);
         DialogEffectHelper.applyButtonTheme(showTitlesButton, theme, getContext(), surfaceColor);

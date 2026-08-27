@@ -122,7 +122,7 @@ public class GalleryActivity extends AppCompatActivity {
         toggleViewButton.setOnClickListener(v -> toggleView());
 
         titleView.setOnLongClickListener(v -> {
-            new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView,
+            new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView, !scrollAppList,
                     (columns, rows) -> {
                         gridColumns = columns;
                         gridRows = rows;
@@ -312,21 +312,6 @@ public class GalleryActivity extends AppCompatActivity {
         return screenWidth / gridColumns;
     }
 
-    private int calculateGridRows() {
-        float screenHeightDp = getResources().getDisplayMetrics().heightPixels /
-                getResources().getDisplayMetrics().density;
-        int navBarHeightPx = 0;
-        try {
-            navBarHeightPx = getResources().getDimensionPixelSize(
-                    getResources().getIdentifier("navigation_bar_height", "dimen", "android"));
-        } catch (Exception e) {
-        }
-        screenHeightDp -= navBarHeightPx / getResources().getDisplayMetrics().density;
-        float recyclerHeightDp = screenHeightDp - 48 - 4 - 48;
-        float itemHeightDp = recyclerHeightDp / 3;
-        return Math.max(2, Math.min(6, (int) (recyclerHeightDp / itemHeightDp)));
-    }
-
     private int calculateItemsPerPage() {
         float screenHeightDp = getResources().getDisplayMetrics().heightPixels /
                 getResources().getDisplayMetrics().density;
@@ -344,7 +329,7 @@ public class GalleryActivity extends AppCompatActivity {
         float recyclerHeightDp = screenHeightDp - topHeightDp - dividerDp - bottomHeightDp;
 
         if (isGridView) {
-            return gridColumns * calculateGridRows();
+            return gridColumns * gridRows;
         } else {
             float itemHeightDp = 64 + 20;
             return Math.max(1, (int) (recyclerHeightDp / itemHeightDp));
@@ -472,14 +457,19 @@ public class GalleryActivity extends AppCompatActivity {
             if (holder instanceof GridViewHolder) {
                 GridViewHolder gvh = (GridViewHolder) holder;
                 int itemSize = getGridItemSize();
+                float density = getResources().getDisplayMetrics().density;
+                int textAreaHeight = showGridTitles ? (int) (28 * density) : 0;
                 ViewGroup.LayoutParams lp = gvh.itemView.getLayoutParams();
                 if (lp == null) {
-                    lp = new ViewGroup.LayoutParams(itemSize, itemSize);
+                    lp = new ViewGroup.LayoutParams(itemSize, itemSize + textAreaHeight);
                 } else {
                     lp.width = itemSize;
-                    lp.height = itemSize;
+                    lp.height = itemSize + textAreaHeight;
                 }
                 gvh.itemView.setLayoutParams(lp);
+                ViewGroup.LayoutParams imageLp = gvh.thumbnail.getLayoutParams();
+                imageLp.height = itemSize;
+                gvh.thumbnail.setLayoutParams(imageLp);
                 gvh.filename.setVisibility(showGridTitles ? View.VISIBLE : View.GONE);
                 gvh.filename.setText(image.name);
                 ThemeUtils.applyTextColor(gvh.filename, theme, GalleryActivity.this);
