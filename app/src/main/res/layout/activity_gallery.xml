@@ -44,6 +44,15 @@
                 android:textStyle="bold" />
 
             <ImageView
+                android:id="@+id/folder_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/folder"
+                android:contentDescription="Folders"
+                android:tint="?attr/text_color" />
+
+            <ImageView
                 android:id="@+id/toggle_view_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"

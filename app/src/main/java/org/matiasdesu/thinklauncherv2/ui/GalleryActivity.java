@@ -37,12 +37,16 @@ import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,16 +65,26 @@ public class GalleryActivity extends AppCompatActivity {
     private SharedPreferences prefs;
 
     private List<GalleryImage> images;
+    private List<GalleryImage> allMedia;
+    private List<GalleryFolder> folders;
+    private List<Object> displayItems;
     private GalleryAdapter adapter;
     private int itemsPerPage;
     private int currentPage = 0;
     private int restorePage = -1;
     private RecyclerView recyclerView;
+    private TextView titleView;
     private boolean isGridView;
+    private boolean isFolderGridView;
     private int gridColumns;
     private int gridRows;
     private boolean showGridTitles;
+    private int folderGridColumns;
+    private int folderGridRows;
+    private boolean folderShowGridTitles;
     private boolean isTrashMode;
+    private boolean isFolderView;
+    private String selectedFolder;
     private boolean galleryModified;
     private SwipePageNavigator pageNavigator;
 
@@ -115,31 +129,42 @@ public class GalleryActivity extends AppCompatActivity {
         View bottomDivider = findViewById(R.id.bottom_divider);
         bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
-        TextView titleView = findViewById(R.id.gallery_title);
+        titleView = findViewById(R.id.gallery_title);
         ThemeUtils.applyTextColor(titleView, theme, this);
-        if (isTrashMode) titleView.setText("Trash");
+        updateTitle();
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
-        backButton.setOnClickListener(v -> {
-            if (galleryModified) setResult(RESULT_OK);
-            finish();
-            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-        });
+        backButton.setOnClickListener(v -> handleBackPressed());
 
         ImageView toggleViewButton = findViewById(R.id.toggle_view_button);
         toggleViewButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         toggleViewButton.setOnClickListener(v -> toggleView());
 
+        ImageView folderButton = findViewById(R.id.folder_button);
+        folderButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        if (isTrashMode) folderButton.setVisibility(View.GONE);
+        else folderButton.setVisibility(View.VISIBLE);
+        folderButton.setOnClickListener(v -> toggleFolderView());
+
         titleView.setOnClickListener(v -> {
-            new GalleryOptionsDialog(this, gridColumns, gridRows, showGridTitles, isGridView, !scrollAppList, isTrashMode,
+            int curCols = isFolderView ? folderGridColumns : gridColumns;
+            int curRows = isFolderView ? folderGridRows : gridRows;
+            boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
+            boolean curIsGrid = isFolderView ? isFolderGridView : isGridView;
+            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode,
                     (columns, rows) -> {
-                        gridColumns = columns;
-                        gridRows = rows;
-                        prefs.edit()
-                                .putInt("gallery_grid_columns", columns)
-                                .putInt("gallery_grid_rows", rows)
-                                .apply();
+                        if (isFolderView) {
+                            folderGridColumns = columns;
+                            folderGridRows = rows;
+                            gridColumns = columns;
+                            gridRows = rows;
+                            prefs.edit().putInt("gallery_folder_grid_columns", columns).putInt("gallery_folder_grid_rows", rows).apply();
+                        } else {
+                            gridColumns = columns;
+                            gridRows = rows;
+                            prefs.edit().putInt("gallery_grid_columns", columns).putInt("gallery_grid_rows", rows).apply();
+                        }
                         currentPage = 0;
                         itemsPerPage = calculateItemsPerPage();
                         if (isGridView) {
@@ -152,8 +177,14 @@ public class GalleryActivity extends AppCompatActivity {
                         updatePageIndicator();
                     },
                     show -> {
-                        showGridTitles = show;
-                        prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
+                        if (isFolderView) {
+                            folderShowGridTitles = show;
+                            showGridTitles = show;
+                            prefs.edit().putBoolean("gallery_folder_grid_show_titles", show).apply();
+                        } else {
+                            showGridTitles = show;
+                            prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
+                        }
                         adapter.notifyDataSetChanged();
                     },
                     () -> {
@@ -171,11 +202,21 @@ public class GalleryActivity extends AppCompatActivity {
         });
 
         isGridView = prefs.getBoolean("gallery_grid_view", true);
+        isFolderGridView = prefs.getBoolean("gallery_folder_grid_view", true);
         gridColumns = prefs.getInt("gallery_grid_columns", 3);
         gridRows = prefs.getInt("gallery_grid_rows", 3);
         showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
+        folderGridColumns = prefs.getInt("gallery_folder_grid_columns", 3);
+        folderGridRows = prefs.getInt("gallery_folder_grid_rows", 3);
+        folderShowGridTitles = prefs.getBoolean("gallery_folder_grid_show_titles", true);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+        isFolderView = false;
+        selectedFolder = null;
+        allMedia = new ArrayList<>();
+        folders = new ArrayList<>();
+        displayItems = new ArrayList<>();
+        images = allMedia;
 
         recyclerView = findViewById(R.id.gallery_grid);
         View topLayout = findViewById(R.id.top_layout);
@@ -183,8 +224,7 @@ public class GalleryActivity extends AppCompatActivity {
         LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, gallerySurfaceColor,
                 topLayout, recyclerView, container);
 
-        images = new ArrayList<>();
-        adapter = new GalleryAdapter(images);
+        adapter = new GalleryAdapter(displayItems);
         if (isGridView) {
             recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
         } else {
@@ -212,7 +252,7 @@ public class GalleryActivity extends AppCompatActivity {
 
                         @Override
                         public int getTotalPages() {
-                            return (int) Math.ceil((double) images.size() / itemsPerPage);
+                            return (int) Math.ceil((double) displayItems.size() / itemsPerPage);
                         }
 
                         @Override
@@ -226,8 +266,14 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void toggleView() {
-        isGridView = !isGridView;
-        prefs.edit().putBoolean("gallery_grid_view", isGridView).apply();
+        if (isFolderView) {
+            isFolderGridView = !isFolderGridView;
+            isGridView = isFolderGridView;
+            prefs.edit().putBoolean("gallery_folder_grid_view", isFolderGridView).apply();
+        } else {
+            isGridView = !isGridView;
+            prefs.edit().putBoolean("gallery_grid_view", isGridView).apply();
+        }
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
         toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
 
@@ -299,10 +345,19 @@ public class GalleryActivity extends AppCompatActivity {
                     MediaStore.Images.Media._ID,
                     MediaStore.Images.Media.DISPLAY_NAME,
                     MediaStore.Images.Media.DATE_ADDED,
-                    MediaStore.Images.Media.SIZE
+                    MediaStore.Images.Media.SIZE,
+                    MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                    MediaStore.Images.Media.DATA
+            };
+            String[] videoProjection = {
+                    MediaStore.Video.Media._ID,
+                    MediaStore.Video.Media.DISPLAY_NAME,
+                    MediaStore.Video.Media.DATE_ADDED,
+                    MediaStore.Video.Media.SIZE,
+                    MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
+                    MediaStore.Video.Media.DATA
             };
             String sortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC";
-
             try (Cursor cursor = getContentResolver().query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     projection, null, null, sortOrder)) {
@@ -312,8 +367,13 @@ public class GalleryActivity extends AppCompatActivity {
                         String name = cursor.getString(1);
                         long dateAdded = cursor.getLong(2);
                         long size = cursor.getLong(3);
+                        String bucket = cursor.getString(4);
+                        String data = cursor.getString(5);
                         if (name == null || name.isEmpty()) name = "image_" + id;
-                        loaded.add(new GalleryImage(id, name, dateAdded, size, GalleryTrashHelper.TYPE_IMAGE));
+                        String folderName = bucket != null && !bucket.isEmpty() ? bucket : "Unknown";
+                        String folderPath = data != null ? new File(data).getParent() : folderName;
+                        if (folderPath == null) folderPath = folderName;
+                        loaded.add(new GalleryImage(id, name, dateAdded, size, GalleryTrashHelper.TYPE_IMAGE, folderName, folderPath));
                     }
                     cursor.close();
                 }
@@ -324,22 +384,26 @@ public class GalleryActivity extends AppCompatActivity {
             }
             try (Cursor cursor = getContentResolver().query(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    projection, null, null, sortOrder)) {
+                    videoProjection, null, null, sortOrder)) {
                 if (cursor != null) {
                     while (cursor.moveToNext()) {
                         long id = cursor.getLong(0);
                         String name = cursor.getString(1);
                         long dateAdded = cursor.getLong(2);
                         long size = cursor.getLong(3);
+                        String bucket = cursor.getString(4);
+                        String data = cursor.getString(5);
                         if (name == null || name.isEmpty()) name = "video_" + id;
-                        loaded.add(new GalleryImage(id, name, dateAdded, size, GalleryTrashHelper.TYPE_VIDEO));
+                        String folderName = bucket != null && !bucket.isEmpty() ? bucket : "Unknown";
+                        String folderPath = data != null ? new File(data).getParent() : folderName;
+                        if (folderPath == null) folderPath = folderName;
+                        loaded.add(new GalleryImage(id, name, dateAdded, size, GalleryTrashHelper.TYPE_VIDEO, folderName, folderPath));
                     }
                     cursor.close();
                 }
             } catch (SecurityException e) {
             }
             loaded.sort((a, b) -> Long.compare(b.dateAdded, a.dateAdded));
-
             Set<Long> allImageIds = new HashSet<>();
             Set<Long> allVideoIds = new HashSet<>();
             for (GalleryImage img : loaded) {
@@ -352,12 +416,27 @@ public class GalleryActivity extends AppCompatActivity {
                 boolean trashed = GalleryTrashHelper.isTrashed(GalleryActivity.this, img.id, img.mediaType);
                 if (isTrashMode ? trashed : !trashed) filtered.add(img);
             }
-
             runOnUiThread(() -> {
+                allMedia.clear();
+                allMedia.addAll(filtered);
                 images.clear();
                 images.addAll(filtered);
+                folders.clear();
+                Map<String, List<GalleryImage>> map = new HashMap<>();
+                for (GalleryImage img : allMedia) {
+                    String key = img.folderName != null ? img.folderName : "Unknown";
+                    map.computeIfAbsent(key, k -> new ArrayList<>()).add(img);
+                }
+                for (Map.Entry<String, List<GalleryImage>> e : map.entrySet()) {
+                    List<GalleryImage> list = e.getValue();
+                    Collections.sort(list, (a, b) -> Long.compare(b.dateAdded, a.dateAdded));
+                    GalleryImage thumb = list.get(0);
+                    folders.add(new GalleryFolder(e.getKey(), thumb.folderPath, list.size(), thumb.id, thumb.mediaType));
+                }
+                Collections.sort(folders, (a, b) -> a.folderName.compareToIgnoreCase(b.folderName));
+                updateDisplayItems();
                 itemsPerPage = calculateItemsPerPage();
-                int totalPages = (int) Math.ceil((double) images.size() / itemsPerPage);
+                int totalPages = (int) Math.ceil((double) displayItems.size() / itemsPerPage);
                 if (restorePage >= 0) {
                     currentPage = Math.min(restorePage, Math.max(0, totalPages - 1));
                     restorePage = -1;
@@ -366,12 +445,155 @@ public class GalleryActivity extends AppCompatActivity {
                 }
                 if (pageNavigator != null) {
                     pageNavigator.setCurrentPage(currentPage);
-                    pageNavigator.setTotalItems(images.size());
+                    pageNavigator.setTotalItems(displayItems.size());
                 }
                 adapter.notifyDataSetChanged();
                 updatePageIndicator();
+                updateTitle();
             });
         });
+    }
+
+    private void updateDisplayItems() {
+        displayItems.clear();
+        if (isTrashMode) {
+            displayItems.addAll(allMedia);
+            return;
+        }
+        if (isFolderView) {
+            displayItems.addAll(folders);
+        } else if (selectedFolder != null) {
+            for (GalleryImage img : allMedia) if (selectedFolder.equals(img.folderName)) displayItems.add(img);
+        } else {
+            displayItems.addAll(allMedia);
+        }
+    }
+
+    private void updateTitle() {
+        if (titleView == null) return;
+        if (isTrashMode) titleView.setText("Trash");
+        else if (isFolderView) titleView.setText("Folders");
+        else if (selectedFolder != null) titleView.setText(selectedFolder);
+        else titleView.setText("Gallery");
+    }
+
+        private void toggleFolderView() {
+        if (isTrashMode) return;
+        if (selectedFolder != null) {
+            selectedFolder = null;
+            isFolderView = true;
+            isGridView = prefs.getBoolean("gallery_folder_grid_view", true);
+            isFolderGridView = isGridView;
+            gridColumns = folderGridColumns;
+            gridRows = folderGridRows;
+            showGridTitles = folderShowGridTitles;
+        } else if (isFolderView) {
+            isFolderView = false;
+            isGridView = prefs.getBoolean("gallery_grid_view", true);
+            gridColumns = prefs.getInt("gallery_grid_columns", 3);
+            gridRows = prefs.getInt("gallery_grid_rows", 3);
+            showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
+        } else {
+            isFolderView = true;
+            isGridView = prefs.getBoolean("gallery_folder_grid_view", true);
+            isFolderGridView = isGridView;
+            gridColumns = folderGridColumns;
+            gridRows = folderGridRows;
+            showGridTitles = folderShowGridTitles;
+        }
+        ImageView toggleButton = findViewById(R.id.toggle_view_button);
+        if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+        if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
+        else recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        currentPage = 0;
+        itemsPerPage = calculateItemsPerPage();
+        updateDisplayItems();
+        if (pageNavigator != null) {
+            pageNavigator.setCurrentPage(0);
+            pageNavigator.setTotalItems(displayItems.size());
+        }
+        adapter.notifyDataSetChanged();
+        updatePageIndicator();
+        updateTitle();
+        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+    }
+
+        private void openFolder(String folderName) {
+        selectedFolder = folderName;
+        isFolderView = false;
+        isGridView = prefs.getBoolean("gallery_grid_view", true);
+        gridColumns = prefs.getInt("gallery_grid_columns", 3);
+        gridRows = prefs.getInt("gallery_grid_rows", 3);
+        showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
+        ImageView toggleButton = findViewById(R.id.toggle_view_button);
+        if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+        if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
+        else recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        currentPage = 0;
+        updateDisplayItems();
+        itemsPerPage = calculateItemsPerPage();
+        if (pageNavigator != null) {
+            pageNavigator.setCurrentPage(0);
+            pageNavigator.setTotalItems(displayItems.size());
+        }
+        adapter.notifyDataSetChanged();
+        updatePageIndicator();
+        updateTitle();
+        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+    }
+
+        private void handleBackPressed() {
+        if (selectedFolder != null) {
+            selectedFolder = null;
+            isFolderView = true;
+            isGridView = prefs.getBoolean("gallery_folder_grid_view", true);
+            isFolderGridView = isGridView;
+            gridColumns = folderGridColumns;
+            gridRows = folderGridRows;
+            showGridTitles = folderShowGridTitles;
+            ImageView toggleButton = findViewById(R.id.toggle_view_button);
+            if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+            if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
+            else recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            currentPage = 0;
+            itemsPerPage = calculateItemsPerPage();
+            updateDisplayItems();
+            if (pageNavigator != null) {
+                pageNavigator.setCurrentPage(0);
+                pageNavigator.setTotalItems(displayItems.size());
+            }
+            adapter.notifyDataSetChanged();
+            updatePageIndicator();
+            updateTitle();
+            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            return;
+        }
+        if (isFolderView) {
+            isFolderView = false;
+            isGridView = prefs.getBoolean("gallery_grid_view", true);
+            gridColumns = prefs.getInt("gallery_grid_columns", 3);
+            gridRows = prefs.getInt("gallery_grid_rows", 3);
+            showGridTitles = prefs.getBoolean("gallery_grid_show_titles", true);
+            ImageView toggleButton = findViewById(R.id.toggle_view_button);
+            if (toggleButton != null) toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+            if (isGridView) recyclerView.setLayoutManager(new GridLayoutManager(this, gridColumns));
+            else recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            currentPage = 0;
+            itemsPerPage = calculateItemsPerPage();
+            updateDisplayItems();
+            if (pageNavigator != null) {
+                pageNavigator.setCurrentPage(0);
+                pageNavigator.setTotalItems(displayItems.size());
+            }
+            adapter.notifyDataSetChanged();
+            updatePageIndicator();
+            updateTitle();
+            EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            return;
+        }
+        if (galleryModified) setResult(RESULT_OK);
+        finish();
+        overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
     }
 
     private int getGridItemSize() {
@@ -427,31 +649,35 @@ public class GalleryActivity extends AppCompatActivity {
         pageIndicator.setVisibility(View.VISIBLE);
         bottomDivider.setVisibility(View.VISIBLE);
         bottomBar.setVisibility(View.VISIBLE);
-        int totalPages = (int) Math.ceil((double) images.size() / itemsPerPage);
+        int totalPages = (int) Math.ceil((double) displayItems.size() / itemsPerPage);
         if (totalPages == 0) totalPages = 1;
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
     }
 
     private void openImage(int position) {
-        if (position < 0 || position >= images.size()) return;
-
-        long[] idsArray = new long[images.size()];
-        String[] namesArray = new String[images.size()];
-        int[] typesArray = new int[images.size()];
-        for (int i = 0; i < images.size(); i++) {
-            idsArray[i] = images.get(i).id;
-            namesArray[i] = images.get(i).name;
-            typesArray[i] = images.get(i).mediaType;
+        if (position < 0 || position >= displayItems.size()) return;
+        Object obj = displayItems.get(position);
+        if (!(obj instanceof GalleryImage)) return;
+        List<GalleryImage> currentImages = new ArrayList<>();
+        for (Object o : displayItems) if (o instanceof GalleryImage) currentImages.add((GalleryImage) o);
+        GalleryImage clicked = (GalleryImage) obj;
+        int viewerIndex = currentImages.indexOf(clicked);
+        if (viewerIndex < 0) viewerIndex = 0;
+        long[] idsArray = new long[currentImages.size()];
+        String[] namesArray = new String[currentImages.size()];
+        int[] typesArray = new int[currentImages.size()];
+        for (int i = 0; i < currentImages.size(); i++) {
+            idsArray[i] = currentImages.get(i).id;
+            namesArray[i] = currentImages.get(i).name;
+            typesArray[i] = currentImages.get(i).mediaType;
         }
-
         Intent intent = new Intent(this, GalleryViewerActivity.class);
-        intent.putExtra("current_index", position);
+        intent.putExtra("current_index", viewerIndex);
         intent.putExtra("image_ids", idsArray);
         intent.putExtra("image_names", namesArray);
         intent.putExtra("media_types", typesArray);
         intent.putExtra("trash_mode", isTrashMode);
-
         startActivityForResult(intent, REQUEST_VIEWER);
         overridePendingTransition(0, appLauncherAnimations ? 0 : 0);
     }
@@ -474,9 +700,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (galleryModified) setResult(RESULT_OK);
-        finish();
-        overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
+        handleBackPressed();
     }
 
     @Override
@@ -501,13 +725,33 @@ public class GalleryActivity extends AppCompatActivity {
         long dateAdded;
         long size;
         int mediaType;
+        String folderName;
+        String folderPath;
 
-        GalleryImage(long id, String name, long dateAdded, long size, int mediaType) {
+        GalleryImage(long id, String name, long dateAdded, long size, int mediaType, String folderName, String folderPath) {
             this.id = id;
             this.name = name;
             this.dateAdded = dateAdded;
             this.size = size;
             this.mediaType = mediaType;
+            this.folderName = folderName;
+            this.folderPath = folderPath;
+        }
+    }
+
+    private static class GalleryFolder {
+        String folderName;
+        String folderPath;
+        int count;
+        long thumbId;
+        int thumbType;
+
+        GalleryFolder(String folderName, String folderPath, int count, long thumbId, int thumbType) {
+            this.folderName = folderName;
+            this.folderPath = folderPath;
+            this.count = count;
+            this.thumbId = thumbId;
+            this.thumbType = thumbType;
         }
     }
 
@@ -516,9 +760,9 @@ public class GalleryActivity extends AppCompatActivity {
         private static final int VIEW_TYPE_GRID = 0;
         private static final int VIEW_TYPE_LIST = 1;
 
-        private final List<GalleryImage> items;
+        private final List<Object> items;
 
-        GalleryAdapter(List<GalleryImage> items) {
+        GalleryAdapter(List<Object> items) {
             this.items = items;
         }
 
@@ -545,9 +789,32 @@ public class GalleryActivity extends AppCompatActivity {
             int globalPosition = scrollAppList ? position : currentPage * itemsPerPage + position;
             if (globalPosition >= items.size()) return;
 
-            GalleryImage image = items.get(globalPosition);
-            boolean isVideo = image.mediaType == GalleryTrashHelper.TYPE_VIDEO;
-            Uri baseUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Object obj = items.get(globalPosition);
+            boolean isFolder = obj instanceof GalleryFolder;
+            GalleryImage image = null;
+            GalleryFolder folder = null;
+            long thumbId = 0;
+            int thumbType = GalleryTrashHelper.TYPE_IMAGE;
+            String displayName = "";
+            String displayDate = "";
+            boolean showVideoIcon = false;
+            boolean showFolderIcon = false;
+            if (isFolder) {
+                folder = (GalleryFolder) obj;
+                thumbId = folder.thumbId;
+                thumbType = folder.thumbType;
+                displayName = folder.folderName + " (" + folder.count + ")";
+                displayDate = folder.count + " items";
+                showFolderIcon = true;
+            } else {
+                image = (GalleryImage) obj;
+                thumbId = image.id;
+                thumbType = image.mediaType;
+                displayName = image.name;
+                displayDate = dateFormat.format(new Date(image.dateAdded * 1000));
+                showVideoIcon = image.mediaType == GalleryTrashHelper.TYPE_VIDEO;
+            }
+            Uri baseUri = thumbType == GalleryTrashHelper.TYPE_VIDEO ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
             if (holder instanceof GridViewHolder) {
                 GridViewHolder gvh = (GridViewHolder) holder;
@@ -563,11 +830,19 @@ public class GalleryActivity extends AppCompatActivity {
                 }
                 gvh.itemView.setLayoutParams(lp);
                 gvh.filename.setVisibility(showGridTitles ? View.VISIBLE : View.GONE);
-                gvh.filename.setText(image.name);
+                gvh.filename.setText(displayName);
                 ThemeUtils.applyTextColor(gvh.filename, theme, GalleryActivity.this);
                 FontHelper.applyToViewTree(GalleryActivity.this, gvh.itemView);
-                if (isVideo) {
+                if (showFolderIcon) {
                     gvh.videoIndicator.setVisibility(View.VISIBLE);
+                    gvh.videoIndicator.setImageResource(R.drawable.folder);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(gvh.videoIndicator, txt, bg, GalleryActivity.this);
+                    gvh.videoIndicator.setColorFilter(txt);
+                } else if (showVideoIcon) {
+                    gvh.videoIndicator.setVisibility(View.VISIBLE);
+                    gvh.videoIndicator.setImageResource(R.drawable.ic_media_play);
                     int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
                     int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
                     ThemeUtils.applyButtonBorder(gvh.videoIndicator, txt, bg, GalleryActivity.this);
@@ -577,15 +852,17 @@ public class GalleryActivity extends AppCompatActivity {
                 }
                 gvh.thumbnail.setImageBitmap(null);
                 gvh.thumbnail.setTag(globalPosition);
-
+                final long fThumbId = thumbId;
+                final Uri fBaseUri = baseUri;
+                final int fPos = globalPosition;
                 thumbnailExecutor.execute(() -> {
                     try {
-                        Uri thumbUri = ContentUris.withAppendedId(baseUri, image.id);
+                        Uri thumbUri = ContentUris.withAppendedId(fBaseUri, fThumbId);
                         Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
                                 new android.util.Size(200, 200), null);
                         if (thumb != null) {
                             gvh.thumbnail.post(() -> {
-                                if (Integer.valueOf(globalPosition).equals(gvh.thumbnail.getTag())) {
+                                if (Integer.valueOf(fPos).equals(gvh.thumbnail.getTag())) {
                                     gvh.thumbnail.setImageBitmap(thumb);
                                 }
                             });
@@ -594,16 +871,29 @@ public class GalleryActivity extends AppCompatActivity {
                     }
                 });
 
-                gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                if (isFolder) {
+                    GalleryFolder f = folder;
+                    gvh.itemView.setOnClickListener(v -> openFolder(f.folderName));
+                } else {
+                    gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                }
             } else if (holder instanceof ListViewHolder) {
                 ListViewHolder lvh = (ListViewHolder) holder;
-                lvh.filename.setText(image.name);
-                lvh.date.setText(dateFormat.format(new Date(image.dateAdded * 1000)));
+                lvh.filename.setText(displayName);
+                lvh.date.setText(displayDate);
                 ThemeUtils.applyTextColor(lvh.filename, theme, GalleryActivity.this);
                 ThemeUtils.applyTextColor(lvh.date, theme, GalleryActivity.this);
                 FontHelper.applyToViewTree(GalleryActivity.this, lvh.itemView);
-                if (isVideo) {
+                if (showFolderIcon) {
                     lvh.videoIndicator.setVisibility(View.VISIBLE);
+                    lvh.videoIndicator.setImageResource(R.drawable.folder);
+                    int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                    int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                    ThemeUtils.applyButtonBorder(lvh.videoIndicator, txt, bg, GalleryActivity.this);
+                    lvh.videoIndicator.setColorFilter(txt);
+                } else if (showVideoIcon) {
+                    lvh.videoIndicator.setVisibility(View.VISIBLE);
+                    lvh.videoIndicator.setImageResource(R.drawable.ic_media_play);
                     int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
                     int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
                     ThemeUtils.applyButtonBorder(lvh.videoIndicator, txt, bg, GalleryActivity.this);
@@ -614,15 +904,17 @@ public class GalleryActivity extends AppCompatActivity {
 
                 lvh.thumbnail.setImageBitmap(null);
                 lvh.thumbnail.setTag(globalPosition);
-
+                final long fThumbId2 = thumbId;
+                final Uri fBaseUri2 = baseUri;
+                final int fPos2 = globalPosition;
                 thumbnailExecutor.execute(() -> {
                     try {
-                        Uri thumbUri = ContentUris.withAppendedId(baseUri, image.id);
+                        Uri thumbUri = ContentUris.withAppendedId(fBaseUri2, fThumbId2);
                         Bitmap thumb = getContentResolver().loadThumbnail(thumbUri,
                                 new android.util.Size(200, 200), null);
                         if (thumb != null) {
                             lvh.thumbnail.post(() -> {
-                                if (Integer.valueOf(globalPosition).equals(lvh.thumbnail.getTag())) {
+                                if (Integer.valueOf(fPos2).equals(lvh.thumbnail.getTag())) {
                                     lvh.thumbnail.setImageBitmap(thumb);
                                 }
                             });
@@ -631,7 +923,12 @@ public class GalleryActivity extends AppCompatActivity {
                     }
                 });
 
-                lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                if (isFolder) {
+                    GalleryFolder f = folder;
+                    lvh.itemView.setOnClickListener(v -> openFolder(f.folderName));
+                } else {
+                    lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                }
             }
         }
 
