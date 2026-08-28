@@ -139,8 +139,9 @@ public class GalleryOptionsDialog extends Dialog {
                 btn.setTypeface(null, Typeface.BOLD);
             }
             btn.setOnClickListener(v -> {
-                gridCallback.onGridChanged(cols, currentRows);
-                dismiss();
+                currentColumns = cols;
+                updateColBold(colButtons, cols);
+                if (gridCallback != null) gridCallback.onGridChanged(cols, currentRows);
             });
         }
 
@@ -154,8 +155,9 @@ public class GalleryOptionsDialog extends Dialog {
                 btn.setTypeface(null, Typeface.BOLD);
             }
             btn.setOnClickListener(v -> {
-                gridCallback.onGridChanged(currentColumns, rows);
-                dismiss();
+                currentRows = rows;
+                updateRowBold(rowButtons, rows);
+                if (gridCallback != null) gridCallback.onGridChanged(currentColumns, rows);
             });
         }
 
@@ -166,8 +168,9 @@ public class GalleryOptionsDialog extends Dialog {
         DialogEffectHelper.applyButtonTheme(showTitlesButton, theme, getContext(), surfaceColor);
         showTitlesButton.setText("Titles: " + (currentShowTitles ? "ON" : "OFF"));
         showTitlesButton.setOnClickListener(v -> {
-            titlesCallback.onShowTitlesChanged(!currentShowTitles);
-            dismiss();
+            currentShowTitles = !currentShowTitles;
+            showTitlesButton.setText("Titles: " + (currentShowTitles ? "ON" : "OFF"));
+            if (titlesCallback != null) titlesCallback.onShowTitlesChanged(currentShowTitles);
         });
 
         TextView groupButton = findViewById(R.id.group_button);
@@ -176,8 +179,8 @@ public class GalleryOptionsDialog extends Dialog {
         groupButton.setOnClickListener(v -> {
             currentGroupMode = (currentGroupMode + 1) % 4;
             getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE).edit().putInt("gallery_group_by", currentGroupMode).apply();
+            updateGroupText(groupButton);
             if (groupCallback != null) groupCallback.onGroupChanged(currentGroupMode);
-            dismiss();
         });
 
         TextView filterButton = findViewById(R.id.filter_button);
@@ -187,8 +190,8 @@ public class GalleryOptionsDialog extends Dialog {
             filterButton.setOnClickListener(v -> {
                 currentFilterMode = (currentFilterMode + 1) % 3;
                 getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE).edit().putInt("gallery_filter_by", currentFilterMode).apply();
+                updateFilterText(filterButton);
                 if (filterCallback != null) filterCallback.onFilterChanged(currentFilterMode);
-                dismiss();
             });
         }
 
@@ -238,5 +241,37 @@ public class GalleryOptionsDialog extends Dialog {
         else if (currentFilterMode == 2) label = "Videos";
         else label = "All";
         btn.setText("Filter: " + label);
+    }
+
+    private void updateColBold(int[] colButtons, int selectedCols) {
+        for (int i = 0; i < colButtons.length; i++) {
+            TextView btn = findViewById(colButtons[i]);
+            if (btn != null) btn.setTypeface(null, getColValue(colButtons[i]) == selectedCols ? Typeface.BOLD : Typeface.NORMAL);
+        }
+    }
+
+    private void updateRowBold(int[] rowButtons, int selectedRows) {
+        for (int i = 0; i < rowButtons.length; i++) {
+            TextView btn = findViewById(rowButtons[i]);
+            if (btn != null) btn.setTypeface(null, getRowValue(rowButtons[i]) == selectedRows ? Typeface.BOLD : Typeface.NORMAL);
+        }
+    }
+
+    private int getColValue(int id) {
+        if (id == R.id.btn_cols_2) return 2;
+        if (id == R.id.btn_cols_3) return 3;
+        if (id == R.id.btn_cols_4) return 4;
+        if (id == R.id.btn_cols_5) return 5;
+        if (id == R.id.btn_cols_6) return 6;
+        return -1;
+    }
+
+    private int getRowValue(int id) {
+        if (id == R.id.btn_rows_2) return 2;
+        if (id == R.id.btn_rows_3) return 3;
+        if (id == R.id.btn_rows_4) return 4;
+        if (id == R.id.btn_rows_5) return 5;
+        if (id == R.id.btn_rows_6) return 6;
+        return -1;
     }
 }
