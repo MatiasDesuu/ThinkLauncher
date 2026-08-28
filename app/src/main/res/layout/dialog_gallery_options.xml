@@ -147,6 +147,13 @@
         android:layout_marginTop="8dp" />
 
     <TextView
+        android:id="@+id/filter_button"
+        style="@style/DialogButton"
+        android:text="Filter: All"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
         android:id="@+id/trash_button"
         style="@style/DialogButton"
         android:text="Trash"

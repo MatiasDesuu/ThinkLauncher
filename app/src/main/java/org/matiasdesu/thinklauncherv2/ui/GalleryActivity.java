@@ -114,6 +114,10 @@ public class GalleryActivity extends AppCompatActivity {
     private static final int GROUP_MONTH = 2;
     private static final int GROUP_YEAR = 3;
     private int galleryGroupMode;
+    private static final int FILTER_ALL = 0;
+    private static final int FILTER_IMAGES = 1;
+    private static final int FILTER_VIDEOS = 2;
+    private int galleryFilterMode;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -280,7 +284,25 @@ public class GalleryActivity extends AppCompatActivity {
                             overridePendingTransition(0, 0);
                         }
                     },
-                    () -> confirmEmptyTrash()).show();
+                    () -> confirmEmptyTrash(),
+                    galleryFilterMode,
+                    filter -> {
+                        galleryFilterMode = filter;
+                        if (isSelectionMode) exitSelectionMode();
+                        updateDisplayItems();
+                        currentPage = 0;
+                        itemsPerPage = calculateItemsPerPage();
+                        applyGridLayoutManager();
+                        recomputePagination();
+                        if (pageNavigator != null) {
+                            pageNavigator.setCurrentPage(0);
+                            pageNavigator.setTotalItems(displayItems.size());
+                        }
+                        adapter.notifyDataSetChanged();
+                        updatePageIndicator();
+                        updateTitle();
+                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                    }).show();
         });
 
         isGridView = prefs.getBoolean("gallery_grid_view", true);
@@ -293,6 +315,8 @@ public class GalleryActivity extends AppCompatActivity {
         folderShowGridTitles = prefs.getBoolean("gallery_folder_grid_show_titles", true);
         galleryGroupMode = prefs.getInt("gallery_group_by", GROUP_NONE);
         if (galleryGroupMode < GROUP_NONE || galleryGroupMode > GROUP_YEAR) galleryGroupMode = GROUP_NONE;
+        galleryFilterMode = prefs.getInt("gallery_filter_by", FILTER_ALL);
+        if (galleryFilterMode < FILTER_ALL || galleryFilterMode > FILTER_VIDEOS) galleryFilterMode = FILTER_ALL;
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
         isFolderView = false;
@@ -579,21 +603,36 @@ public class GalleryActivity extends AppCompatActivity {
         });
     }
 
+    private boolean passesFilter(GalleryImage img) {
+        if (galleryFilterMode == FILTER_IMAGES) return img.mediaType == GalleryTrashHelper.TYPE_IMAGE;
+        if (galleryFilterMode == FILTER_VIDEOS) return img.mediaType == GalleryTrashHelper.TYPE_VIDEO;
+        return true;
+    }
+
+    private List<GalleryImage> getFiltered(List<GalleryImage> src) {
+        if (galleryFilterMode == FILTER_ALL) return src;
+        List<GalleryImage> out = new ArrayList<>();
+        for (GalleryImage img : src) if (passesFilter(img)) out.add(img);
+        return out;
+    }
+
     private void updateDisplayItems() {
         displayItems.clear();
         if (isTrashMode) {
+            List<GalleryImage> filtered = getFiltered(allMedia);
             if (galleryGroupMode == GROUP_NONE) {
-                displayItems.addAll(allMedia);
+                displayItems.addAll(filtered);
             } else {
-                addGroupedItems(allMedia);
+                addGroupedItems(filtered);
             }
             return;
         }
         if (isFavoritesMode) {
+            List<GalleryImage> filtered = getFiltered(allMedia);
             if (galleryGroupMode == GROUP_NONE) {
-                displayItems.addAll(allMedia);
+                displayItems.addAll(filtered);
             } else {
-                addGroupedItems(allMedia);
+                addGroupedItems(filtered);
             }
             return;
         }
@@ -604,9 +643,9 @@ public class GalleryActivity extends AppCompatActivity {
         List<GalleryImage> source;
         if (selectedFolder != null) {
             source = new ArrayList<>();
-            for (GalleryImage img : allMedia) if (selectedFolder.equals(img.folderName)) source.add(img);
+            for (GalleryImage img : allMedia) if (selectedFolder.equals(img.folderName) && passesFilter(img)) source.add(img);
         } else {
-            source = allMedia;
+            source = getFiltered(allMedia);
         }
         if (galleryGroupMode == GROUP_NONE) {
             displayItems.addAll(source);
