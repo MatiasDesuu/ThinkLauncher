@@ -465,6 +465,9 @@ public class ClockActivity extends AppCompatActivity {
             holder.itemView.setOnClickListener(v -> activity.openEditDialog(alarm));
             holder.snoozedView.setOnClickListener(v -> {
                 ClockAlarmHelper.clearSnoozed(activity, alarm.id);
+                if (!alarm.hasRepeat()) {
+                    ClockAlarmHelper.setEnabled(activity, alarm.id, false);
+                }
                 activity.loadAlarms();
                 EinkRefreshHelper.refreshEink(activity.getWindow(), activity.prefs, activity.prefs.getInt("eink_refresh_delay", 100));
                 Toast.makeText(activity, "Snooze cancelled", Toast.LENGTH_SHORT).show();

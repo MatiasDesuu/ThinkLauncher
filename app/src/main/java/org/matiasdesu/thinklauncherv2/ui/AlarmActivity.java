@@ -82,6 +82,16 @@ public class AlarmActivity extends AppCompatActivity {
         int surface = backdrop.surfaceColor;
         org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(snoozeBtn, theme, this, surface);
         org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(dismissBtn, theme, this, surface);
+        int txt = ThemeUtils.getTextColor(theme, this);
+        android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
+        d.setColor(txt);
+        d.setStroke((int)(2 * getResources().getDisplayMetrics().density), txt);
+        int r = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.getCornerRadiusPx(this);
+        if (r > 0) d.setCornerRadius(r);
+        int pad = (int)(16 * getResources().getDisplayMetrics().density);
+        dismissBtn.setBackground(d);
+        dismissBtn.setTextColor(surface);
+        dismissBtn.setPadding(pad, pad, pad, pad);
 
         snoozeBtn.setOnClickListener(v -> doSnooze());
         dismissBtn.setOnClickListener(v -> doDismiss());
