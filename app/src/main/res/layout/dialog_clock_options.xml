@@ -19,7 +19,7 @@
             android:id="@+id/alarm_wallpaper_button"
             style="@style/DialogButton"
             android:layout_width="match_parent"
-            android:text="Alarm wallpaper: On" />
+            android:text="Enable wallpaper: Off" />
 
     </LinearLayout>
 

@@ -50,6 +50,6 @@ public class ClockOptionsDialog extends Dialog {
     }
 
     private void updateWallpaperText(TextView wallpaperButton) {
-        wallpaperButton.setText(disableAlarmWallpaper ? "Alarm wallpaper: Off" : "Alarm wallpaper: On");
+        wallpaperButton.setText("Enable wallpaper: " + (disableAlarmWallpaper ? "Off" : "On"));
     }
 }

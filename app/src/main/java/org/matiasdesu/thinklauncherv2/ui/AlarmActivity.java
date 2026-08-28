@@ -28,8 +28,8 @@ public class AlarmActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
-        boolean opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         boolean disableAlarmWallpaper = prefs.getBoolean("alarm_disable_wallpaper", true);
+        boolean opacityEnabled = !disableAlarmWallpaper && prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         setTheme(org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
 
