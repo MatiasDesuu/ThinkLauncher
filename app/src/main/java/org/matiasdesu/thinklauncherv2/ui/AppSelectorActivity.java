@@ -248,6 +248,9 @@ public class AppSelectorActivity extends AppCompatActivity {
                 installedAppLabels.add(specialIndex + 5, "Gallery");
                 installedAppPackages.add(specialIndex + 5, "gallery");
 
+                installedAppLabels.add(specialIndex + 6, "Clock");
+                installedAppPackages.add(specialIndex + 6, "clock");
+
                 boolean isBigme = false;
                 try {
                     getPackageManager().getPackageInfo("com.xrz.sys.control", 0);
@@ -256,12 +259,12 @@ public class AppSelectorActivity extends AppCompatActivity {
                     isBigme = false;
                 }
                 if (isBigme) {
-                    installedAppLabels.add(specialIndex + 6, "Bigme Control Panel");
-                    installedAppPackages.add(specialIndex + 6, "bigme_control_panel");
+                    installedAppLabels.add(specialIndex + 7, "Bigme Control Panel");
+                    installedAppPackages.add(specialIndex + 7, "bigme_control_panel");
                 }
 
                 if (position == -1) {
-                    int offset = isBigme ? 7 : 6;
+                    int offset = isBigme ? 8 : 7;
                     installedAppLabels.add(specialIndex + offset, "Next Home Page");
                     installedAppPackages.add(specialIndex + offset, "next_home_page");
 
@@ -284,8 +287,11 @@ public class AppSelectorActivity extends AppCompatActivity {
             installedAppLabels.add(4, "Gallery");
             installedAppPackages.add(4, "gallery");
 
-            installedAppLabels.add(5, "Folder");
-            installedAppPackages.add(5, "folder");
+            installedAppLabels.add(5, "Clock");
+            installedAppPackages.add(5, "clock");
+
+            installedAppLabels.add(6, "Folder");
+            installedAppPackages.add(6, "folder");
         }
 
         originalApps = new ArrayList<>();

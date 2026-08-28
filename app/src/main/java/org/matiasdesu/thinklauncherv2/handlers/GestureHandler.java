@@ -143,6 +143,17 @@ public class GestureHandler {
             if (animate) {
                 activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
             }
+        } else if ("clock".equals(packageName)) {
+            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+            boolean animate = prefs.getInt("screen_animations", 0) == 1;
+            Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.ClockActivity.class);
+            if (!animate) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            }
+            activity.startActivity(intent);
+            if (animate) {
+                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+            }
         } else if ("launcher_settings".equals(packageName)) {
             try {
                 Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
