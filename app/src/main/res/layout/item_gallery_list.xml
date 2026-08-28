@@ -50,6 +50,21 @@
             android:visibility="gone"
             android:padding="2dp" />
 
+        <View
+            android:id="@+id/selection_overlay"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@android:color/transparent"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/selection_check"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/check"
+            android:visibility="gone" />
+
     </FrameLayout>
 
     <LinearLayout

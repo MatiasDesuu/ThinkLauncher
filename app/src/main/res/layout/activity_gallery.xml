@@ -56,6 +56,26 @@
                 android:gravity="center_vertical">
 
                 <ImageView
+                    android:id="@+id/selection_trash_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="12dp"
+                    android:src="@drawable/delete"
+                    android:contentDescription="Trash"
+                    android:visibility="gone"
+                    android:tint="?attr/text_color" />
+
+                <ImageView
+                    android:id="@+id/selection_favorite_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="12dp"
+                    android:src="@drawable/star_filled"
+                    android:contentDescription="Favorite"
+                    android:visibility="gone"
+                    android:tint="?attr/text_color" />
+
+                <ImageView
                     android:id="@+id/folder_button"
                     android:layout_width="48dp"
                     android:layout_height="48dp"

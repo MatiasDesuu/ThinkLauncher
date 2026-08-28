@@ -100,6 +100,8 @@ public class GalleryActivity extends AppCompatActivity {
     private SwipePageNavigator pageNavigator;
     private final List<Integer> pageStartIndices = new ArrayList<>();
     private static final int REQUEST_FAVORITES = 4004;
+    private boolean isSelectionMode;
+    private final Set<String> selectedKeys = new HashSet<>();
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
@@ -169,7 +171,22 @@ public class GalleryActivity extends AppCompatActivity {
         updateFolderButtonIcon();
         folderButton.setOnClickListener(v -> toggleFolderView());
 
+        ImageView selTrash = findViewById(R.id.selection_trash_button);
+        if (selTrash != null) {
+            selTrash.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            selTrash.setOnClickListener(v -> handleBatchTrash());
+        }
+        ImageView selFav = findViewById(R.id.selection_favorite_button);
+        if (selFav != null) {
+            selFav.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            selFav.setOnClickListener(v -> handleBatchFavorite());
+        }
+
         titleView.setOnClickListener(v -> {
+            if (isSelectionMode) {
+                exitSelectionMode();
+                return;
+            }
             int curCols = isFolderView ? folderGridColumns : gridColumns;
             int curRows = isFolderView ? folderGridRows : gridRows;
             boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
@@ -325,6 +342,10 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void toggleView() {
+        if (isSelectionMode) {
+            exitSelectionMode();
+            return;
+        }
         if (isFolderView) {
             isFolderGridView = !isFolderGridView;
             isGridView = isFolderGridView;
@@ -778,7 +799,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void updateFolderButtonIcon() {
         ImageView folderButton = findViewById(R.id.folder_button);
         if (folderButton == null) return;
-        if (isTrashMode || isFavoritesMode || selectedFolder != null) {
+        if (isSelectionMode || isTrashMode || isFavoritesMode || selectedFolder != null) {
             folderButton.setVisibility(View.GONE);
             return;
         }
@@ -788,7 +809,297 @@ public class GalleryActivity extends AppCompatActivity {
         folderButton.setContentDescription(showGallery ? "Gallery" : "Folders");
     }
 
+    private String getSelectionKey(GalleryImage img) {
+        return (img.mediaType == GalleryTrashHelper.TYPE_VIDEO ? "video:" : "image:") + img.id;
+    }
+
+    private boolean isSelected(GalleryImage img) {
+        return selectedKeys.contains(getSelectionKey(img));
+    }
+
+    private void enterSelectionMode(GalleryImage img) {
+        if (isFolderView) return;
+        isSelectionMode = true;
+        selectedKeys.clear();
+        selectedKeys.add(getSelectionKey(img));
+        updateSelectionUI();
+        refreshVisibleSelectionOverlays();
+    }
+
+    private void exitSelectionMode() {
+        isSelectionMode = false;
+        selectedKeys.clear();
+        updateSelectionUI();
+        refreshVisibleSelectionOverlays();
+    }
+
+    private void toggleSelection(GalleryImage img, int globalPosition) {
+        String key = getSelectionKey(img);
+        if (selectedKeys.contains(key)) selectedKeys.remove(key);
+        else selectedKeys.add(key);
+        if (selectedKeys.isEmpty()) {
+            exitSelectionMode();
+            return;
+        }
+        updateSelectionUI();
+        refreshSelectionForGlobalPosition(globalPosition);
+    }
+
+    private void refreshVisibleSelectionOverlays() {
+        if (recyclerView == null) return;
+        int childCount = recyclerView.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = recyclerView.getChildAt(i);
+            RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(child);
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) continue;
+            int globalPos = getGlobalPosition(currentPage, pos);
+            if (globalPos < 0 || globalPos >= displayItems.size()) continue;
+            Object obj = displayItems.get(globalPos);
+            if (!(obj instanceof GalleryImage)) continue;
+            GalleryImage gi = (GalleryImage) obj;
+            boolean isSel = isSelected(gi);
+            if (holder instanceof GalleryAdapter.GridViewHolder) {
+                GalleryAdapter.GridViewHolder gvh = (GalleryAdapter.GridViewHolder) holder;
+                if (gvh.selectionOverlay != null) gvh.selectionOverlay.setVisibility(View.GONE);
+                if (gvh.selectionCheck != null) {
+                    gvh.selectionCheck.setVisibility(isSel ? View.VISIBLE : View.GONE);
+                    if (isSel) {
+                        int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                        int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                        ThemeUtils.applyButtonBorder(gvh.selectionCheck, txt, bg, GalleryActivity.this);
+                        gvh.selectionCheck.setColorFilter(txt);
+                    }
+                }
+            } else if (holder instanceof GalleryAdapter.ListViewHolder) {
+                GalleryAdapter.ListViewHolder lvh = (GalleryAdapter.ListViewHolder) holder;
+                if (lvh.selectionOverlay != null) lvh.selectionOverlay.setVisibility(View.GONE);
+                if (lvh.selectionCheck != null) {
+                    lvh.selectionCheck.setVisibility(isSel ? View.VISIBLE : View.GONE);
+                    if (isSel) {
+                        int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                        int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                        ThemeUtils.applyButtonBorder(lvh.selectionCheck, txt, bg, GalleryActivity.this);
+                        lvh.selectionCheck.setColorFilter(txt);
+                    }
+                }
+            }
+        }
+    }
+
+    private void refreshSelectionForGlobalPosition(int globalPosition) {
+        if (recyclerView == null) return;
+        Object target = globalPosition >= 0 && globalPosition < displayItems.size() ? displayItems.get(globalPosition) : null;
+        if (!(target instanceof GalleryImage)) {
+            refreshVisibleSelectionOverlays();
+            return;
+        }
+        GalleryImage gi = (GalleryImage) target;
+        boolean isSel = isSelected(gi);
+        int childCount = recyclerView.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = recyclerView.getChildAt(i);
+            RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(child);
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) continue;
+            int gp = getGlobalPosition(currentPage, pos);
+            if (gp != globalPosition) continue;
+            if (holder instanceof GalleryAdapter.GridViewHolder) {
+                GalleryAdapter.GridViewHolder gvh = (GalleryAdapter.GridViewHolder) holder;
+                if (gvh.selectionOverlay != null) gvh.selectionOverlay.setVisibility(View.GONE);
+                if (gvh.selectionCheck != null) {
+                    gvh.selectionCheck.setVisibility(isSel ? View.VISIBLE : View.GONE);
+                    if (isSel) {
+                        int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                        int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                        ThemeUtils.applyButtonBorder(gvh.selectionCheck, txt, bg, GalleryActivity.this);
+                        gvh.selectionCheck.setColorFilter(txt);
+                    }
+                }
+            } else if (holder instanceof GalleryAdapter.ListViewHolder) {
+                GalleryAdapter.ListViewHolder lvh = (GalleryAdapter.ListViewHolder) holder;
+                if (lvh.selectionOverlay != null) lvh.selectionOverlay.setVisibility(View.GONE);
+                if (lvh.selectionCheck != null) {
+                    lvh.selectionCheck.setVisibility(isSel ? View.VISIBLE : View.GONE);
+                    if (isSel) {
+                        int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                        int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                        ThemeUtils.applyButtonBorder(lvh.selectionCheck, txt, bg, GalleryActivity.this);
+                        lvh.selectionCheck.setColorFilter(txt);
+                    }
+                }
+            }
+            return;
+        }
+        refreshVisibleSelectionOverlays();
+    }
+
+    private void refreshVisibleFavorites() {
+        if (recyclerView == null) return;
+        java.util.Set<String> favSet = prefs.getStringSet("gallery_favorite_ids", null);
+        int childCount = recyclerView.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = recyclerView.getChildAt(i);
+            RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(child);
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) continue;
+            int globalPos = getGlobalPosition(currentPage, pos);
+            if (globalPos < 0 || globalPos >= displayItems.size()) continue;
+            Object obj = displayItems.get(globalPos);
+            if (!(obj instanceof GalleryImage)) continue;
+            GalleryImage gi = (GalleryImage) obj;
+            boolean isFav = favSet != null && (favSet.contains("image:" + gi.id) || favSet.contains("video:" + gi.id) || favSet.contains(String.valueOf(gi.id)));
+            if (holder instanceof GalleryAdapter.GridViewHolder) {
+                GalleryAdapter.GridViewHolder gvh = (GalleryAdapter.GridViewHolder) holder;
+                if (gvh.favoriteIndicator != null) {
+                    if (isFav) {
+                        gvh.favoriteIndicator.setVisibility(View.VISIBLE);
+                        gvh.favoriteIndicator.setBackground(null);
+                        gvh.favoriteIndicator.setColorFilter(ThemeUtils.getTextColor(theme, GalleryActivity.this));
+                    } else {
+                        gvh.favoriteIndicator.setVisibility(View.GONE);
+                    }
+                }
+            } else if (holder instanceof GalleryAdapter.ListViewHolder) {
+                GalleryAdapter.ListViewHolder lvh = (GalleryAdapter.ListViewHolder) holder;
+                if (lvh.favoriteIndicator != null) {
+                    if (isFav) {
+                        lvh.favoriteIndicator.setVisibility(View.VISIBLE);
+                        lvh.favoriteIndicator.setBackground(null);
+                        lvh.favoriteIndicator.setColorFilter(ThemeUtils.getTextColor(theme, GalleryActivity.this));
+                    } else {
+                        lvh.favoriteIndicator.setVisibility(View.GONE);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean areAllSelectedFavorites() {
+        if (selectedKeys.isEmpty()) return false;
+        for (String key : selectedKeys) {
+            try {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryFavoritesHelper.TYPE_VIDEO : GalleryFavoritesHelper.TYPE_IMAGE;
+                if (!GalleryFavoritesHelper.isFavorite(this, id, type)) return false;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void updateSelectionUI() {
+        if (titleView == null) return;
+        ImageView toggleButton = findViewById(R.id.toggle_view_button);
+        ImageView selTrash = findViewById(R.id.selection_trash_button);
+        ImageView selFav = findViewById(R.id.selection_favorite_button);
+        View bottomBar = findViewById(R.id.bottom_bar);
+        View bottomDivider = findViewById(R.id.bottom_divider);
+        if (isSelectionMode) {
+            titleView.setText(selectedKeys.size() + " selected");
+            if (toggleButton != null) toggleButton.setVisibility(View.GONE);
+            if (selTrash != null) {
+                selTrash.setVisibility(View.VISIBLE);
+                selTrash.setImageResource(R.drawable.delete);
+                selTrash.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            }
+            if (selFav != null) {
+                selFav.setVisibility(View.VISIBLE);
+                if (isTrashMode) selFav.setImageResource(R.drawable.restore);
+                else if (areAllSelectedFavorites()) selFav.setImageResource(R.drawable.star_outline);
+                else selFav.setImageResource(R.drawable.star_filled);
+                selFav.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            }
+            if (bottomBar != null) bottomBar.setVisibility(View.GONE);
+            if (bottomDivider != null) bottomDivider.setVisibility(View.GONE);
+            updateFolderButtonIcon();
+        } else {
+            updateTitle();
+            updateFolderButtonIcon();
+            if (toggleButton != null) {
+                toggleButton.setVisibility(View.VISIBLE);
+                toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
+                toggleButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            }
+            if (selTrash != null) selTrash.setVisibility(View.GONE);
+            if (selFav != null) selFav.setVisibility(View.GONE);
+            updatePageIndicator();
+        }
+    }
+
+    private void handleBatchTrash() {
+        if (selectedKeys.isEmpty()) return;
+        if (isTrashMode) {
+            for (String key : new HashSet<>(selectedKeys)) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryTrashHelper.TYPE_VIDEO : GalleryTrashHelper.TYPE_IMAGE;
+                try {
+                    Uri baseUri = type == GalleryTrashHelper.TYPE_VIDEO ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                    Uri uri = ContentUris.withAppendedId(baseUri, id);
+                    getContentResolver().delete(uri, null, null);
+                    GalleryTrashHelper.removeFromTrash(this, id, type);
+                } catch (Exception ignored) {}
+            }
+        } else {
+            for (String key : selectedKeys) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryTrashHelper.TYPE_VIDEO : GalleryTrashHelper.TYPE_IMAGE;
+                GalleryTrashHelper.moveToTrash(this, id, type);
+                GalleryFavoritesHelper.removeFavorite(this, id, type);
+            }
+        }
+        galleryModified = true;
+        setResult(RESULT_OK);
+        exitSelectionMode();
+        loadImages();
+    }
+
+    private void handleBatchFavorite() {
+        if (selectedKeys.isEmpty()) return;
+        if (isTrashMode) {
+            for (String key : new HashSet<>(selectedKeys)) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryTrashHelper.TYPE_VIDEO : GalleryTrashHelper.TYPE_IMAGE;
+                GalleryTrashHelper.restore(this, id, type);
+            }
+            galleryModified = true;
+            setResult(RESULT_OK);
+            exitSelectionMode();
+            loadImages();
+            return;
+        }
+        boolean allFav = areAllSelectedFavorites();
+        Set<String> favKeys = new HashSet<>(selectedKeys);
+        if (allFav) {
+            for (String key : favKeys) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryTrashHelper.TYPE_VIDEO : GalleryTrashHelper.TYPE_IMAGE;
+                GalleryFavoritesHelper.removeFavorite(this, id, type);
+            }
+        } else {
+            for (String key : favKeys) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryTrashHelper.TYPE_VIDEO : GalleryTrashHelper.TYPE_IMAGE;
+                GalleryFavoritesHelper.addFavorite(this, id, type);
+            }
+        }
+        if (isFavoritesMode) {
+            galleryModified = true;
+            setResult(RESULT_OK);
+            exitSelectionMode();
+            loadImages();
+            return;
+        }
+        exitSelectionMode();
+        refreshVisibleFavorites();
+    }
+
         private void toggleFolderView() {
+        if (isSelectionMode) {
+            exitSelectionMode();
+            return;
+        }
         if (isTrashMode || isFavoritesMode) return;
         if (selectedFolder != null) {
             selectedFolder = null;
@@ -856,6 +1167,10 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
         private void handleBackPressed() {
+        if (isSelectionMode) {
+            exitSelectionMode();
+            return;
+        }
         if (selectedFolder != null) {
             selectedFolder = null;
             isFolderView = true;
@@ -1063,6 +1378,12 @@ public class GalleryActivity extends AppCompatActivity {
         TextView pageIndicator = findViewById(R.id.page_indicator);
         View bottomDivider = findViewById(R.id.bottom_divider);
         View bottomBar = findViewById(R.id.bottom_bar);
+        if (isSelectionMode) {
+            if (pageIndicator != null) pageIndicator.setVisibility(View.GONE);
+            if (bottomDivider != null) bottomDivider.setVisibility(View.GONE);
+            if (bottomBar != null) bottomBar.setVisibility(View.GONE);
+            return;
+        }
         if (scrollAppList) {
             pageIndicator.setVisibility(View.GONE);
             bottomDivider.setVisibility(View.GONE);
@@ -1330,6 +1651,17 @@ public class GalleryActivity extends AppCompatActivity {
                 } else {
                     gvh.favoriteIndicator.setVisibility(View.GONE);
                 }
+                boolean isSelG = !isFolder && image != null && isSelected(image);
+                if (gvh.selectionOverlay != null) gvh.selectionOverlay.setVisibility(View.GONE);
+                if (gvh.selectionCheck != null) {
+                    gvh.selectionCheck.setVisibility(isSelG ? View.VISIBLE : View.GONE);
+                    if (isSelG) {
+                        int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                        int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                        ThemeUtils.applyButtonBorder(gvh.selectionCheck, txt, bg, GalleryActivity.this);
+                        gvh.selectionCheck.setColorFilter(txt);
+                    }
+                }
                 gvh.thumbnail.setImageBitmap(null);
                 gvh.thumbnail.setTag(globalPosition);
                 final long fThumbId = thumbId;
@@ -1397,9 +1729,21 @@ public class GalleryActivity extends AppCompatActivity {
                         return false;
                     });
                 } else {
+                    final GalleryImage fImgG = image;
                     gvh.itemView.setOnTouchListener(null);
-                    gvh.itemView.setOnLongClickListener(null);
-                    gvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    gvh.itemView.setOnClickListener(v -> {
+                        if (isSelectionMode) toggleSelection(fImgG, globalPosition);
+                        else openImage(globalPosition);
+                    });
+                    gvh.itemView.setOnLongClickListener(v -> {
+                        if (isSelectionMode) {
+                            toggleSelection(fImgG, globalPosition);
+                            return true;
+                        } else {
+                            enterSelectionMode(fImgG);
+                            return true;
+                        }
+                    });
                 }
             } else if (holder instanceof ListViewHolder) {
                 ListViewHolder lvh = (ListViewHolder) holder;
@@ -1442,6 +1786,17 @@ public class GalleryActivity extends AppCompatActivity {
                     lvh.favoriteIndicator.setColorFilter(ThemeUtils.getTextColor(theme, GalleryActivity.this));
                 } else {
                     lvh.favoriteIndicator.setVisibility(View.GONE);
+                }
+                boolean isSelL = !isFolder && image != null && isSelected(image);
+                if (lvh.selectionOverlay != null) lvh.selectionOverlay.setVisibility(View.GONE);
+                if (lvh.selectionCheck != null) {
+                    lvh.selectionCheck.setVisibility(isSelL ? View.VISIBLE : View.GONE);
+                    if (isSelL) {
+                        int bg = ThemeUtils.getBgColor(theme, GalleryActivity.this);
+                        int txt = ThemeUtils.getTextColor(theme, GalleryActivity.this);
+                        ThemeUtils.applyButtonBorder(lvh.selectionCheck, txt, bg, GalleryActivity.this);
+                        lvh.selectionCheck.setColorFilter(txt);
+                    }
                 }
 
                 lvh.thumbnail.setImageBitmap(null);
@@ -1511,9 +1866,21 @@ public class GalleryActivity extends AppCompatActivity {
                         return false;
                     });
                 } else {
+                    final GalleryImage fImgL = image;
                     lvh.itemView.setOnTouchListener(null);
-                    lvh.itemView.setOnLongClickListener(null);
-                    lvh.itemView.setOnClickListener(v -> openImage(globalPosition));
+                    lvh.itemView.setOnClickListener(v -> {
+                        if (isSelectionMode) toggleSelection(fImgL, globalPosition);
+                        else openImage(globalPosition);
+                    });
+                    lvh.itemView.setOnLongClickListener(v -> {
+                        if (isSelectionMode) {
+                            toggleSelection(fImgL, globalPosition);
+                            return true;
+                        } else {
+                            enterSelectionMode(fImgL);
+                            return true;
+                        }
+                    });
                 }
             }
         }
@@ -1532,6 +1899,8 @@ public class GalleryActivity extends AppCompatActivity {
             ImageView videoIndicator;
             ImageView pinnedIndicator;
             ImageView favoriteIndicator;
+            View selectionOverlay;
+            ImageView selectionCheck;
 
             GridViewHolder(View itemView) {
                 super(itemView);
@@ -1540,6 +1909,8 @@ public class GalleryActivity extends AppCompatActivity {
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
                 pinnedIndicator = itemView.findViewById(R.id.pinned_indicator);
                 favoriteIndicator = itemView.findViewById(R.id.favorite_indicator);
+                selectionOverlay = itemView.findViewById(R.id.selection_overlay);
+                selectionCheck = itemView.findViewById(R.id.selection_check);
             }
         }
 
@@ -1550,6 +1921,8 @@ public class GalleryActivity extends AppCompatActivity {
             ImageView videoIndicator;
             ImageView pinnedIndicator;
             ImageView favoriteIndicator;
+            View selectionOverlay;
+            ImageView selectionCheck;
 
             ListViewHolder(View itemView) {
                 super(itemView);
@@ -1559,6 +1932,8 @@ public class GalleryActivity extends AppCompatActivity {
                 videoIndicator = itemView.findViewById(R.id.video_indicator);
                 pinnedIndicator = itemView.findViewById(R.id.pinned_indicator);
                 favoriteIndicator = itemView.findViewById(R.id.favorite_indicator);
+                selectionOverlay = itemView.findViewById(R.id.selection_overlay);
+                selectionCheck = itemView.findViewById(R.id.selection_check);
             }
         }
 
