@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryFavoritesHelper;
@@ -264,7 +265,8 @@ public class GalleryActivity extends AppCompatActivity {
                             startActivityForResult(intent, REQUEST_FAVORITES);
                             overridePendingTransition(0, 0);
                         }
-                    }).show();
+                    },
+                    () -> confirmEmptyTrash()).show();
         });
 
         isGridView = prefs.getBoolean("gallery_grid_view", true);
@@ -1104,6 +1106,33 @@ public class GalleryActivity extends AppCompatActivity {
         }
         exitSelectionMode();
         refreshVisibleFavorites();
+    }
+
+    private void confirmEmptyTrash() {
+        if (!isTrashMode) return;
+        int count = 0;
+        for (Object obj : displayItems) if (obj instanceof GalleryImage) count++;
+        if (count == 0) return;
+        new GalleryEmptyTrashConfirmDialog(this, count, this::emptyTrash).show();
+    }
+
+    private void emptyTrash() {
+        if (!isTrashMode) return;
+        java.util.List<GalleryImage> toDelete = new java.util.ArrayList<>();
+        for (Object obj : displayItems) if (obj instanceof GalleryImage) toDelete.add((GalleryImage) obj);
+        if (toDelete.isEmpty()) return;
+        for (GalleryImage img : toDelete) {
+            try {
+                Uri baseUri = img.mediaType == GalleryTrashHelper.TYPE_VIDEO ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                Uri uri = ContentUris.withAppendedId(baseUri, img.id);
+                getContentResolver().delete(uri, null, null);
+                GalleryTrashHelper.removeFromTrash(this, img.id, img.mediaType);
+            } catch (Exception ignored) {}
+        }
+        if (isSelectionMode) exitSelectionMode();
+        galleryModified = true;
+        setResult(RESULT_OK);
+        loadImages();
     }
 
         private void toggleFolderView() {

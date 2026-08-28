@@ -34,11 +34,16 @@ public class GalleryOptionsDialog extends Dialog {
         void onGroupChanged(int groupMode);
     }
 
+    public interface OnEmptyTrashCallback {
+        void onEmptyTrash();
+    }
+
     private OnGridChangedCallback gridCallback;
     private OnShowTitlesChangedCallback titlesCallback;
     private OnTrashClickCallback trashCallback;
     private OnFavoritesClickCallback favoritesCallback;
     private OnGroupChangedCallback groupCallback;
+    private OnEmptyTrashCallback emptyTrashCallback;
     private int currentColumns;
     private int currentRows;
     private boolean currentShowTitles;
@@ -49,19 +54,32 @@ public class GalleryOptionsDialog extends Dialog {
     private int currentGroupMode;
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
-                                  boolean isGridView, boolean hasPagination, boolean isTrashMode, boolean isFavoritesMode,
-                                  int groupMode,
-                                  OnGridChangedCallback gridCallback,
-                                  OnShowTitlesChangedCallback titlesCallback,
-                                  OnGroupChangedCallback groupCallback,
-                                  OnTrashClickCallback trashCallback,
-                                  OnFavoritesClickCallback favoritesCallback) {
+                                   boolean isGridView, boolean hasPagination, boolean isTrashMode, boolean isFavoritesMode,
+                                   int groupMode,
+                                   OnGridChangedCallback gridCallback,
+                                   OnShowTitlesChangedCallback titlesCallback,
+                                   OnGroupChangedCallback groupCallback,
+                                   OnTrashClickCallback trashCallback,
+                                   OnFavoritesClickCallback favoritesCallback) {
+        this(context, columns, rows, showTitles, isGridView, hasPagination, isTrashMode, isFavoritesMode, groupMode, gridCallback, titlesCallback, groupCallback, trashCallback, favoritesCallback, null);
+    }
+
+    public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
+                                   boolean isGridView, boolean hasPagination, boolean isTrashMode, boolean isFavoritesMode,
+                                   int groupMode,
+                                   OnGridChangedCallback gridCallback,
+                                   OnShowTitlesChangedCallback titlesCallback,
+                                   OnGroupChangedCallback groupCallback,
+                                   OnTrashClickCallback trashCallback,
+                                   OnFavoritesClickCallback favoritesCallback,
+                                   OnEmptyTrashCallback emptyTrashCallback) {
         super(context, R.style.NoAnimationDialog);
         this.gridCallback = gridCallback;
         this.titlesCallback = titlesCallback;
         this.groupCallback = groupCallback;
         this.trashCallback = trashCallback;
         this.favoritesCallback = favoritesCallback;
+        this.emptyTrashCallback = emptyTrashCallback;
         this.currentColumns = columns;
         this.currentRows = rows;
         this.currentShowTitles = showTitles;
@@ -155,6 +173,20 @@ public class GalleryOptionsDialog extends Dialog {
             dismiss();
             if (favoritesCallback != null) favoritesCallback.onFavoritesClick();
         });
+
+        TextView emptyTrashButton = findViewById(R.id.empty_trash_button);
+        if (emptyTrashButton != null) {
+            DialogEffectHelper.applyButtonTheme(emptyTrashButton, theme, getContext(), surfaceColor);
+            if (isTrashMode && emptyTrashCallback != null) {
+                emptyTrashButton.setVisibility(View.VISIBLE);
+                emptyTrashButton.setOnClickListener(v -> {
+                    dismiss();
+                    emptyTrashCallback.onEmptyTrash();
+                });
+            } else {
+                emptyTrashButton.setVisibility(View.GONE);
+            }
+        }
     }
 
     private void updateGroupText(TextView btn) {
