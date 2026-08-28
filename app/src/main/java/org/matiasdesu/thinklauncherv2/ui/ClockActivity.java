@@ -97,12 +97,14 @@ public class ClockActivity extends AppCompatActivity {
         TextView titleView = findViewById(R.id.clock_title);
         ThemeUtils.applyTextColor(titleView, theme, this);
 
-        titleView.setOnClickListener(v -> {
+        titleView.setOnClickListener(v -> openOptionsDialog());
+        titleView.setOnLongClickListener(v -> {
             if (scrollAppList) {
                 RecyclerView rv = findViewById(R.id.clock_list);
                 if (rv != null) rv.scrollToPosition(0);
                 EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
             }
+            return true;
         });
 
         ImageView backButton = findViewById(R.id.back_button);
@@ -271,6 +273,27 @@ public class ClockActivity extends AppCompatActivity {
         if (currentPage < 0) currentPage = 0;
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
+    }
+
+    private void openOptionsDialog() {
+        boolean disableAlarmWallpaper = prefs.getBoolean("alarm_disable_wallpaper", true);
+        new ClockOptionsDialog(this, disableAlarmWallpaper, () -> {
+            reloadWallpaperPreference();
+            if (showWallpaperBackdrop) {
+                LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+                clockSurfaceColor = backdrop.surfaceColor;
+                showWallpaperBackdrop = backdrop.showWallpaperBackdrop;
+                View topLayout = findViewById(R.id.top_layout);
+                View recyclerView = findViewById(R.id.clock_list);
+                View container = findViewById(R.id.app_list_container);
+                LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, clockSurfaceColor,
+                        topLayout, recyclerView, container);
+            }
+        }).show();
+    }
+
+    private void reloadWallpaperPreference() {
+        prefs = getSharedPreferences("prefs", MODE_PRIVATE);
     }
 
     private void openAddDialog() {

@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,12 +22,14 @@ import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 public class AlarmActivity extends AppCompatActivity {
 
     private int alarmId = -1;
+    private LauncherBackdropHelper.Result backdrop = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         boolean opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        boolean disableAlarmWallpaper = prefs.getBoolean("alarm_disable_wallpaper", true);
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
 
@@ -46,7 +49,20 @@ public class AlarmActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_alarm);
 
-        LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+        if (disableAlarmWallpaper) {
+            View root = findViewById(android.R.id.content);
+            if (root != null) {
+                root.setBackgroundColor(ThemeUtils.getBgColor(theme, this));
+            }
+            ImageView wallpaperView = findViewById(R.id.wallpaper_view);
+            if (wallpaperView != null) {
+                wallpaperView.setVisibility(View.GONE);
+            }
+            backdrop = null;
+        } else {
+            backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+        }
+
         View divider = findViewById(R.id.divider);
         if (divider != null) divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
@@ -79,7 +95,7 @@ public class AlarmActivity extends AppCompatActivity {
         ThemeUtils.applyTextColor(repeatView, theme, this);
         FontHelper.applyToViewTree(this, findViewById(android.R.id.content));
 
-        int surface = backdrop.surfaceColor;
+        int surface = backdrop != null ? backdrop.surfaceColor : ThemeUtils.getBgColor(theme, this);
         org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(snoozeBtn, theme, this, surface);
         org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(dismissBtn, theme, this, surface);
         int txt = ThemeUtils.getTextColor(theme, this);
