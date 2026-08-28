@@ -3,26 +3,22 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
     <ImageView
         android:id="@+id/wallpaper_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:visibility="gone" />
-
     <LinearLayout
         android:id="@+id/content_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-
         <LinearLayout
             android:id="@+id/top_layout"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:orientation="horizontal">
-
             <ImageView
                 android:id="@+id/back_button"
                 android:layout_width="48dp"
@@ -30,7 +26,6 @@
                 android:padding="12dp"
                 android:src="@drawable/back_arrow"
                 android:tint="?attr/text_color" />
-
             <TextView
                 android:id="@+id/clock_title"
                 android:layout_width="0dp"
@@ -42,7 +37,6 @@
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
                 android:textStyle="bold" />
-
             <ImageView
                 android:id="@+id/add_alarm_button"
                 android:layout_width="48dp"
@@ -51,42 +45,34 @@
                 android:src="@drawable/add"
                 android:tint="?attr/text_color"
                 android:contentDescription="Add alarm" />
-
         </LinearLayout>
-
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
             android:layout_height="2dp" />
-
         <FrameLayout
             android:id="@+id/app_list_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/clock_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent" />
-
         </FrameLayout>
-
         <View
             android:id="@+id/bottom_divider"
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:background="?attr/text_color" />
-
         <LinearLayout
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:gravity="center"
             android:orientation="horizontal">
-
             <ImageView
                 android:id="@+id/prev_page_button"
                 android:layout_width="48dp"
@@ -94,7 +80,6 @@
                 android:padding="12dp"
                 android:src="@drawable/back_arrow"
                 android:tint="?attr/text_color" />
-
             <TextView
                 android:id="@+id/page_indicator"
                 android:layout_width="wrap_content"
@@ -105,7 +90,6 @@
                 android:textColor="?attr/text_color"
                 android:textSize="24sp"
                 android:textStyle="bold" />
-
             <ImageView
                 android:id="@+id/next_page_button"
                 android:layout_width="48dp"
@@ -113,9 +97,6 @@
                 android:padding="12dp"
                 android:src="@drawable/forward_arrow"
                 android:tint="?attr/text_color" />
-
         </LinearLayout>
-
     </LinearLayout>
-
 </FrameLayout>

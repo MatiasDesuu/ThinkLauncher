@@ -15,14 +15,15 @@ public class AlarmSnoozeReceiver extends BroadcastReceiver {
         int notifId = intent.getIntExtra("notif_id", 0);
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm != null) nm.cancel(notifId);
-
-        // snooze 10 minutes as one-shot
+        try { android.widget.Toast.makeText(context, "Snoozed 10 minutes", android.widget.Toast.LENGTH_SHORT).show(); } catch (Exception ignored) {}
         long triggerAt = System.currentTimeMillis() + 10 * 60 * 1000L;
+        org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper.setSnoozed(context, alarmId, triggerAt);
         Intent ri = new Intent(context, AlarmReceiver.class);
         ri.putExtra("alarm_id", alarmId);
+        ri.putExtra("is_snooze", true);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
-        // use different requestCode to not overwrite repeating alarm PendingIntent
+
         int snoozeCode = alarmId + 500000;
         PendingIntent pi = PendingIntent.getBroadcast(context, snoozeCode, ri, flags);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

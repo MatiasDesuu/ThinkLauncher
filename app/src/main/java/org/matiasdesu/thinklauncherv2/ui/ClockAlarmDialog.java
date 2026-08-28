@@ -47,7 +47,7 @@ public class ClockAlarmDialog extends Dialog {
             this.minute = alarm.minute;
             System.arraycopy(alarm.days, 0, this.days, 0, 7);
         } else {
-            // default 07:00
+
             this.hour = 7;
             this.minute = 0;
         }
@@ -137,7 +137,7 @@ public class ClockAlarmDialog extends Dialog {
 
     private void updateDayButton(TextView tv, boolean selected) {
         tv.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
-        // e-ink: pure two colors, no alpha/opacity — selected = inverted fill
+
         android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
         int textColor = org.matiasdesu.thinklauncherv2.utils.ThemeUtils.getTextColor(theme, getContext());
         drawable.setColor(selected ? textColor : surfaceColor);
@@ -147,7 +147,7 @@ public class ClockAlarmDialog extends Dialog {
         tv.setBackground(drawable);
         tv.setPadding(padding, padding, padding, padding);
         tv.setTextColor(selected ? surfaceColor : textColor);
-        // no alpha — pure B/W
+
         tv.setAlpha(1.0f);
     }
 }

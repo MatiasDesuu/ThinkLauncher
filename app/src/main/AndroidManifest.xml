@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
     <uses-permission
@@ -207,6 +208,13 @@
         <activity
             android:name=".ui.ClockActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.AlarmActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop" />
         <receiver
             android:name=".receivers.AlarmReceiver"
             android:exported="false" />
@@ -215,6 +223,9 @@
             android:exported="false" />
         <receiver
             android:name=".receivers.AlarmSnoozeReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".receivers.CancelSnoozeReceiver"
             android:exported="false" />
         <receiver
             android:name=".receivers.BootReceiver"

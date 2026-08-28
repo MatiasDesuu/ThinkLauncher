@@ -9,7 +9,12 @@ public class AlarmDismissReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         int notifId = intent.getIntExtra("notif_id", 0);
+        int alarmId = intent.getIntExtra("alarm_id", -1);
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm != null) nm.cancel(notifId);
+        if (alarmId != -1) {
+            org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper.clearSnoozed(context, alarmId);
+            org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper.rescheduleAfterFired(context, alarmId);
+        }
     }
 }

@@ -18,12 +18,15 @@ public final class ClockAlarmHelper {
 
     private static final String PREF_ALARMS = "clock_alarms_json";
     private static final String PREF_NEXT_ID = "clock_next_alarm_id";
+    private static final String PREF_SNOOZE_PREFIX = "clock_snooze_until_";
+    private static final String SNOOZE_CHANNEL_ID = "thinklauncher_snoozed";
+    private static final String SNOOZE_CHANNEL_NAME = "Snoozed Alarms";
 
     public static class Alarm {
         public int id;
-        public int hour; // 0-23
-        public int minute; // 0-59
-        public boolean[] days = new boolean[7]; // 0=Mon ... 6=Sun (Calendar MONDAY=2)
+        public int hour;
+        public int minute;
+        public boolean[] days = new boolean[7];
         public String label = "";
         public boolean enabled = true;
 
@@ -52,10 +55,10 @@ public final class ClockAlarmHelper {
                 if (!days[i]) all = false;
             }
             if (all) return "Every day";
-            // weekdays Mon-Fri = 0..4
+
             for (int i = 0; i < 5; i++) if (!days[i]) weekdays = false;
             for (int i = 5; i < 7; i++) if (days[i]) weekdays = false;
-            // weekend Sat Sun = 5,6
+
             for (int i = 0; i < 5; i++) if (days[i]) weekend = false;
             for (int i = 5; i < 7; i++) if (!days[i]) weekend = false;
             if (weekdays) return "Weekdays";
@@ -153,6 +156,7 @@ public final class ClockAlarmHelper {
         }
         saveAlarms(context, list);
         cancel(context, id);
+        clearSnoozed(context, id);
     }
 
     public static void setEnabled(Context context, int id, boolean enabled) {
@@ -162,7 +166,10 @@ public final class ClockAlarmHelper {
                 a.enabled = enabled;
                 saveAlarms(context, list);
                 if (enabled) schedule(context, a);
-                else cancel(context, id);
+                else {
+                    cancel(context, id);
+                    clearSnoozed(context, id);
+                }
                 break;
             }
         }
@@ -173,21 +180,33 @@ public final class ClockAlarmHelper {
         return null;
     }
 
-    // Scheduling
-
     public static void schedule(Context context, Alarm alarm) {
         if (!alarm.enabled) return;
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
         long triggerAt = computeNextTriggerMillis(alarm);
         PendingIntent pi = getPendingIntent(context, alarm.id);
+
+        Intent showIntent = new Intent(context, org.matiasdesu.thinklauncherv2.ui.ClockActivity.class);
+        showIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        int sFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) sFlags |= PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent showPi = PendingIntent.getActivity(context, alarm.id + 800000, showIntent, sFlags);
+        AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(triggerAt, showPi);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (!am.canScheduleExactAlarms()) {
-                    // fallback to inexact
+
                     am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
                     return;
                 }
+            }
+
+            try {
+                am.setAlarmClock(info, pi);
+                return;
+            } catch (Exception e) {
+
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
@@ -211,6 +230,7 @@ public final class ClockAlarmHelper {
         PendingIntent pi = getPendingIntent(context, alarmId);
         am.cancel(pi);
         pi.cancel();
+        clearSnoozed(context, alarmId);
     }
 
     public static void rescheduleAfterFired(Context context, int alarmId) {
@@ -219,12 +239,98 @@ public final class ClockAlarmHelper {
         if (a.hasRepeat()) {
             schedule(context, a);
         } else {
-            // one-shot: disable after firing
             a.enabled = false;
             List<Alarm> list = loadAlarms(context);
             for (int i = 0; i < list.size(); i++) if (list.get(i).id == alarmId) { list.set(i, a); break; }
             saveAlarms(context, list);
         }
+    }
+
+    public static void setSnoozed(Context context, int alarmId, long untilMillis) {
+        context.getSharedPreferences("prefs", Context.MODE_PRIVATE).edit().putLong(PREF_SNOOZE_PREFIX + alarmId, untilMillis).apply();
+        showSnoozedNotification(context, alarmId, untilMillis);
+    }
+
+    public static long getSnoozedUntil(Context context, int alarmId) {
+        return context.getSharedPreferences("prefs", Context.MODE_PRIVATE).getLong(PREF_SNOOZE_PREFIX + alarmId, 0);
+    }
+
+    public static boolean isSnoozed(Context context, int alarmId) {
+        long until = getSnoozedUntil(context, alarmId);
+        if (until == 0) return false;
+        if (System.currentTimeMillis() > until) {
+            clearSnoozed(context, alarmId);
+            return false;
+        }
+        return true;
+    }
+
+    public static void clearSnoozed(Context context, int alarmId) {
+        context.getSharedPreferences("prefs", Context.MODE_PRIVATE).edit().remove(PREF_SNOOZE_PREFIX + alarmId).apply();
+        cancelSnoozedNotification(context, alarmId);
+        cancelSnoozeAlarm(context, alarmId);
+    }
+
+    public static void cancelSnoozeAlarm(Context context, int alarmId) {
+        android.app.AlarmManager am = (android.app.AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+        Intent intent = new Intent(context, org.matiasdesu.thinklauncherv2.receivers.AlarmReceiver.class);
+        intent.putExtra("alarm_id", alarmId);
+        intent.putExtra("is_snooze", true);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent pi = PendingIntent.getBroadcast(context, alarmId + 500000, intent, flags);
+        am.cancel(pi);
+        pi.cancel();
+    }
+
+    public static String formatSnoozedUntil(Context context, long untilMillis) {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date(untilMillis));
+    }
+
+    private static void ensureSnoozeChannel(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            android.app.NotificationManager nm = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return;
+            if (nm.getNotificationChannel(SNOOZE_CHANNEL_ID) != null) return;
+            android.app.NotificationChannel ch = new android.app.NotificationChannel(SNOOZE_CHANNEL_ID, SNOOZE_CHANNEL_NAME, android.app.NotificationManager.IMPORTANCE_LOW);
+            ch.setDescription("Snoozed alarms");
+            ch.setShowBadge(false);
+            ch.setSound(null, null);
+            ch.enableVibration(false);
+            nm.createNotificationChannel(ch);
+        }
+    }
+
+    private static void showSnoozedNotification(Context context, int alarmId, long untilMillis) {
+        ensureSnoozeChannel(context);
+        Alarm alarm = getById(context, alarmId);
+        String time = formatSnoozedUntil(context, untilMillis);
+        String title = "Snoozed until " + time;
+        String text = alarm != null ? alarm.getTimeText() : "";
+        if (alarm != null && alarm.label != null && !alarm.label.trim().isEmpty()) text = text + " " + alarm.label;
+        Intent cancelIntent = new Intent(context, org.matiasdesu.thinklauncherv2.receivers.CancelSnoozeReceiver.class);
+        cancelIntent.putExtra("alarm_id", alarmId);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent cancelPi = PendingIntent.getBroadcast(context, alarmId + 600000, cancelIntent, flags);
+        androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(context, SNOOZE_CHANNEL_ID)
+                .setSmallIcon(org.matiasdesu.thinklauncherv2.R.drawable.time)
+                .setContentTitle(title)
+                .setContentText(text.isEmpty() ? "Tap to cancel snooze" : text)
+                .setOngoing(true)
+                .setAutoCancel(false)
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+                .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
+                .addAction(0, "Cancel snooze", cancelPi);
+        android.app.NotificationManager nm = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.notify(alarmId + 700000, b.build());
+    }
+
+    private static void cancelSnoozedNotification(Context context, int alarmId) {
+        android.app.NotificationManager nm = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(alarmId + 700000);
     }
 
     private static PendingIntent getPendingIntent(Context context, int alarmId) {
@@ -247,12 +353,11 @@ public final class ClockAlarmHelper {
             if (!next.after(now)) next.add(Calendar.DAY_OF_YEAR, 1);
             return next.getTimeInMillis();
         }
-        // repeat: find next matching weekday
-        // alarm days 0=Mon ... 6=Sun maps to Calendar MONDAY=2 ... SUNDAY=1
+
         for (int offset = 0; offset < 8; offset++) {
             Calendar c = (Calendar) next.clone();
             c.add(Calendar.DAY_OF_YEAR, offset);
-            int dow = c.get(Calendar.DAY_OF_WEEK); // 1 Sun .. 7 Sat
+            int dow = c.get(Calendar.DAY_OF_WEEK);
             int idx = dowToIdx(dow);
             if (alarm.days[idx]) {
                 if (offset == 0 && !c.after(now)) continue;
@@ -267,7 +372,7 @@ public final class ClockAlarmHelper {
     }
 
     private static int dowToIdx(int dow) {
-        // Mon 0, Tue1, Wed2, Thu3, Fri4, Sat5, Sun6
+
         switch (dow) {
             case Calendar.MONDAY: return 0;
             case Calendar.TUESDAY: return 1;

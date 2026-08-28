@@ -55,6 +55,7 @@ public class ClockActivity extends AppCompatActivity {
     private boolean appLauncherAnimations;
     private boolean showWallpaperBackdrop;
     private int clockSurfaceColor;
+    private SwipePageNavigator pageNavigator;
 
     private final BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -95,8 +96,7 @@ public class ClockActivity extends AppCompatActivity {
 
         TextView titleView = findViewById(R.id.clock_title);
         ThemeUtils.applyTextColor(titleView, theme, this);
-        // title click does nothing; keep consistent with other screens (Calendar title opens options)
-        // For clock we keep simple, but allow tap to scroll to top like Gallery
+
         titleView.setOnClickListener(v -> {
             if (scrollAppList) {
                 RecyclerView rv = findViewById(R.id.clock_list);
@@ -123,7 +123,7 @@ public class ClockActivity extends AppCompatActivity {
                 topLayout, recyclerView, container);
 
         textSize = prefs.getInt("clock_font_size", 32);
-        // fallback to generic calendar_font_size or default
+
         if (prefs.contains("calendar_font_size") && !prefs.contains("clock_font_size")) {
             textSize = prefs.getInt("calendar_font_size", 32);
         }
@@ -145,7 +145,7 @@ public class ClockActivity extends AppCompatActivity {
         recyclerView.setAdapter(clockAdapter);
 
         if (!scrollAppList) {
-            new SwipePageNavigator(this, recyclerView, container,
+            pageNavigator = new SwipePageNavigator(this, recyclerView, container,
                     new SwipePageNavigator.PageChangeCallback() {
                         @Override
                         public void onPageChanged(int newPage) {
@@ -165,6 +165,8 @@ public class ClockActivity extends AppCompatActivity {
                             ClockActivity.this.updatePageIndicator();
                         }
                     }, theme);
+        } else {
+            pageNavigator = null;
         }
 
         updatePageIndicator();
@@ -181,7 +183,7 @@ public class ClockActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             if (am != null && !am.canScheduleExactAlarms()) {
-                // prompt user to grant exact alarm
+
                 try {
                     Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
                     intent.setData(android.net.Uri.parse("package:" + getPackageName()));
@@ -192,25 +194,32 @@ public class ClockActivity extends AppCompatActivity {
     }
 
     private void loadAlarms() {
+        int previousPage = currentPage;
         alarms.clear();
         List<ClockAlarmHelper.Alarm> loaded = ClockAlarmHelper.loadAlarms(this);
-        // sort by time
+
         Collections.sort(loaded, (a, b) -> {
             if (a.hour != b.hour) return a.hour - b.hour;
             return a.minute - b.minute;
         });
         alarms.addAll(loaded);
-        // do not add placeholder; adapter handles empty
-        currentPage = 0;
+
+        int totalPages = (int) Math.ceil((double) alarms.size() / itemsPerPage);
+        if (totalPages == 0) totalPages = 1;
+        if (previousPage >= totalPages) previousPage = totalPages - 1;
+        if (previousPage < 0) previousPage = 0;
+        currentPage = previousPage;
+        if (pageNavigator != null) {
+            pageNavigator.setCurrentPage(currentPage);
+            pageNavigator.setTotalItems(alarms.size());
+        }
         if (clockAdapter != null) clockAdapter.notifyDataSetChanged();
         updatePageIndicator();
-        // reschedule all enabled to ensure they are set (in case of time change)
-        // Note: BootReceiver handles reboot, but reload also ensures.
+
     }
 
     private int calculateClockItemsPerPage() {
-        // Fixed two-line item: top row (time | label) + bottom row (days)
-        // Always calculate for the tallest case so pagination is stable regardless of label presence
+
         android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
         float density = dm.density;
         float scaledDensity = dm.scaledDensity;
@@ -237,7 +246,12 @@ public class ClockActivity extends AppCompatActivity {
         if (custom != null) repeatPaint.setTypeface(custom);
         float repeatHeightDp = (repeatPaint.getFontMetrics().bottom - repeatPaint.getFontMetrics().top) / density;
 
-        float itemHeightDp = timeHeightDp + repeatHeightDp + 28; // 20 margins (10+10) + 8 spacing + buffer
+        android.graphics.Paint snoozedPaint = new android.graphics.Paint();
+        snoozedPaint.setTextSize(12 * scaledDensity);
+        if (custom != null) snoozedPaint.setTypeface(custom);
+        float snoozedHeightDp = (snoozedPaint.getFontMetrics().bottom - snoozedPaint.getFontMetrics().top) / density;
+
+        float itemHeightDp = timeHeightDp + repeatHeightDp + snoozedHeightDp + 30;
         int count = (int) (recyclerHeightDp / itemHeightDp);
         return Math.max(1, count);
     }
@@ -257,7 +271,7 @@ public class ClockActivity extends AppCompatActivity {
         bottomBar.setVisibility(View.VISIBLE);
         int totalPages = (int) Math.ceil((double) alarms.size() / itemsPerPage);
         if (totalPages == 0) totalPages = 1;
-        // clamp currentPage
+
         if (currentPage >= totalPages) currentPage = totalPages - 1;
         if (currentPage < 0) currentPage = 0;
         pageIndicator.setText((currentPage + 1) + " / " + totalPages);
@@ -287,7 +301,7 @@ public class ClockActivity extends AppCompatActivity {
 
     private void toggleAlarm(ClockAlarmHelper.Alarm alarm) {
         boolean newEnabled = !alarm.enabled;
-        // check exact alarm permission if enabling
+
         if (newEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             if (am != null && !am.canScheduleExactAlarms()) {
@@ -394,7 +408,7 @@ public class ClockActivity extends AppCompatActivity {
 
             String label = alarm.label != null ? alarm.label.trim() : "";
             String repeat = alarm.getRepeatText();
-            // Layout: top row = time | label (if any), bottom = days only — fixed height regardless of label
+
             if (!label.isEmpty()) {
                 holder.labelView.setText(label);
                 holder.labelView.setVisibility(View.VISIBLE);
@@ -408,25 +422,36 @@ public class ClockActivity extends AppCompatActivity {
             holder.repeatView.setVisibility(View.VISIBLE);
             holder.repeatView.setTextSize(Math.max(12, activity.textSize - 16));
 
+            boolean snoozed = ClockAlarmHelper.isSnoozed(activity, alarm.id);
+            if (snoozed) {
+                long until = ClockAlarmHelper.getSnoozedUntil(activity, alarm.id);
+                String t = ClockAlarmHelper.formatSnoozedUntil(activity, until);
+                holder.snoozedView.setText("Snoozed until " + t);
+                holder.snoozedView.setVisibility(View.VISIBLE);
+                holder.snoozedView.setTextSize(12);
+            } else {
+                holder.snoozedView.setVisibility(View.GONE);
+            }
+
             ThemeUtils.applyTextColor(holder.timeView, theme, activity);
             ThemeUtils.applyTextColor(holder.separatorView, theme, activity);
             ThemeUtils.applyTextColor(holder.labelView, theme, activity);
             ThemeUtils.applyTextColor(holder.repeatView, theme, activity);
+            ThemeUtils.applyTextColor(holder.snoozedView, theme, activity);
             FontHelper.applyToViewTree(activity, holder.itemView);
             LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop, activity.clockSurfaceColor);
 
             holder.toggleView.setText(alarm.enabled ? "ON" : "OFF");
-            // no alpha — pure two colors; bold indicates ON
+
             holder.toggleView.setTypeface(null, alarm.enabled ? Typeface.BOLD : Typeface.NORMAL);
-            // apply border colors via ThemeUtils (ensure correct bg/text for dark/light)
+
             int txt = ThemeUtils.getTextColor(theme, activity);
             int bg = ThemeUtils.getBgColor(theme, activity);
-            // For toggle, we want filled with text color border; use DialogEffectHelper style imitation via ThemeUtils.applyButtonBorder
-            // Instead of recreating drawable each bind, use helper
+
             android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
             drawable.setColor(alarm.enabled ? txt : bg);
             drawable.setStroke((int)(2 * activity.getResources().getDisplayMetrics().density), txt);
-            // corner radius from prefs
+
             int radius = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.getCornerRadiusPx(activity);
             if (radius > 0) drawable.setCornerRadius(radius);
             holder.toggleView.setBackground(drawable);
@@ -434,6 +459,12 @@ public class ClockActivity extends AppCompatActivity {
 
             holder.toggleView.setOnClickListener(v -> activity.toggleAlarm(alarm));
             holder.itemView.setOnClickListener(v -> activity.openEditDialog(alarm));
+            holder.snoozedView.setOnClickListener(v -> {
+                ClockAlarmHelper.clearSnoozed(activity, alarm.id);
+                activity.loadAlarms();
+                EinkRefreshHelper.refreshEink(activity.getWindow(), activity.prefs, activity.prefs.getInt("eink_refresh_delay", 100));
+                Toast.makeText(activity, "Snooze cancelled", Toast.LENGTH_SHORT).show();
+            });
         }
 
         @Override
@@ -449,6 +480,7 @@ public class ClockActivity extends AppCompatActivity {
             TextView separatorView;
             TextView labelView;
             TextView repeatView;
+            TextView snoozedView;
             TextView toggleView;
             ViewHolder(View itemView, boolean isEmpty) {
                 super(itemView);
@@ -457,6 +489,7 @@ public class ClockActivity extends AppCompatActivity {
                 separatorView = itemView.findViewById(R.id.alarm_separator);
                 labelView = itemView.findViewById(R.id.alarm_label);
                 repeatView = itemView.findViewById(R.id.alarm_repeat);
+                snoozedView = itemView.findViewById(R.id.alarm_snoozed);
                 toggleView = itemView.findViewById(R.id.alarm_toggle);
             }
         }

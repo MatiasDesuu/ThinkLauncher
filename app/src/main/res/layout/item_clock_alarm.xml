@@ -9,20 +9,17 @@
     android:background="@android:color/transparent"
     android:gravity="center_vertical"
     android:orientation="horizontal">
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center_horizontal">
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
-
             <TextView
                 android:id="@+id/alarm_time"
                 android:layout_width="wrap_content"
@@ -34,7 +31,6 @@
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="end" />
-
             <TextView
                 android:id="@+id/alarm_separator"
                 android:layout_width="wrap_content"
@@ -46,7 +42,6 @@
                 android:paddingStart="6dp"
                 android:paddingEnd="6dp"
                 android:visibility="gone" />
-
             <TextView
                 android:id="@+id/alarm_label"
                 android:layout_width="wrap_content"
@@ -58,9 +53,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:visibility="gone" />
-
         </LinearLayout>
-
         <TextView
             android:id="@+id/alarm_repeat"
             android:layout_width="wrap_content"
@@ -72,9 +65,20 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:layout_marginTop="2dp" />
-
+        <TextView
+            android:id="@+id/alarm_snoozed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Snoozed until 07:40"
+            android:textColor="?attr/text_color"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
-
     <TextView
         android:id="@+id/alarm_toggle"
         android:layout_width="72dp"
@@ -86,5 +90,4 @@
         android:textStyle="bold"
         android:background="@drawable/button_border"
         android:layout_marginStart="12dp" />
-
 </LinearLayout>
