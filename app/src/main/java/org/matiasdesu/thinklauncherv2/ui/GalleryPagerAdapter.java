@@ -1,14 +1,16 @@
 package org.matiasdesu.thinklauncherv2.ui;
 
+import android.app.Activity;
 import android.content.ContentUris;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,20 +31,43 @@ import java.util.concurrent.ExecutorService;
 
 public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapter.PageViewHolder> {
 
+    public interface FullscreenCallback {
+        void openFullscreen(long videoId, int position, boolean isPlaying);
+    }
+
     private final ArrayList<Long> imageIds;
     private final ArrayList<Integer> mediaTypes;
     private final ExecutorService loadExecutor;
+    private final FullscreenCallback fullscreenCallback;
+    private long pendingVideoId = -1;
+    private int pendingPosition = 0;
+    private boolean pendingIsPlaying = false;
 
     public GalleryPagerAdapter(ArrayList<Long> imageIds, ExecutorService loadExecutor) {
         this.imageIds = imageIds;
         this.mediaTypes = null;
         this.loadExecutor = loadExecutor;
+        this.fullscreenCallback = null;
     }
 
     public GalleryPagerAdapter(ArrayList<Long> imageIds, ArrayList<Integer> mediaTypes, ExecutorService loadExecutor) {
         this.imageIds = imageIds;
         this.mediaTypes = mediaTypes;
         this.loadExecutor = loadExecutor;
+        this.fullscreenCallback = null;
+    }
+
+    public GalleryPagerAdapter(ArrayList<Long> imageIds, ArrayList<Integer> mediaTypes, ExecutorService loadExecutor, FullscreenCallback callback) {
+        this.imageIds = imageIds;
+        this.mediaTypes = mediaTypes;
+        this.loadExecutor = loadExecutor;
+        this.fullscreenCallback = callback;
+    }
+
+    public void setPendingFullscreenResult(long videoId, int position, boolean isPlaying) {
+        pendingVideoId = videoId;
+        pendingPosition = position;
+        pendingIsPlaying = isPlaying;
     }
 
     private int getMediaType(int position) {
@@ -77,7 +102,7 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         holder.recycle();
     }
 
-    static class PageViewHolder extends RecyclerView.ViewHolder {
+    class PageViewHolder extends RecyclerView.ViewHolder {
 
         private final ZoomableImageView imageView;
         private final VideoView videoView;
@@ -87,9 +112,11 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         private final View progressView;
         private final TextView currentTime;
         private final TextView durationTime;
+        private final ImageView fullscreenButton;
         private final Handler handler = new Handler(Looper.getMainLooper());
         private Runnable updateRunnable;
         private boolean isDragging;
+        long currentVideoId = -1;
 
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -101,6 +128,60 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
             progressView = itemView.findViewById(R.id.video_progress);
             currentTime = itemView.findViewById(R.id.video_current_time);
             durationTime = itemView.findViewById(R.id.video_duration);
+            fullscreenButton = itemView.findViewById(R.id.video_fullscreen_button);
+        }
+
+        void restoreFromFullscreen(int position, boolean isPlaying) {
+            if (videoView == null) return;
+            try {
+                int dur = 0;
+                try { dur = videoView.getDuration(); } catch (Exception ignored) {}
+                if (dur <= 0) {
+                    videoView.postDelayed(() -> restoreFromFullscreen(position, isPlaying), 120);
+                    return;
+                }
+                videoView.seekTo(position);
+                if (currentTime != null) currentTime.setText(formatTime(position));
+                if (seekContainer != null && progressView != null) {
+                    if (dur > 0) {
+                        int w = seekContainer.getWidth();
+                        final int fPos = position;
+                        final int fDur = dur;
+                        if (w == 0) {
+                            seekContainer.post(() -> {
+                                int ww = seekContainer.getWidth();
+                                if (ww > 0) {
+                                    float ratio = fPos / (float) fDur;
+                                    ViewGroup.LayoutParams p = progressView.getLayoutParams();
+                                    p.width = (int) (ratio * ww);
+                                    progressView.setLayoutParams(p);
+                                }
+                            });
+                        } else {
+                            float ratio = fPos / (float) fDur;
+                            ViewGroup.LayoutParams p = progressView.getLayoutParams();
+                            p.width = (int) (ratio * w);
+                            progressView.setLayoutParams(p);
+                        }
+                    }
+                    if (durationTime != null && videoView.getDuration() > 0) {
+                        durationTime.setText(formatTime(videoView.getDuration()));
+                    }
+                }
+                if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
+                videoView.setVisibility(View.VISIBLE);
+                final int fPos2 = position;
+                if (isPlaying) {
+                    videoView.start();
+                    playButton.setVisibility(View.GONE);
+                } else {
+                    try { videoView.pause(); } catch (Exception ignored) {}
+                    playButton.setVisibility(View.VISIBLE);
+                    videoView.postDelayed(() -> {
+                        try { videoView.seekTo(fPos2); } catch (Exception ignored) {}
+                    }, 50);
+                }
+            } catch (Exception ignored) {}
         }
 
         private String formatTime(int ms) {
@@ -140,12 +221,38 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         }
 
         void loadVideo(long videoId) {
-            imageView.setVisibility(View.GONE);
+            currentVideoId = videoId;
+            imageView.setVisibility(View.VISIBLE);
             imageView.setImageBitmap(null);
-            videoView.setVisibility(View.VISIBLE);
+            imageView.resetZoom();
+            videoView.setVisibility(View.GONE);
             playButton.setVisibility(View.VISIBLE);
             if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
             if (updateRunnable != null) handler.removeCallbacks(updateRunnable);
+            videoView.stopPlayback();
+            final long thumbId = videoId;
+            try {
+                loadExecutor.execute(() -> {
+                    try {
+                        Bitmap thumb = null;
+                        android.content.Context c = itemView.getContext();
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                            thumb = c.getContentResolver().loadThumbnail(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, thumbId), new android.util.Size(512, 512), null);
+                        } else {
+                            thumb = MediaStore.Video.Thumbnails.getThumbnail(c.getContentResolver(), thumbId, MediaStore.Video.Thumbnails.MINI_KIND, null);
+                        }
+                        if (thumb != null && currentVideoId == thumbId) {
+                            Bitmap finalThumb = thumb;
+                            imageView.post(() -> {
+                                if (currentVideoId == thumbId) {
+                                    imageView.setImageBitmap(finalThumb);
+                                    imageView.resetZoom();
+                                }
+                            });
+                        }
+                    } catch (Exception ignored) {}
+                });
+            } catch (Exception ignored) {}
             try {
                 android.content.Context ctx = itemView.getContext();
                 android.content.SharedPreferences prefs = ctx.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE);
@@ -156,6 +263,11 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                 playButton.setColorFilter(txt);
                 if (currentTime != null) currentTime.setTextColor(txt);
                 if (durationTime != null) durationTime.setTextColor(txt);
+                if (fullscreenButton != null) {
+                    fullscreenButton.setBackground(null);
+                    fullscreenButton.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    fullscreenButton.setColorFilter(txt);
+                }
                 if (videoControls != null) {
                     android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
                     d.setColor(bg);
@@ -246,10 +358,6 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
             };
             handler.post(updateRunnable);
             try {
-                Uri uri = ContentUris.withAppendedId(
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoId);
-                videoView.setVideoURI(uri);
-                videoView.seekTo(1);
                 View.OnClickListener toggle = v -> {
                     if (videoView.isPlaying()) {
                         videoView.pause();
@@ -264,7 +372,61 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                 videoView.setOnPreparedListener(mp -> {
                     int dur = videoView.getDuration();
                     if (durationTime != null) durationTime.setText(formatTime(dur));
-                    if (currentTime != null) currentTime.setText(formatTime(videoView.getCurrentPosition()));
+                    if (pendingVideoId == videoId) {
+                        int pPos = pendingPosition;
+                        boolean pPlay = pendingIsPlaying;
+                        pendingVideoId = -1;
+                        try {
+                            if (pPos >= 0 && pPos < dur) {
+                                videoView.seekTo(pPos);
+                                if (currentTime != null) currentTime.setText(formatTime(pPos));
+                            } else {
+                                if (currentTime != null) currentTime.setText(formatTime(videoView.getCurrentPosition()));
+                            }
+                            if (pPlay) {
+                                videoView.start();
+                                playButton.setVisibility(View.GONE);
+                            } else {
+                                videoView.pause();
+                                playButton.setVisibility(View.VISIBLE);
+                            }
+                            if (seekContainer != null && progressView != null && dur > 0) {
+                                int w = seekContainer.getWidth();
+                                if (w > 0) {
+                                    float ratio = pPos / (float) dur;
+                                    ViewGroup.LayoutParams pp = progressView.getLayoutParams();
+                                    pp.width = (int) (ratio * w);
+                                    progressView.setLayoutParams(pp);
+                                }
+                            }
+                            if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
+                            playButton.setVisibility(pPlay ? View.GONE : View.VISIBLE);
+                            imageView.postDelayed(() -> {
+                                if (currentVideoId == videoId) {
+                                    imageView.setVisibility(View.GONE);
+                                    imageView.setImageBitmap(null);
+                                    videoView.setVisibility(View.VISIBLE);
+                                }
+                            }, 80);
+                        } catch (Exception ignored) {}
+                    } else {
+                        if (currentTime != null) currentTime.setText(formatTime(0));
+                        try { videoView.seekTo(1); } catch (Exception ignored) {}
+                        playButton.setVisibility(View.VISIBLE);
+                        if (seekContainer != null && progressView != null) {
+                            ViewGroup.LayoutParams p = progressView.getLayoutParams();
+                            p.width = 0;
+                            progressView.setLayoutParams(p);
+                        }
+                        if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
+                        imageView.postDelayed(() -> {
+                            if (currentVideoId == videoId) {
+                                imageView.setVisibility(View.GONE);
+                                imageView.setImageBitmap(null);
+                                videoView.setVisibility(View.VISIBLE);
+                            }
+                        }, 80);
+                    }
                 });
                 videoView.setOnCompletionListener(mp -> {
                     playButton.setVisibility(View.VISIBLE);
@@ -275,6 +437,33 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                     }
                     if (currentTime != null && durationTime != null) currentTime.setText(durationTime.getText());
                 });
+                Uri uri = ContentUris.withAppendedId(
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoId);
+                videoView.setVideoURI(uri);
+                if (fullscreenButton != null) {
+                    fullscreenButton.setOnClickListener(v -> {
+                        try {
+                            int pos = 0;
+                            boolean playing = false;
+                            try { pos = videoView.getCurrentPosition(); } catch (Exception ignored) {}
+                            try { playing = videoView.isPlaying(); } catch (Exception ignored) {}
+                            if (fullscreenCallback != null) {
+                                fullscreenCallback.openFullscreen(videoId, pos, playing);
+                            } else {
+                                android.content.Context c = itemView.getContext();
+                                Intent intent = new Intent(c, VideoFullscreenActivity.class);
+                                intent.putExtra("video_id", videoId);
+                                intent.putExtra("position", pos);
+                                intent.putExtra("is_playing", playing);
+                                if (!(c instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                c.startActivity(intent);
+                                if (c instanceof Activity) ((Activity) c).overridePendingTransition(0, 0);
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.e("GalleryPager", "fullscreen launch failed", e);
+                        }
+                    });
+                }
             } catch (Exception e) {
             }
         }
@@ -286,6 +475,8 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
             videoView.setVisibility(View.GONE);
             playButton.setVisibility(View.GONE);
             if (videoControls != null) videoControls.setVisibility(View.GONE);
+            if (fullscreenButton != null) fullscreenButton.setOnClickListener(null);
+            currentVideoId = -1;
             imageView.setVisibility(View.VISIBLE);
         }
 
@@ -302,7 +493,6 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                     cursor.close();
                 }
                 if (filePath == null) return bitmap;
-
                 ExifInterface exif = new ExifInterface(filePath);
                 int orientation = exif.getAttributeInt(
                         ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);

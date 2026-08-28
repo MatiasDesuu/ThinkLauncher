@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
@@ -60,6 +61,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private boolean imageDeleted = false;
     private boolean favoritesChanged = false;
     private ImageView favoriteButton;
+    private static final int REQ_VIDEO_FULLSCREEN = 9001;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -174,7 +176,14 @@ public class GalleryViewerActivity extends AppCompatActivity {
             currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
         }
 
-        adapter = new GalleryPagerAdapter(imageIds, mediaTypes, loadExecutor);
+        adapter = new GalleryPagerAdapter(imageIds, mediaTypes, loadExecutor, (vid, pos, playing) -> {
+            Intent intent = new Intent(this, VideoFullscreenActivity.class);
+            intent.putExtra("video_id", vid);
+            intent.putExtra("position", pos);
+            intent.putExtra("is_playing", playing);
+            startActivityForResult(intent, REQ_VIDEO_FULLSCREEN);
+            overridePendingTransition(0, 0);
+        });
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(currentIndex, false);
 
@@ -419,6 +428,40 @@ public class GalleryViewerActivity extends AppCompatActivity {
         }
         finish();
         overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_VIDEO_FULLSCREEN && resultCode == RESULT_OK && data != null) {
+            long vid = data.getLongExtra("video_id", -1);
+            int pos = data.getIntExtra("position", 0);
+            boolean playing = data.getBooleanExtra("is_playing", false);
+            if (vid != -1) {
+                int targetIdx = -1;
+                if (imageIds != null) {
+                    for (int i = 0; i < imageIds.size(); i++) {
+                        if (imageIds.get(i) == vid) { targetIdx = i; break; }
+                    }
+                }
+                final int idx = targetIdx != -1 ? targetIdx : currentIndex;
+                viewPager.post(() -> {
+                    try {
+                        RecyclerView rv = (RecyclerView) viewPager.getChildAt(0);
+                        RecyclerView.ViewHolder vh = null;
+                        if (rv != null) vh = rv.findViewHolderForAdapterPosition(idx);
+                        if (vh instanceof GalleryPagerAdapter.PageViewHolder) {
+                            ((GalleryPagerAdapter.PageViewHolder) vh).restoreFromFullscreen(pos, playing);
+                        } else {
+                            if (adapter != null) {
+                                adapter.setPendingFullscreenResult(vid, pos, playing);
+                                adapter.notifyItemChanged(idx);
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                });
+            }
+        }
     }
 
     @Override

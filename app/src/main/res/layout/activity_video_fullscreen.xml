@@ -1,33 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00000000">
+    android:background="?attr/background_color">
 
-    <org.matiasdesu.thinklauncherv2.views.ZoomableImageView
-        android:id="@+id/page_image_view"
+    <VideoView
+        android:id="@+id/fullscreen_video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
-    <VideoView
-        android:id="@+id/page_video_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:visibility="gone" />
-
     <ImageView
-        android:id="@+id/page_video_play"
+        android:id="@+id/fullscreen_play"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_gravity="center"
         android:src="@drawable/ic_media_play"
-        android:visibility="gone"
-        android:padding="8dp" />
+        android:padding="8dp"
+        android:visibility="gone" />
 
     <LinearLayout
-        android:id="@+id/video_controls"
+        android:id="@+id/fullscreen_controls"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_gravity="bottom"
@@ -37,12 +31,10 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:visibility="gone"
-        android:background="#00000000">
+        android:paddingRight="8dp">
 
         <TextView
-            android:id="@+id/video_current_time"
+            android:id="@+id/fullscreen_current_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0:00"
@@ -53,7 +45,7 @@
             android:textAlignment="center" />
 
         <FrameLayout
-            android:id="@+id/video_seek_container"
+            android:id="@+id/fullscreen_seek_container"
             android:layout_width="0dp"
             android:layout_height="16dp"
             android:layout_weight="1"
@@ -63,14 +55,14 @@
             android:focusable="false">
 
             <View
-                android:id="@+id/video_progress"
+                android:id="@+id/fullscreen_progress"
                 android:layout_width="0dp"
                 android:layout_height="match_parent" />
 
         </FrameLayout>
 
         <TextView
-            android:id="@+id/video_duration"
+            android:id="@+id/fullscreen_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0:00"
@@ -81,13 +73,13 @@
             android:textAlignment="center" />
 
         <ImageView
-            android:id="@+id/video_fullscreen_button"
+            android:id="@+id/fullscreen_exit_button"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginLeft="8dp"
-            android:src="@drawable/fullscreen"
+            android:src="@drawable/fullscreen_exit"
             android:padding="6dp"
-            android:contentDescription="Fullscreen" />
+            android:contentDescription="Exit fullscreen" />
 
     </LinearLayout>
 

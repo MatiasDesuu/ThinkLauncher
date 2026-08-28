@@ -192,6 +192,12 @@
         <activity
             android:name=".ui.GalleryViewerActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.VideoFullscreenActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>
