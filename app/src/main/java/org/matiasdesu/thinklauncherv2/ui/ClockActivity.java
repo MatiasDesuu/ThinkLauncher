@@ -246,12 +246,7 @@ public class ClockActivity extends AppCompatActivity {
         if (custom != null) repeatPaint.setTypeface(custom);
         float repeatHeightDp = (repeatPaint.getFontMetrics().bottom - repeatPaint.getFontMetrics().top) / density;
 
-        android.graphics.Paint snoozedPaint = new android.graphics.Paint();
-        snoozedPaint.setTextSize(12 * scaledDensity);
-        if (custom != null) snoozedPaint.setTypeface(custom);
-        float snoozedHeightDp = (snoozedPaint.getFontMetrics().bottom - snoozedPaint.getFontMetrics().top) / density;
-
-        float itemHeightDp = timeHeightDp + repeatHeightDp + snoozedHeightDp + 30;
+        float itemHeightDp = timeHeightDp + repeatHeightDp + 28;
         int count = (int) (recyclerHeightDp / itemHeightDp);
         return Math.max(1, count);
     }
@@ -412,11 +407,10 @@ public class ClockActivity extends AppCompatActivity {
             if (!label.isEmpty()) {
                 holder.labelView.setText(label);
                 holder.labelView.setVisibility(View.VISIBLE);
-                holder.separatorView.setVisibility(View.VISIBLE);
-                holder.labelView.setTextSize(Math.max(14, activity.textSize - 12));
+                holder.labelView.setTextSize(activity.textSize);
+                holder.labelView.setTypeface(null, activity.boldText ? Typeface.BOLD : Typeface.NORMAL);
             } else {
                 holder.labelView.setVisibility(View.GONE);
-                holder.separatorView.setVisibility(View.GONE);
             }
             holder.repeatView.setText(repeat);
             holder.repeatView.setVisibility(View.VISIBLE);
@@ -424,9 +418,7 @@ public class ClockActivity extends AppCompatActivity {
 
             boolean snoozed = ClockAlarmHelper.isSnoozed(activity, alarm.id);
             if (snoozed) {
-                long until = ClockAlarmHelper.getSnoozedUntil(activity, alarm.id);
-                String t = ClockAlarmHelper.formatSnoozedUntil(activity, until);
-                holder.snoozedView.setText("Snoozed until " + t);
+                holder.snoozedView.setText("Snoozed");
                 holder.snoozedView.setVisibility(View.VISIBLE);
                 holder.snoozedView.setTextSize(12);
             } else {
@@ -434,10 +426,22 @@ public class ClockActivity extends AppCompatActivity {
             }
 
             ThemeUtils.applyTextColor(holder.timeView, theme, activity);
-            ThemeUtils.applyTextColor(holder.separatorView, theme, activity);
             ThemeUtils.applyTextColor(holder.labelView, theme, activity);
             ThemeUtils.applyTextColor(holder.repeatView, theme, activity);
-            ThemeUtils.applyTextColor(holder.snoozedView, theme, activity);
+            if (snoozed) {
+                int sTxt = ThemeUtils.getTextColor(theme, activity);
+                int sBg = ThemeUtils.getBgColor(theme, activity);
+                android.graphics.drawable.GradientDrawable sd = new android.graphics.drawable.GradientDrawable();
+                sd.setColor(sTxt);
+                sd.setStroke((int)(2 * activity.getResources().getDisplayMetrics().density), sTxt);
+                int sr = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.getCornerRadiusPx(activity);
+                if (sr > 0) sd.setCornerRadius(sr);
+                holder.snoozedView.setBackground(sd);
+                holder.snoozedView.setTextColor(sBg);
+                holder.snoozedView.setTypeface(null, Typeface.BOLD);
+            } else {
+                ThemeUtils.applyTextColor(holder.snoozedView, theme, activity);
+            }
             FontHelper.applyToViewTree(activity, holder.itemView);
             LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop, activity.clockSurfaceColor);
 
@@ -477,7 +481,6 @@ public class ClockActivity extends AppCompatActivity {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView timeView;
-            TextView separatorView;
             TextView labelView;
             TextView repeatView;
             TextView snoozedView;
@@ -486,7 +489,6 @@ public class ClockActivity extends AppCompatActivity {
                 super(itemView);
                 if (isEmpty) return;
                 timeView = itemView.findViewById(R.id.alarm_time);
-                separatorView = itemView.findViewById(R.id.alarm_separator);
                 labelView = itemView.findViewById(R.id.alarm_label);
                 repeatView = itemView.findViewById(R.id.alarm_repeat);
                 snoozedView = itemView.findViewById(R.id.alarm_snoozed);

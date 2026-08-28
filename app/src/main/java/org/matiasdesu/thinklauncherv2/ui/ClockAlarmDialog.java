@@ -13,6 +13,7 @@ import org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.RepeatListener;
+import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 public class ClockAlarmDialog extends Dialog {
 
@@ -66,6 +67,8 @@ public class ClockAlarmDialog extends Dialog {
 
         hourValue = findViewById(R.id.hour_value);
         minuteValue = findViewById(R.id.minute_value);
+        TextView hourLabel = findViewById(R.id.hour_label);
+        TextView minuteLabel = findViewById(R.id.minute_label);
         TextView btnHourMinus = findViewById(R.id.btn_hour_minus);
         TextView btnHourPlus = findViewById(R.id.btn_hour_plus);
         TextView btnMinuteMinus = findViewById(R.id.btn_minute_minus);
@@ -75,6 +78,10 @@ public class ClockAlarmDialog extends Dialog {
         TextView btnSave = findViewById(R.id.btn_save);
         TextView btnDelete = findViewById(R.id.btn_delete);
 
+        ThemeUtils.applyTextColor(hourLabel, theme, getContext());
+        ThemeUtils.applyTextColor(minuteLabel, theme, getContext());
+        ThemeUtils.applyTextColor(hourValue, theme, getContext());
+        ThemeUtils.applyTextColor(minuteValue, theme, getContext());
         DialogEffectHelper.applyButtonTheme(btnHourMinus, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(btnHourPlus, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(btnMinuteMinus, theme, getContext(), surfaceColor);

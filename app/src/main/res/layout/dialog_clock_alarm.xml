@@ -15,6 +15,7 @@
         android:gravity="center_vertical"
         android:layout_marginBottom="8dp">
         <TextView
+            android:id="@+id/hour_label"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="Hour"
@@ -59,6 +60,7 @@
         android:gravity="center_vertical"
         android:layout_marginBottom="12dp">
         <TextView
+            android:id="@+id/minute_label"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="Minute"
