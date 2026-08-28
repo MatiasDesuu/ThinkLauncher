@@ -991,6 +991,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     private void updateSelectionUI() {
         if (titleView == null) return;
+        ImageView backButton = findViewById(R.id.back_button);
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
         ImageView selTrash = findViewById(R.id.selection_trash_button);
         ImageView selFav = findViewById(R.id.selection_favorite_button);
@@ -998,6 +999,11 @@ public class GalleryActivity extends AppCompatActivity {
         View bottomDivider = findViewById(R.id.bottom_divider);
         if (isSelectionMode) {
             titleView.setText(selectedKeys.size() + " selected");
+            if (backButton != null) {
+                backButton.setImageResource(R.drawable.cancel);
+                backButton.setContentDescription("Close selection");
+                backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            }
             if (toggleButton != null) toggleButton.setVisibility(View.GONE);
             if (selTrash != null) {
                 selTrash.setVisibility(View.VISIBLE);
@@ -1017,6 +1023,11 @@ public class GalleryActivity extends AppCompatActivity {
         } else {
             updateTitle();
             updateFolderButtonIcon();
+            if (backButton != null) {
+                backButton.setImageResource(R.drawable.back_arrow);
+                backButton.setContentDescription("Back");
+                backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            }
             if (toggleButton != null) {
                 toggleButton.setVisibility(View.VISIBLE);
                 toggleButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
