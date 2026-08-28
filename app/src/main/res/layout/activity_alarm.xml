@@ -50,25 +50,27 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:gravity="center"
             android:layout_marginTop="32dp">
             <TextView
                 android:id="@+id/btn_snooze"
                 style="@style/DialogButton"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="64dp"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:text="Snooze"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:padding="16dp"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginEnd="8dp" />
             <TextView
                 android:id="@+id/btn_dismiss"
                 style="@style/DialogButton"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="64dp"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:text="Dismiss"
                 android:textSize="20sp"
