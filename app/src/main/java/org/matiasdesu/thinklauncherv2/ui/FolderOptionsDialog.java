@@ -56,6 +56,13 @@ public class FolderOptionsDialog extends Dialog {
             dismiss();
         });
 
+        TextView reorderButton = findViewById(R.id.reorder_button);
+        DialogEffectHelper.applyButtonTheme(reorderButton, theme, getContext(), surfaceColor);
+        reorderButton.setOnClickListener(v -> {
+            reorderCallback.onReorder();
+            dismiss();
+        });
+
         TextView sortButton = findViewById(R.id.sort_button);
         DialogEffectHelper.applyButtonTheme(sortButton, theme, getContext(), surfaceColor);
         
@@ -70,10 +77,27 @@ public class FolderOptionsDialog extends Dialog {
         
         sortButton.setOnClickListener(v -> {
             toggleSortCallback.onToggleSort();
-            dismiss();
+            sortMode = (sortMode + 1) % 3;
+            if (sortMode == 0) {
+                sortButton.setText("Sort: Added");
+            } else if (sortMode == 1) {
+                sortButton.setText("Sort: Alphabetical");
+            } else {
+                sortButton.setText("Sort: Custom");
+            }
+            if (sortMode == 2) {
+                reorderButton.setVisibility(View.VISIBLE);
+                DialogEffectHelper.applyButtonTheme(reorderButton, theme, getContext(), surfaceColor);
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) sortButton.getLayoutParams();
+                params.bottomMargin = (int) (8 * getContext().getResources().getDisplayMetrics().density);
+                sortButton.setLayoutParams(params);
+            } else {
+                reorderButton.setVisibility(View.GONE);
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) sortButton.getLayoutParams();
+                params.bottomMargin = 0;
+                sortButton.setLayoutParams(params);
+            }
         });
-
-        TextView reorderButton = findViewById(R.id.reorder_button);
         if (sortMode == 2) {
             reorderButton.setVisibility(View.VISIBLE);
             DialogEffectHelper.applyButtonTheme(reorderButton, theme, getContext(), surfaceColor);

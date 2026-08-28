@@ -73,50 +73,50 @@ public class CalendarOptionsDialog extends Dialog {
         accountButton.setOnClickListener(v -> {
             showAccount = !showAccount;
             prefs.edit().putBoolean("calendar_show_account", showAccount).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
 
         eventLimitButton.setOnClickListener(v -> {
             eventLimit = getNextEventLimit(eventLimit);
             prefs.edit().putInt("calendar_event_limit", eventLimit).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
 
         todayHighlightButton.setOnClickListener(v -> {
             highlightToday = !highlightToday;
             prefs.edit().putBoolean("calendar_highlight_today", highlightToday).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
 
         monthSeparatorsButton.setOnClickListener(v -> {
             showMonthSeparators = !showMonthSeparators;
             prefs.edit().putBoolean("calendar_month_separators", showMonthSeparators).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
 
         daySeparatorsButton.setOnClickListener(v -> {
             showDaySeparators = !showDaySeparators;
             prefs.edit().putBoolean("calendar_day_separators", showDaySeparators).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
 
         timeHighlightButton.setOnClickListener(v -> {
             highlightEventTimes = !highlightEventTimes;
             prefs.edit().putBoolean("calendar_highlight_event_times", highlightEventTimes).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
 
         styleButton.setOnClickListener(v -> {
             highlightStyle = (highlightStyle + 1) % 3;
             prefs.edit().putInt("calendar_highlight_style", highlightStyle).apply();
+            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
-            dismiss();
         });
     }
 

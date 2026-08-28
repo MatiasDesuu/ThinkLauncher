@@ -58,7 +58,8 @@ public class GalleryFolderOptionsDialog extends Dialog {
         DialogEffectHelper.applyButtonTheme(pinButton, theme, getContext(), surfaceColor);
         pinButton.setText(isPinned ? "Unpin" : "Pin to top");
         pinButton.setOnClickListener(v -> {
-            dismiss();
+            boolean currentlyPinned = pinButton.getText().toString().equals("Unpin");
+            pinButton.setText(currentlyPinned ? "Pin to top" : "Unpin");
             if (pinCallback != null) pinCallback.onPinToggle();
         });
 
