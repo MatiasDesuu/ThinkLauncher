@@ -183,6 +183,20 @@ public class GalleryActivity extends AppCompatActivity {
             selFav.setOnClickListener(v -> handleBatchFavorite());
         }
 
+        titleView.setOnLongClickListener(v -> {
+            if (isSelectionMode) {
+                exitSelectionMode();
+                return true;
+            }
+            if (scrollAppList) {
+                if (recyclerView != null) {
+                    recyclerView.scrollToPosition(0);
+                    EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                }
+                return true;
+            }
+            return false;
+        });
         titleView.setOnClickListener(v -> {
             if (isSelectionMode) {
                 exitSelectionMode();
