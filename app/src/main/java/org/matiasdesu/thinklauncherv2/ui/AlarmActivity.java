@@ -12,17 +12,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
-import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
 public class AlarmActivity extends AppCompatActivity {
 
     private int alarmId = -1;
-    private LauncherBackdropHelper.Result backdrop = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +30,22 @@ public class AlarmActivity extends AppCompatActivity {
         int theme = prefs.getInt("theme", 0);
         boolean opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         boolean disableAlarmWallpaper = prefs.getBoolean("alarm_disable_wallpaper", true);
-        setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
+        setTheme(org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
+
+        if (disableAlarmWallpaper) {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(ThemeUtils.getBgColor(theme, this));
+                getWindow().setNavigationBarColor(ThemeUtils.getBgColor(theme, this));
+            }
+        } else {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+                getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+            }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
@@ -49,18 +63,37 @@ public class AlarmActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_alarm);
 
+        View contentLayout = findViewById(R.id.content_layout);
+        int defaultPadding = (int) (24 * getResources().getDisplayMetrics().density);
+        if (contentLayout != null) {
+            contentLayout.setPadding(defaultPadding, defaultPadding, defaultPadding, defaultPadding);
+        }
+
+        ImageView wallpaperView = findViewById(R.id.wallpaper_view);
+        int surfaceColor = ThemeUtils.getBgColor(theme, this);
+        View root = findViewById(android.R.id.content);
+        if (root != null) {
+            root.setBackgroundColor(disableAlarmWallpaper ? surfaceColor : android.graphics.Color.TRANSPARENT);
+        }
+        if (contentLayout != null) {
+            contentLayout.setBackgroundColor(disableAlarmWallpaper ? surfaceColor : android.graphics.Color.TRANSPARENT);
+        }
+
         if (disableAlarmWallpaper) {
-            View root = findViewById(android.R.id.content);
-            if (root != null) {
-                root.setBackgroundColor(ThemeUtils.getBgColor(theme, this));
-            }
-            ImageView wallpaperView = findViewById(R.id.wallpaper_view);
             if (wallpaperView != null) {
                 wallpaperView.setVisibility(View.GONE);
             }
-            backdrop = null;
         } else {
-            backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+            if (wallpaperView != null) {
+                int[] screen = WallpaperHelper.getScreenDimensions(this);
+                android.graphics.Bitmap bitmap = WallpaperHelper.getWallpaperForScreenCached(this, screen[0], screen[1], false, 3);
+                if (bitmap != null) {
+                    wallpaperView.setImageBitmap(bitmap);
+                    wallpaperView.setVisibility(View.VISIBLE);
+                } else {
+                    wallpaperView.setVisibility(View.GONE);
+                }
+            }
         }
 
         View divider = findViewById(R.id.divider);
@@ -95,7 +128,7 @@ public class AlarmActivity extends AppCompatActivity {
         ThemeUtils.applyTextColor(repeatView, theme, this);
         FontHelper.applyToViewTree(this, findViewById(android.R.id.content));
 
-        int surface = backdrop != null ? backdrop.surfaceColor : ThemeUtils.getBgColor(theme, this);
+        int surface = ThemeUtils.getBgColor(theme, this);
         org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(snoozeBtn, theme, this, surface);
         org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(dismissBtn, theme, this, surface);
         int txt = ThemeUtils.getTextColor(theme, this);

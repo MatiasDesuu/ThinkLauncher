@@ -122,6 +122,8 @@ public final class LauncherBackdropHelper {
                     return insets;
                 }
                 if (showWallpaperBackdropRef.get()) {
+                    int leftPad = finalContentLayout.getPaddingLeft();
+                    int rightPad = finalContentLayout.getPaddingRight();
                     int topInset;
                     int bottomInset;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -131,7 +133,7 @@ public final class LauncherBackdropHelper {
                         topInset = insets.getSystemWindowInsetTop();
                         bottomInset = insets.getSystemWindowInsetBottom();
                     }
-                    finalContentLayout.setPadding(0, topInset, 0, bottomInset);
+                    finalContentLayout.setPadding(leftPad, topInset, rightPad, bottomInset);
                 } else {
                     finalContentLayout.setPadding(0, 0, 0, 0);
                 }
