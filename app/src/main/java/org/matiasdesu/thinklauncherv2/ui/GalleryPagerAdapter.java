@@ -210,7 +210,7 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                 try {
                     Bitmap thumb = null;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                        thumb = itemView.getContext().getContentResolver().loadThumbnail(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, targetId), new android.util.Size(512, 512), null);
+                        thumb = itemView.getContext().getContentResolver().loadThumbnail(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, targetId), new android.util.Size(1024, 1024), null);
                     } else {
                         thumb = MediaStore.Images.Thumbnails.getThumbnail(itemView.getContext().getContentResolver(), targetId, MediaStore.Images.Thumbnails.MINI_KIND, null);
                     }
@@ -219,7 +219,9 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                         imageView.post(() -> {
                             if (currentImageId == targetId) {
                                 imageView.setImageBitmap(finalThumb);
-                                imageView.resetZoom();
+                                imageView.post(() -> {
+                                    if (currentImageId == targetId) imageView.resetZoom();
+                                });
                             }
                         });
                     }
@@ -236,7 +238,9 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                         imageView.post(() -> {
                             if (currentImageId == targetId) {
                                 imageView.setImageBitmap(bitmap);
-                                imageView.resetZoom();
+                                imageView.post(() -> {
+                                    if (currentImageId == targetId) imageView.resetZoom();
+                                });
                             }
                         });
                     }
@@ -262,7 +266,7 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                         Bitmap thumb = null;
                         android.content.Context c = itemView.getContext();
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                            thumb = c.getContentResolver().loadThumbnail(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, thumbId), new android.util.Size(512, 512), null);
+                            thumb = c.getContentResolver().loadThumbnail(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, thumbId), new android.util.Size(1024, 1024), null);
                         } else {
                             thumb = MediaStore.Video.Thumbnails.getThumbnail(c.getContentResolver(), thumbId, MediaStore.Video.Thumbnails.MINI_KIND, null);
                         }
@@ -271,7 +275,9 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                             imageView.post(() -> {
                                 if (currentVideoId == thumbId) {
                                     imageView.setImageBitmap(finalThumb);
-                                    imageView.resetZoom();
+                                    imageView.post(() -> {
+                                        if (currentVideoId == thumbId) imageView.resetZoom();
+                                    });
                                 }
                             });
                         }
