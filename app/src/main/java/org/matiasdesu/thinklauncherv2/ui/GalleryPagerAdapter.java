@@ -117,6 +117,7 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         private Runnable updateRunnable;
         private boolean isDragging;
         long currentVideoId = -1;
+        long currentImageId = -1;
 
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -194,34 +195,58 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         }
 
         void loadImage(long imageId, ExecutorService executor) {
+            currentImageId = imageId;
+            currentVideoId = -1;
             videoView.setVisibility(View.GONE);
             playButton.setVisibility(View.GONE);
             if (videoControls != null) videoControls.setVisibility(View.GONE);
             if (updateRunnable != null) handler.removeCallbacks(updateRunnable);
             videoView.stopPlayback();
             imageView.setVisibility(View.VISIBLE);
+            imageView.setImageBitmap(null);
+            imageView.resetZoom();
+            final long targetId = imageId;
             executor.execute(() -> {
                 try {
+                    Bitmap thumb = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        thumb = itemView.getContext().getContentResolver().loadThumbnail(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, targetId), new android.util.Size(512, 512), null);
+                    } else {
+                        thumb = MediaStore.Images.Thumbnails.getThumbnail(itemView.getContext().getContentResolver(), targetId, MediaStore.Images.Thumbnails.MINI_KIND, null);
+                    }
+                    if (thumb != null && currentImageId == targetId) {
+                        Bitmap finalThumb = thumb;
+                        imageView.post(() -> {
+                            if (currentImageId == targetId) {
+                                imageView.setImageBitmap(finalThumb);
+                                imageView.resetZoom();
+                            }
+                        });
+                    }
+                } catch (Exception ignored) {}
+                try {
                     Uri uri = ContentUris.withAppendedId(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageId);
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, targetId);
                     Bitmap rawBitmap = BitmapFactory.decodeStream(
                             itemView.getContext().getContentResolver().openInputStream(uri));
                     final Bitmap bitmap = (rawBitmap != null)
                             ? applyExifOrientation(itemView.getContext(), uri, rawBitmap)
                             : null;
-                    if (bitmap != null) {
+                    if (bitmap != null && currentImageId == targetId) {
                         imageView.post(() -> {
-                            imageView.setImageBitmap(bitmap);
-                            imageView.resetZoom();
+                            if (currentImageId == targetId) {
+                                imageView.setImageBitmap(bitmap);
+                                imageView.resetZoom();
+                            }
                         });
                     }
-                } catch (Exception e) {
-                }
+                } catch (Exception ignored) {}
             });
         }
 
         void loadVideo(long videoId) {
             currentVideoId = videoId;
+            currentImageId = -1;
             imageView.setVisibility(View.VISIBLE);
             imageView.setImageBitmap(null);
             imageView.resetZoom();
@@ -477,6 +502,7 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
             if (videoControls != null) videoControls.setVisibility(View.GONE);
             if (fullscreenButton != null) fullscreenButton.setOnClickListener(null);
             currentVideoId = -1;
+            currentImageId = -1;
             imageView.setVisibility(View.VISIBLE);
         }
 
