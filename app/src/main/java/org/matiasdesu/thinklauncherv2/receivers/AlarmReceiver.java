@@ -39,49 +39,49 @@ public class AlarmReceiver extends BroadcastReceiver {
             org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper.clearSnoozed(context, alarmId);
         }
 
-        ensureChannel(context);
-
-        Intent fullScreenIntent = new Intent(context, AlarmActivity.class);
-        fullScreenIntent.putExtra("alarm_id", alarmId);
-        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
-        PendingIntent fullScreenPi = PendingIntent.getActivity(context, alarmId + 900000, fullScreenIntent, flags);
-
-        Intent openIntent = new Intent(context, ClockActivity.class);
-        openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent contentPi = PendingIntent.getActivity(context, alarmId, openIntent, flags);
-
-        Intent dismissIntent = new Intent(context, AlarmDismissReceiver.class);
-        dismissIntent.putExtra("alarm_id", alarmId);
-        dismissIntent.putExtra("notif_id", alarmId);
-        PendingIntent dismissPi = PendingIntent.getBroadcast(context, alarmId + 100000, dismissIntent, flags);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.time)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setAutoCancel(true)
-                .setOngoing(true)
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentIntent(contentPi)
-                .setFullScreenIntent(fullScreenPi, true)
-                .addAction(0, "Dismiss", dismissPi);
-
-        Intent snoozeIntent = new Intent(context, AlarmSnoozeReceiver.class);
-        snoozeIntent.putExtra("alarm_id", alarmId);
-        snoozeIntent.putExtra("notif_id", alarmId);
-        PendingIntent snoozePi = PendingIntent.getBroadcast(context, alarmId + 200000, snoozeIntent, flags);
-        builder.addAction(0, "Snooze 10m", snoozePi);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            builder.setVibrate(new long[]{0, 500, 500, 500});
+        Intent serviceIntent = new Intent(context, org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.class);
+        serviceIntent.setAction(org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.ACTION_START);
+        serviceIntent.putExtra("alarm_id", alarmId);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(serviceIntent);
+            else context.startService(serviceIntent);
+        } catch (Exception ignored) {
+            ensureChannel(context);
+            Intent fullScreenIntent = new Intent(context, AlarmActivity.class);
+            fullScreenIntent.putExtra("alarm_id", alarmId);
+            fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags |= PendingIntent.FLAG_IMMUTABLE;
+            PendingIntent fullScreenPi = PendingIntent.getActivity(context, alarmId + 900000, fullScreenIntent, flags);
+            Intent openIntent = new Intent(context, ClockActivity.class);
+            openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent contentPi = PendingIntent.getActivity(context, alarmId, openIntent, flags);
+            Intent dismissIntent = new Intent(context, AlarmDismissReceiver.class);
+            dismissIntent.putExtra("alarm_id", alarmId);
+            dismissIntent.putExtra("notif_id", alarmId);
+            PendingIntent dismissPi = PendingIntent.getBroadcast(context, alarmId + 100000, dismissIntent, flags);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.time)
+                    .setContentTitle(title)
+                    .setContentText(text)
+                    .setAutoCancel(true)
+                    .setOngoing(true)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setContentIntent(contentPi)
+                    .setFullScreenIntent(fullScreenPi, true)
+                    .addAction(0, "Dismiss", dismissPi);
+            Intent snoozeIntent = new Intent(context, AlarmSnoozeReceiver.class);
+            snoozeIntent.putExtra("alarm_id", alarmId);
+            snoozeIntent.putExtra("notif_id", alarmId);
+            PendingIntent snoozePi = PendingIntent.getBroadcast(context, alarmId + 200000, snoozeIntent, flags);
+            builder.addAction(0, "Snooze 10m", snoozePi);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) builder.setVibrate(new long[]{0, 500, 500, 500});
+            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.notify(alarmId != -1 ? alarmId : 0, builder.build());
+            try { context.startActivity(fullScreenIntent); } catch (Exception e2) {}
         }
-
-        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.notify(alarmId != -1 ? alarmId : 0, builder.build());
 
         if (!isSnooze && alarm != null && alarm.hasRepeat()) {
             org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper.rescheduleAfterFired(context, alarmId);

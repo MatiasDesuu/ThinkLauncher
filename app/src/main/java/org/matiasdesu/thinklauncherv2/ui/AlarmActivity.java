@@ -2,16 +2,10 @@ package org.matiasdesu.thinklauncherv2.ui;
 
 import android.app.KeyguardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.AudioAttributes;
-import android.media.MediaPlayer;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
-import android.os.VibratorManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -26,8 +20,6 @@ import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 public class AlarmActivity extends AppCompatActivity {
 
-    private MediaPlayer mediaPlayer;
-    private Vibrator vibrator;
     private int alarmId = -1;
 
     @Override
@@ -93,75 +85,20 @@ public class AlarmActivity extends AppCompatActivity {
 
         snoozeBtn.setOnClickListener(v -> doSnooze());
         dismissBtn.setOnClickListener(v -> doDismiss());
-
-        startAlarmSoundAndVibration();
     }
 
-    private void startAlarmSoundAndVibration() {
-
+    private void stopServiceSound() {
         try {
-            Uri toneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-            if (toneUri == null) toneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-            if (toneUri == null) toneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            if (toneUri != null) {
-                mediaPlayer = new MediaPlayer();
-                mediaPlayer.setDataSource(this, toneUri);
-                mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ALARM)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build());
-                mediaPlayer.setLooping(true);
-                mediaPlayer.prepare();
-                mediaPlayer.start();
-            }
-        } catch (Exception e) {
-
-            try {
-                if (mediaPlayer != null) { mediaPlayer.release(); mediaPlayer = null; }
-                Uri fallback = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                if (fallback != null) {
-                    mediaPlayer = MediaPlayer.create(this, fallback);
-                    if (mediaPlayer != null) {
-                        mediaPlayer.setLooping(true);
-                        mediaPlayer.start();
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                VibratorManager vm = (VibratorManager) getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
-                if (vm != null) vibrator = vm.getDefaultVibrator();
-            } else {
-                vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            }
-            if (vibrator != null && vibrator.hasVibrator()) {
-                long[] pattern = new long[]{0, 500, 500, 500, 500};
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
-                } else {
-                    vibrator.vibrate(pattern, 0);
-                }
-            }
+            Intent si = new Intent(this, org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.class);
+            si.setAction(org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.ACTION_STOP);
+            si.putExtra("alarm_id", alarmId);
+            startService(si);
         } catch (Exception ignored) {}
-    }
-
-    private void stopSoundAndVibration() {
-        try {
-            if (mediaPlayer != null) {
-                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
-            }
-        } catch (Exception ignored) {}
-        try {
-            if (vibrator != null) vibrator.cancel();
-        } catch (Exception ignored) {}
+        try { stopService(new Intent(this, org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.class)); } catch (Exception ignored) {}
     }
 
     private void doSnooze() {
-        stopSoundAndVibration();
+        stopServiceSound();
         try { android.widget.Toast.makeText(this, "Snoozed 10 minutes", android.widget.Toast.LENGTH_SHORT).show(); } catch (Exception ignored) {}
         if (alarmId != -1) {
             android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -193,7 +130,7 @@ public class AlarmActivity extends AppCompatActivity {
     }
 
     private void doDismiss() {
-        stopSoundAndVibration();
+        stopServiceSound();
         if (alarmId != -1) {
             android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm != null) nm.cancel(alarmId);
@@ -206,7 +143,6 @@ public class AlarmActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopSoundAndVibration();
     }
 
     @Override
