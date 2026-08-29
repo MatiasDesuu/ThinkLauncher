@@ -1947,6 +1947,8 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         BigmeShims.queryLauncherProvider(this);
         setContentView(R.layout.activity_main);
 
+        WallpaperHelper.warmCacheAsync(this);
+
         handler = new Handler(Looper.getMainLooper());
 
         int bgColor = ThemeUtils.getBgColor(theme, this);

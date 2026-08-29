@@ -27,6 +27,12 @@ public class WallpaperHelper {
         }
     };
 
+    private static final java.util.concurrent.ExecutorService WALLPAPER_EXECUTOR = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "TL-WallpaperHelper");
+        t.setPriority(Thread.MIN_PRIORITY);
+        return t;
+    });
+
     private static int getDefaultCacheSize() {
         int maxKb = (int) (Runtime.getRuntime().maxMemory() / 1024);
         return (maxKb / 16) * 1024; // 1/16th of heap in bytes
@@ -524,6 +530,24 @@ public class WallpaperHelper {
         }
     }
 
+    public static void warmCacheAsync(Context context) {
+        if (!hasWallpaper(context)) return;
+        WALLPAPER_EXECUTOR.execute(() -> {
+            try {
+                SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+                boolean blurEnabled = prefs.getInt("app_launcher_bg_blur_enabled", 0) == 1;
+                int blurStrength = prefs.getInt("app_launcher_bg_blur_strength", 3);
+                int[] dims = getScreenDimensions(context);
+                getWallpaperForScreenCached(context, dims[0], dims[1], blurEnabled, blurStrength);
+                if (blurEnabled) {
+                    getWallpaperForScreenCached(context, dims[0], dims[1], false, 3);
+                } else {
+                    getWallpaperForScreenCached(context, dims[0], dims[1], true, blurStrength);
+                }
+            } catch (Exception ignored) {}
+        });
+    }
+
     public static int applyOpacity(int color, int opacityPercent) {
         int clamped = Math.max(0, Math.min(opacityPercent, 100));
         int alpha = Math.round(255f * clamped / 100f);
@@ -531,12 +555,21 @@ public class WallpaperHelper {
     }
 
     /**
-     * Get screen dimensions
+     * Get screen dimensions (real display size, matching window with decorFits false)
      */
     public static int[] getScreenDimensions(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(metrics);
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                android.view.WindowMetrics wm2 = wm.getCurrentWindowMetrics();
+                android.graphics.Rect bounds = wm2.getBounds();
+                return new int[]{bounds.width(), bounds.height()};
+            }
+            wm.getDefaultDisplay().getRealMetrics(metrics);
+        } catch (Exception e) {
+            wm.getDefaultDisplay().getMetrics(metrics);
+        }
         return new int[]{metrics.widthPixels, metrics.heightPixels};
     }
 }

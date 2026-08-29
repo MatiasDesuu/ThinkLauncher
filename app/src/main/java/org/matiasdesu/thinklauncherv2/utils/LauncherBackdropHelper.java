@@ -77,8 +77,8 @@ public final class LauncherBackdropHelper {
         if (opacityEnabled) {
             surfaceColor = WallpaperHelper.applyOpacity(surfaceColor,
                     prefs.getInt("app_launcher_bg_opacity", 100));
-            activity.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
+        activity.getWindow().setBackgroundDrawable(new ColorDrawable(surfaceColor));
 
         boolean showWallpaperBackdrop = opacityEnabled && WallpaperHelper.hasWallpaper(activity);
         final AtomicBoolean showWallpaperBackdropRef = new AtomicBoolean(showWallpaperBackdrop);
@@ -158,6 +158,25 @@ public final class LauncherBackdropHelper {
             final View finalBackdropRoot = backdropRoot;
             final View finalRoot = root;
 
+            Runnable applyWallpaperMode = () -> {
+                Activity a = activityRef.get();
+                if (a == null) return;
+                if (a.isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && a.isDestroyed())) return;
+                a.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                WindowCompat.setDecorFitsSystemWindows(a.getWindow(), false);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    a.getWindow().setStatusBarColor(Color.TRANSPARENT);
+                    a.getWindow().setNavigationBarColor(Color.TRANSPARENT);
+                }
+                View br = a.findViewById(R.id.root_layout);
+                View rt = a.findViewById(android.R.id.content);
+                applySurfaceBackground(br, true, finalSurfaceColor);
+                applySurfaceBackground(rt, true, finalSurfaceColor);
+                ImageView iv = wallpaperViewRef.get();
+                if (iv != null) iv.setVisibility(View.VISIBLE);
+                if (br != null) br.requestApplyInsets();
+            };
+
             Runnable loadWithCurrentDimensions = () -> {
                 Activity act = activityRef.get();
                 ImageView iv = wallpaperViewRef.get();
@@ -183,10 +202,9 @@ public final class LauncherBackdropHelper {
                     act.runOnUiThread(() -> {
                         ImageView iv2 = wallpaperViewRef.get();
                         if (iv2 == null) return;
+                        if (act.isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && act.isDestroyed())) return;
                         iv2.setImageBitmap(cached);
-                        iv2.setVisibility(View.VISIBLE);
-                        applySurfaceBackground(finalBackdropRoot, true, finalSurfaceColor);
-                        applySurfaceBackground(finalRoot, true, finalSurfaceColor);
+                        applyWallpaperMode.run();
                     });
                 } else {
                     WALLPAPER_EXECUTOR.execute(() -> {
@@ -200,11 +218,7 @@ public final class LauncherBackdropHelper {
                             if (a.isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && a.isDestroyed())) return;
                             if (wallpaper != null) {
                                 iv3.setImageBitmap(wallpaper);
-                                iv3.setVisibility(View.VISIBLE);
-                                View br2 = a.findViewById(R.id.root_layout);
-                                View rt2 = a.findViewById(android.R.id.content);
-                                applySurfaceBackground(br2, true, finalSurfaceColor);
-                                applySurfaceBackground(rt2, true, finalSurfaceColor);
+                                applyWallpaperMode.run();
                             } else {
                                 showWallpaperBackdropRef.set(false);
                                 View br2 = a.findViewById(R.id.root_layout);
@@ -214,11 +228,6 @@ public final class LauncherBackdropHelper {
                                 }
                                 View rt2 = a.findViewById(android.R.id.content);
                                 if (rt2 != null) rt2.setBackgroundColor(finalSurfaceColor);
-                                WindowCompat.setDecorFitsSystemWindows(a.getWindow(), true);
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                    a.getWindow().setStatusBarColor(finalSurfaceColor);
-                                    a.getWindow().setNavigationBarColor(finalSurfaceColor);
-                                }
                             }
                         });
                     });
