@@ -147,13 +147,14 @@ public class ClockAlarmDialog extends Dialog {
 
         android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
         int textColor = org.matiasdesu.thinklauncherv2.utils.ThemeUtils.getTextColor(theme, getContext());
+        int bgColor = org.matiasdesu.thinklauncherv2.utils.ThemeUtils.getBgColor(theme, getContext());
         drawable.setColor(selected ? textColor : surfaceColor);
         drawable.setStroke((int) (2 * getContext().getResources().getDisplayMetrics().density), textColor);
         DialogEffectHelper.applyCornerRadius(drawable, getContext());
         int padding = (int) (4 * getContext().getResources().getDisplayMetrics().density);
         tv.setBackground(drawable);
         tv.setPadding(padding, padding, padding, padding);
-        tv.setTextColor(selected ? surfaceColor : textColor);
+        tv.setTextColor(selected ? bgColor : textColor);
 
         tv.setAlpha(1.0f);
     }
