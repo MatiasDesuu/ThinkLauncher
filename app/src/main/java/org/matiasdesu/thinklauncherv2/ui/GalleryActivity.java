@@ -121,6 +121,11 @@ public class GalleryActivity extends AppCompatActivity {
     private static final int FILTER_IMAGES = 1;
     private static final int FILTER_VIDEOS = 2;
     private int galleryFilterMode;
+    private static final int SORT_DATE_DESC = 0;
+    private static final int SORT_DATE_ASC = 1;
+    private static final int SORT_SIZE_DESC = 2;
+    private static final int SORT_SIZE_ASC = 3;
+    private int gallerySortMode;
 
     private BroadcastReceiver homeButtonReceiver = new BroadcastReceiver() {
         @Override
@@ -315,6 +320,24 @@ public class GalleryActivity extends AppCompatActivity {
                         updatePageIndicator();
                         updateTitle();
                         EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                    },
+                    gallerySortMode,
+                    sort -> {
+                        gallerySortMode = sort;
+                        if (isSelectionMode) exitSelectionMode();
+                        updateDisplayItems();
+                        currentPage = 0;
+                        itemsPerPage = calculateItemsPerPage();
+                        applyGridLayoutManager();
+                        recomputePagination();
+                        if (pageNavigator != null) {
+                            pageNavigator.setCurrentPage(0);
+                            pageNavigator.setTotalItems(displayItems.size());
+                        }
+                        adapter.notifyDataSetChanged();
+                        updatePageIndicator();
+                        updateTitle();
+                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
                     }).show();
         });
 
@@ -330,6 +353,8 @@ public class GalleryActivity extends AppCompatActivity {
         if (galleryGroupMode < GROUP_NONE || galleryGroupMode > GROUP_YEAR) galleryGroupMode = GROUP_NONE;
         galleryFilterMode = prefs.getInt("gallery_filter_by", FILTER_ALL);
         if (galleryFilterMode < FILTER_ALL || galleryFilterMode > FILTER_VIDEOS) galleryFilterMode = FILTER_ALL;
+        gallerySortMode = prefs.getInt("gallery_sort_by", SORT_DATE_DESC);
+        if (gallerySortMode < SORT_DATE_DESC || gallerySortMode > SORT_SIZE_ASC) gallerySortMode = SORT_DATE_DESC;
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
         isFolderView = false;
@@ -621,16 +646,28 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private boolean passesFilter(GalleryImage img) {
-        if (galleryFilterMode == FILTER_IMAGES) return img.mediaType == GalleryTrashHelper.TYPE_IMAGE;
-        if (galleryFilterMode == FILTER_VIDEOS) return img.mediaType == GalleryTrashHelper.TYPE_VIDEO;
+        if (galleryFilterMode == FILTER_IMAGES && img.mediaType != GalleryTrashHelper.TYPE_IMAGE) return false;
+        if (galleryFilterMode == FILTER_VIDEOS && img.mediaType != GalleryTrashHelper.TYPE_VIDEO) return false;
         return true;
     }
 
     private List<GalleryImage> getFiltered(List<GalleryImage> src) {
-        if (galleryFilterMode == FILTER_ALL) return src;
         List<GalleryImage> out = new ArrayList<>();
         for (GalleryImage img : src) if (passesFilter(img)) out.add(img);
+        sortMedia(out);
         return out;
+    }
+
+    private void sortMedia(List<GalleryImage> list) {
+        if (gallerySortMode == SORT_DATE_ASC) {
+            Collections.sort(list, (a, b) -> Long.compare(a.dateAdded, b.dateAdded));
+        } else if (gallerySortMode == SORT_SIZE_DESC) {
+            Collections.sort(list, (a, b) -> Long.compare(b.size, a.size));
+        } else if (gallerySortMode == SORT_SIZE_ASC) {
+            Collections.sort(list, (a, b) -> Long.compare(a.size, b.size));
+        } else {
+            Collections.sort(list, (a, b) -> Long.compare(b.dateAdded, a.dateAdded));
+        }
     }
 
     private void updateDisplayItems() {

@@ -22,6 +22,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryFavoritesHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper;

@@ -154,6 +154,13 @@
         android:layout_marginTop="8dp" />
 
     <TextView
+        android:id="@+id/sort_button"
+        style="@style/DialogButton"
+        android:text="Sort: Date ↓"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
         android:id="@+id/trash_button"
         style="@style/DialogButton"
         android:text="Trash"
