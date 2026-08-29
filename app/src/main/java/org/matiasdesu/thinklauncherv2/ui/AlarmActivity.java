@@ -8,18 +8,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
-import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
 public class AlarmActivity extends AppCompatActivity {
 
@@ -30,27 +27,20 @@ public class AlarmActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         boolean disableAlarmWallpaper = prefs.getBoolean("alarm_disable_wallpaper", true);
-        boolean opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        boolean opacityEnabled = !disableAlarmWallpaper && prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         boolean blurEnabled = prefs.getInt("app_launcher_bg_blur_enabled", 0) == 1;
         int blurStrength = prefs.getInt("app_launcher_bg_blur_strength", 3);
         int opacityPercent = prefs.getInt("app_launcher_bg_opacity", 100);
-        setTheme(org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
+        int alarmStyle = ThemeUtils.isDarkTheme(theme, this) ? R.style.AlarmTheme_Dark : R.style.AlarmTheme;
+        setTheme(alarmStyle);
         super.onCreate(savedInstanceState);
-
+        int baseSurfaceColor = ThemeUtils.getBgColor(theme, this);
         if (disableAlarmWallpaper) {
-            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(ThemeUtils.getBgColor(theme, this));
-                getWindow().setNavigationBarColor(ThemeUtils.getBgColor(theme, this));
-            }
-        } else {
-            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
-                getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
-            }
+            getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(baseSurfaceColor));
+            getWindow().getDecorView().setBackgroundColor(baseSurfaceColor);
         }
-
+        getWindow().setWindowAnimations(0);
+        overridePendingTransition(0, 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
@@ -73,7 +63,7 @@ public class AlarmActivity extends AppCompatActivity {
             contentLayout.setPadding(defaultPadding, defaultPadding, defaultPadding, defaultPadding);
         }
 
-        int baseSurfaceColor = ThemeUtils.getBgColor(theme, this);
+        baseSurfaceColor = ThemeUtils.getBgColor(theme, this);
         if (disableAlarmWallpaper) {
             View root = findViewById(android.R.id.content);
             if (root != null) {
@@ -82,12 +72,12 @@ public class AlarmActivity extends AppCompatActivity {
             if (contentLayout != null) {
                 contentLayout.setBackgroundColor(baseSurfaceColor);
             }
-            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 getWindow().setStatusBarColor(baseSurfaceColor);
                 getWindow().setNavigationBarColor(baseSurfaceColor);
             }
-            ImageView wallpaperView = findViewById(R.id.wallpaper_view);
+            android.widget.ImageView wallpaperView = findViewById(R.id.wallpaper_view);
             if (wallpaperView != null) {
                 wallpaperView.setVisibility(View.GONE);
             }
@@ -99,17 +89,6 @@ public class AlarmActivity extends AppCompatActivity {
             }
             if (contentLayout != null) {
                 contentLayout.setBackgroundColor(backdrop.surfaceColor);
-            }
-            ImageView wallpaperView = findViewById(R.id.wallpaper_view);
-            if (wallpaperView != null) {
-                int[] screen = WallpaperHelper.getScreenDimensions(this);
-                android.graphics.Bitmap bitmap = WallpaperHelper.getWallpaperForScreenCached(this, screen[0], screen[1], blurEnabled, blurStrength);
-                if (bitmap != null) {
-                    wallpaperView.setImageBitmap(bitmap);
-                    wallpaperView.setVisibility(View.VISIBLE);
-                } else {
-                    wallpaperView.setVisibility(View.GONE);
-                }
             }
         }
 
@@ -202,7 +181,8 @@ public class AlarmActivity extends AppCompatActivity {
                 }
             }
         }
-        finishAndRemoveTask();
+        finish();
+        overridePendingTransition(0, 0);
     }
 
     private void doDismiss() {
@@ -213,7 +193,8 @@ public class AlarmActivity extends AppCompatActivity {
             ClockAlarmHelper.clearSnoozed(this, alarmId);
             ClockAlarmHelper.rescheduleAfterFired(this, alarmId);
         }
-        finishAndRemoveTask();
+        finish();
+        overridePendingTransition(0, 0);
     }
 
     @Override
@@ -223,6 +204,5 @@ public class AlarmActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-
     }
 }

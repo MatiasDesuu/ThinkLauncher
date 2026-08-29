@@ -296,8 +296,9 @@ public class ClockActivity extends AppCompatActivity {
     private void openAlarmTest() {
         Intent intent = new Intent(this, AlarmActivity.class);
         intent.putExtra("alarm_id", -1);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
+        overridePendingTransition(0, 0);
     }
 
     private void reloadWallpaperPreference() {

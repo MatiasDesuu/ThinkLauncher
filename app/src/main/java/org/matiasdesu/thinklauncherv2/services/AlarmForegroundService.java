@@ -67,7 +67,7 @@ public class AlarmForegroundService extends Service {
 
         Intent fullScreenIntent = new Intent(this, AlarmActivity.class);
         fullScreenIntent.putExtra("alarm_id", alarmId);
-        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) pendingFlags |= PendingIntent.FLAG_IMMUTABLE;
         PendingIntent fullScreenPi = PendingIntent.getActivity(this, alarmId + 900000, fullScreenIntent, pendingFlags);
@@ -100,7 +100,7 @@ public class AlarmForegroundService extends Service {
 
         Intent activityIntent = new Intent(this, AlarmActivity.class);
         activityIntent.putExtra("alarm_id", alarmId);
-        activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         try { startActivity(activityIntent); } catch (Exception ignored) {}
 
         startSoundAndVibration();
