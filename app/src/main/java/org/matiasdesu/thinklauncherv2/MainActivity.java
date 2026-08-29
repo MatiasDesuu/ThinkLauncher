@@ -1021,7 +1021,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "calculator".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || "bigme_eink_settings".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
@@ -1033,6 +1033,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                                 : "calendar".equals(pkg) ? R.drawable.date
                                                                 : "gallery".equals(pkg) ? R.drawable.gallery
                                                                         : "clock".equals(pkg) ? R.drawable.time
+                                                                        : "calculator".equals(pkg) ? R.drawable.calculator
                                                                 : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
                                                                         : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
                                                                                 : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
@@ -1199,7 +1200,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
             iv.setLayoutParams(lp);
             boolean appIsSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                    || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "bigme_control_panel".equals(pkg)
+                    || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "calculator".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || "bigme_eink_settings".equals(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
@@ -1211,6 +1212,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                                 : "calendar".equals(pkg) ? R.drawable.date
                                                                 : "gallery".equals(pkg) ? R.drawable.gallery
                                                                         : "clock".equals(pkg) ? R.drawable.time
+                                                                        : "calculator".equals(pkg) ? R.drawable.calculator
                                                                 : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
                                                                         : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
                                                                                 : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
@@ -2665,7 +2667,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     String pkg = appPackages.get(i);
                     boolean isSpecial = "launcher_settings".equals(pkg) || "app_launcher".equals(pkg)
                             || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
-                            || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "bigme_control_panel".equals(pkg)
+                            || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "calculator".equals(pkg) || "bigme_control_panel".equals(pkg)
                             || (pkg != null && pkg.startsWith("folder_"))
                             || (pkg != null && pkg.startsWith("webapp_"));
                     iconView.setTag(isSpecial ? "special" : "app");
@@ -2679,6 +2681,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                                                             : "calendar".equals(pkg) ? R.drawable.date
                                                                     : "gallery".equals(pkg) ? R.drawable.gallery
                                                                         : "clock".equals(pkg) ? R.drawable.time
+                                                                         : "calculator".equals(pkg) ? R.drawable.calculator
                                                                             : (pkg != null && pkg.startsWith("webapp_"))
                                                                                     ? R.drawable.webapps
                                                                                     : R.drawable.folder;
@@ -3303,6 +3306,16 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         iconView.setImageResource(R.drawable.time);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
+                } else if ("calculator".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.calculator, theme,
+                                iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.calculator);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
                 } else if (appPackages.get(position).startsWith("folder_")) {
                     if (dynamicIcons || iconBackground) {
                         Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.folder, theme,
@@ -3429,6 +3442,16 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         iconView.clearColorFilter();
                     } else {
                         iconView.setImageResource(R.drawable.time);
+                        iconView.setColorFilter(getSpecialIconColor());
+                    }
+                } else if ("calculator".equals(appPackages.get(position))) {
+                    if (dynamicIcons || iconBackground) {
+                        Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.calculator, theme,
+                                iconBackground, dynamicColors, invertIconColors, iconShape);
+                        iconView.setImageDrawable(specialIcon);
+                        iconView.clearColorFilter();
+                    } else {
+                        iconView.setImageResource(R.drawable.calculator);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
                 } else if (appPackages.get(position).startsWith("folder_")) {
@@ -4436,6 +4459,19 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     iconView.clearColorFilter();
                 } else {
                     iconView.setImageResource(R.drawable.time);
+                    iconView.setColorFilter(getSpecialIconColor());
+                }
+                iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                iconView.setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom);
+                slotLayout.addView(iconView);
+            } else if ("calculator".equals(appPackages.get(index))) {
+                if (dynamicIcons || iconBackground) {
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, R.drawable.calculator, theme,
+                            iconBackground, dynamicColors, invertIconColors, iconShape);
+                    iconView.setImageDrawable(specialIcon);
+                    iconView.clearColorFilter();
+                } else {
+                    iconView.setImageResource(R.drawable.calculator);
                     iconView.setColorFilter(getSpecialIconColor());
                 }
                 iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);

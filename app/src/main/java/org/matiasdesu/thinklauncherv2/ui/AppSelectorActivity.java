@@ -230,69 +230,20 @@ public class AppSelectorActivity extends AppCompatActivity {
                 specialIndex = 1;
             }
 
-            installedAppLabels.add(specialIndex, SystemAppHelper.getDefaultLabel(SystemAppHelper.LAUNCHER_SETTINGS));
-            installedAppPackages.add(specialIndex, SystemAppHelper.LAUNCHER_SETTINGS);
-
-            if (position != -2) {
-                installedAppLabels.add(specialIndex + 1, SystemAppHelper.getDefaultLabel(SystemAppHelper.NOTIFICATION_PANEL));
-                installedAppPackages.add(specialIndex + 1, SystemAppHelper.NOTIFICATION_PANEL);
-
-                installedAppLabels.add(specialIndex + 2, SystemAppHelper.getDefaultLabel(SystemAppHelper.APP_LAUNCHER));
-                installedAppPackages.add(specialIndex + 2, SystemAppHelper.APP_LAUNCHER);
-
-                installedAppLabels.add(specialIndex + 3, SystemAppHelper.getDefaultLabel(SystemAppHelper.KOREADER_HISTORY));
-                installedAppPackages.add(specialIndex + 3, SystemAppHelper.KOREADER_HISTORY);
-
-                installedAppLabels.add(specialIndex + 4, SystemAppHelper.getDefaultLabel(SystemAppHelper.CALENDAR));
-                installedAppPackages.add(specialIndex + 4, SystemAppHelper.CALENDAR);
-
-                installedAppLabels.add(specialIndex + 5, SystemAppHelper.getDefaultLabel(SystemAppHelper.GALLERY));
-                installedAppPackages.add(specialIndex + 5, SystemAppHelper.GALLERY);
-
-                installedAppLabels.add(specialIndex + 6, SystemAppHelper.getDefaultLabel(SystemAppHelper.CLOCK));
-                installedAppPackages.add(specialIndex + 6, SystemAppHelper.CLOCK);
-
-                boolean isBigme = false;
-                try {
-                    getPackageManager().getPackageInfo("com.xrz.sys.control", 0);
-                    isBigme = true;
-                } catch (PackageManager.NameNotFoundException e) {
-                    isBigme = false;
-                }
-                if (isBigme) {
-                    installedAppLabels.add(specialIndex + 7, "Bigme Control Panel");
-                    installedAppPackages.add(specialIndex + 7, "bigme_control_panel");
-                }
-
-                if (position == -1) {
-                    int offset = isBigme ? 8 : 7;
-                    installedAppLabels.add(specialIndex + offset, "Next Home Page");
-                    installedAppPackages.add(specialIndex + offset, "next_home_page");
-
-                    installedAppLabels.add(specialIndex + offset + 1, "Previous Home Page");
-                    installedAppPackages.add(specialIndex + offset + 1, "previous_home_page");
-                }
+            boolean isBigme = false;
+            try {
+                getPackageManager().getPackageInfo("com.xrz.sys.control", 0);
+                isBigme = true;
+            } catch (PackageManager.NameNotFoundException e) {
+                isBigme = false;
             }
+            SystemAppHelper.insertSelectorApps(installedAppLabels, installedAppPackages, specialIndex, position, isBigme);
         }
 
         if (position == -5) {
-            installedAppLabels.add(1, SystemAppHelper.getDefaultLabel(SystemAppHelper.LAUNCHER_SETTINGS));
-            installedAppPackages.add(1, SystemAppHelper.LAUNCHER_SETTINGS);
-
-            installedAppLabels.add(2, SystemAppHelper.getDefaultLabel(SystemAppHelper.KOREADER_HISTORY));
-            installedAppPackages.add(2, SystemAppHelper.KOREADER_HISTORY);
-
-            installedAppLabels.add(3, SystemAppHelper.getDefaultLabel(SystemAppHelper.CALENDAR));
-            installedAppPackages.add(3, SystemAppHelper.CALENDAR);
-
-            installedAppLabels.add(4, SystemAppHelper.getDefaultLabel(SystemAppHelper.GALLERY));
-            installedAppPackages.add(4, SystemAppHelper.GALLERY);
-
-            installedAppLabels.add(5, SystemAppHelper.getDefaultLabel(SystemAppHelper.CLOCK));
-            installedAppPackages.add(5, SystemAppHelper.CLOCK);
-
-            installedAppLabels.add(6, "Folder");
-            installedAppPackages.add(6, "folder");
+            int idx = SystemAppHelper.insertCoreAppsForLauncher(installedAppLabels, installedAppPackages, 1);
+            installedAppLabels.add(idx, "Folder");
+            installedAppPackages.add(idx, "folder");
         }
 
         originalApps = new ArrayList<>();

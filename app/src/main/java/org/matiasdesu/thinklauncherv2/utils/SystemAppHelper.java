@@ -9,6 +9,7 @@ import android.os.Looper;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
+import org.matiasdesu.thinklauncherv2.ui.CalculatorActivity;
 import org.matiasdesu.thinklauncherv2.ui.CalendarActivity;
 import org.matiasdesu.thinklauncherv2.ui.ClockActivity;
 import org.matiasdesu.thinklauncherv2.ui.GalleryActivity;
@@ -23,6 +24,7 @@ public final class SystemAppHelper {
     public static final String CALENDAR = "calendar";
     public static final String GALLERY = "gallery";
     public static final String CLOCK = "clock";
+    public static final String CALCULATOR = "calculator";
     public static final String BIGME_CONTROL_PANEL = "bigme_control_panel";
     public static final String BIGME_EINK_SETTINGS = "bigme_eink_settings";
     public static final String NEXT_HOME_PAGE = "next_home_page";
@@ -39,7 +41,7 @@ public final class SystemAppHelper {
         if (pkg == null) return false;
         if (pkg.equals(LAUNCHER_SETTINGS) || pkg.equals(APP_LAUNCHER) || pkg.equals(NOTIFICATION_PANEL)
                 || pkg.equals(KOREADER_HISTORY) || pkg.equals(CALENDAR) || pkg.equals(GALLERY)
-                || pkg.equals(CLOCK) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
+                || pkg.equals(CLOCK) || pkg.equals(CALCULATOR) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
                 || pkg.equals(NEXT_HOME_PAGE) || pkg.equals(PREVIOUS_HOME_PAGE) || pkg.equals(FOLDER)
                 || pkg.equals(SYSTEM_DEFAULT) || pkg.equals(BLANK) || pkg.equals(WEB_APPS) || pkg.equals(HIDDEN_APP)) return true;
         return pkg.startsWith("folder_") || pkg.startsWith("webapp_") || pkg.startsWith("hidden_app_");
@@ -55,7 +57,7 @@ public final class SystemAppHelper {
         if (pkg == null) return false;
         return pkg.equals(LAUNCHER_SETTINGS) || pkg.equals(APP_LAUNCHER) || pkg.equals(NOTIFICATION_PANEL)
                 || pkg.equals(KOREADER_HISTORY) || pkg.equals(CALENDAR) || pkg.equals(GALLERY)
-                || pkg.equals(CLOCK) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
+                || pkg.equals(CLOCK) || pkg.equals(CALCULATOR) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
                 || pkg.equals(NEXT_HOME_PAGE) || pkg.equals(PREVIOUS_HOME_PAGE);
     }
 
@@ -68,6 +70,7 @@ public final class SystemAppHelper {
         if (pkg.equals(CALENDAR)) return R.drawable.date;
         if (pkg.equals(GALLERY)) return R.drawable.gallery;
         if (pkg.equals(CLOCK)) return R.drawable.time;
+        if (pkg.equals(CALCULATOR)) return R.drawable.calculator;
         if (pkg.equals(BIGME_CONTROL_PANEL)) return R.drawable.generic_app;
         if (pkg.equals(BIGME_EINK_SETTINGS)) return R.drawable.generic_app;
         if (pkg.startsWith("webapp_")) return R.drawable.webapps;
@@ -84,6 +87,7 @@ public final class SystemAppHelper {
         if (pkg.equals(CALENDAR)) return "Calendar Screen";
         if (pkg.equals(GALLERY)) return "Gallery";
         if (pkg.equals(CLOCK)) return "Clock";
+        if (pkg.equals(CALCULATOR)) return "Calculator";
         if (pkg.equals(BIGME_CONTROL_PANEL)) return "Bigme Control Panel";
         if (pkg.equals(BIGME_EINK_SETTINGS)) return "Bigme Eink Settings";
         if (pkg.equals(NEXT_HOME_PAGE)) return "Next Home Page";
@@ -94,6 +98,7 @@ public final class SystemAppHelper {
     public static Intent getLaunchIntent(Context context, String pkg) {
         if (pkg == null) return null;
         if (pkg.equals(CLOCK)) return new Intent(context, ClockActivity.class);
+        if (pkg.equals(CALCULATOR)) return new Intent(context, CalculatorActivity.class);
         if (pkg.equals(CALENDAR)) return new Intent(context, CalendarActivity.class);
         if (pkg.equals(GALLERY)) return new Intent(context, GalleryActivity.class);
         if (pkg.equals(KOREADER_HISTORY)) return new Intent(context, KOReaderHistoryActivity.class);
@@ -211,5 +216,75 @@ public final class SystemAppHelper {
         packages.add(GALLERY);
         labels.add("Clock");
         packages.add(CLOCK);
+        labels.add("Calculator");
+        packages.add(CALCULATOR);
+    }
+
+    public static int insertCoreAppsForLauncher(java.util.List<String> labels, java.util.List<String> packages, int startIndex) {
+        labels.add(startIndex, getDefaultLabel(LAUNCHER_SETTINGS));
+        packages.add(startIndex++, LAUNCHER_SETTINGS);
+        labels.add(startIndex, getDefaultLabel(KOREADER_HISTORY));
+        packages.add(startIndex++, KOREADER_HISTORY);
+        labels.add(startIndex, getDefaultLabel(CALENDAR));
+        packages.add(startIndex++, CALENDAR);
+        labels.add(startIndex, getDefaultLabel(GALLERY));
+        packages.add(startIndex++, GALLERY);
+        labels.add(startIndex, getDefaultLabel(CLOCK));
+        packages.add(startIndex++, CLOCK);
+        labels.add(startIndex, getDefaultLabel(CALCULATOR));
+        packages.add(startIndex++, CALCULATOR);
+        return startIndex;
+    }
+
+    public static int insertCoreAppsForSelector(java.util.List<String> labels, java.util.List<String> packages, int startIndex) {
+        labels.add(startIndex, getDefaultLabel(LAUNCHER_SETTINGS));
+        packages.add(startIndex++, LAUNCHER_SETTINGS);
+        labels.add(startIndex, getDefaultLabel(NOTIFICATION_PANEL));
+        packages.add(startIndex++, NOTIFICATION_PANEL);
+        labels.add(startIndex, getDefaultLabel(APP_LAUNCHER));
+        packages.add(startIndex++, APP_LAUNCHER);
+        labels.add(startIndex, getDefaultLabel(KOREADER_HISTORY));
+        packages.add(startIndex++, KOREADER_HISTORY);
+        labels.add(startIndex, getDefaultLabel(CALENDAR));
+        packages.add(startIndex++, CALENDAR);
+        labels.add(startIndex, getDefaultLabel(GALLERY));
+        packages.add(startIndex++, GALLERY);
+        labels.add(startIndex, getDefaultLabel(CLOCK));
+        packages.add(startIndex++, CLOCK);
+        labels.add(startIndex, getDefaultLabel(CALCULATOR));
+        packages.add(startIndex++, CALCULATOR);
+        return startIndex;
+    }
+
+    public static int insertSelectorApps(java.util.List<String> labels, java.util.List<String> packages, int specialIndex, int position, boolean isBigme) {
+        labels.add(specialIndex, getDefaultLabel(LAUNCHER_SETTINGS));
+        packages.add(specialIndex, LAUNCHER_SETTINGS);
+        int next = specialIndex + 1;
+        if (position == -2) return next;
+        labels.add(next, getDefaultLabel(NOTIFICATION_PANEL));
+        packages.add(next++, NOTIFICATION_PANEL);
+        labels.add(next, getDefaultLabel(APP_LAUNCHER));
+        packages.add(next++, APP_LAUNCHER);
+        labels.add(next, getDefaultLabel(KOREADER_HISTORY));
+        packages.add(next++, KOREADER_HISTORY);
+        labels.add(next, getDefaultLabel(CALENDAR));
+        packages.add(next++, CALENDAR);
+        labels.add(next, getDefaultLabel(GALLERY));
+        packages.add(next++, GALLERY);
+        labels.add(next, getDefaultLabel(CLOCK));
+        packages.add(next++, CLOCK);
+        labels.add(next, getDefaultLabel(CALCULATOR));
+        packages.add(next++, CALCULATOR);
+        if (isBigme) {
+            labels.add(next, "Bigme Control Panel");
+            packages.add(next++, "bigme_control_panel");
+        }
+        if (position == -1) {
+            labels.add(next, "Next Home Page");
+            packages.add(next++, "next_home_page");
+            labels.add(next, "Previous Home Page");
+            packages.add(next++, "previous_home_page");
+        }
+        return next;
     }
 }

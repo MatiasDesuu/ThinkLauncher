@@ -211,6 +211,9 @@
             android:name=".ui.ClockActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.CalculatorActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.AlarmActivity"
             android:exported="false"
             android:theme="@style/AlarmTheme"

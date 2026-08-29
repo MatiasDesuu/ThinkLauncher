@@ -382,20 +382,7 @@ public class AppLauncherActivity extends AppCompatActivity {
                 packages.add(item[1]);
             }
 
-            labels.add(0, SystemAppHelper.getDefaultLabel(SystemAppHelper.LAUNCHER_SETTINGS));
-            packages.add(0, SystemAppHelper.LAUNCHER_SETTINGS);
-
-            labels.add(1, SystemAppHelper.getDefaultLabel(SystemAppHelper.KOREADER_HISTORY));
-            packages.add(1, SystemAppHelper.KOREADER_HISTORY);
-
-            labels.add(2, SystemAppHelper.getDefaultLabel(SystemAppHelper.CALENDAR));
-            packages.add(2, SystemAppHelper.CALENDAR);
-
-            labels.add(3, SystemAppHelper.getDefaultLabel(SystemAppHelper.GALLERY));
-            packages.add(3, SystemAppHelper.GALLERY);
-
-            labels.add(4, SystemAppHelper.getDefaultLabel(SystemAppHelper.CLOCK));
-            packages.add(4, SystemAppHelper.CLOCK);
+            SystemAppHelper.insertCoreAppsForLauncher(labels, packages, 0);
 
             runOnUiThread(() -> {
                 targetLabels.clear();
