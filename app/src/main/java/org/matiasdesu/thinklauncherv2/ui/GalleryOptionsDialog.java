@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
@@ -228,14 +229,20 @@ public class GalleryOptionsDialog extends Dialog {
             });
         }
 
-        TextView sortButton = findViewById(R.id.sort_button);
+        View sortButton = findViewById(R.id.sort_button);
+        TextView sortLabel = findViewById(R.id.sort_label);
+        ImageView sortArrow = findViewById(R.id.sort_arrow);
         if (sortButton != null) {
-            DialogEffectHelper.applyButtonTheme(sortButton, theme, getContext(), surfaceColor);
-            updateSortText(sortButton);
+            DialogEffectHelper.applySurface(sortButton, theme, getContext(), surfaceColor);
+            int p = (int) (4 * getContext().getResources().getDisplayMetrics().density);
+            sortButton.setPadding(p, p, p, p);
+            if (sortLabel != null) sortLabel.setTextColor(ThemeUtils.getTextColor(theme, getContext()));
+            if (sortArrow != null) sortArrow.setColorFilter(ThemeUtils.getTextColor(theme, getContext()));
+            updateSortText(sortLabel, sortArrow);
             sortButton.setOnClickListener(v -> {
                 currentSortMode = (currentSortMode + 1) % 4;
                 getContext().getSharedPreferences("prefs", Context.MODE_PRIVATE).edit().putInt("gallery_sort_by", currentSortMode).apply();
-                updateSortText(sortButton);
+                updateSortText(sortLabel, sortArrow);
                 if (sortCallback != null) sortCallback.onSortChanged(currentSortMode);
             });
         }
@@ -298,13 +305,15 @@ public class GalleryOptionsDialog extends Dialog {
         btn.setText("Filter: " + label);
     }
 
-    private void updateSortText(TextView btn) {
+    private void updateSortText(TextView labelView, ImageView arrowView) {
         String label;
-        if (currentSortMode == 1) label = "Date ↑";
-        else if (currentSortMode == 2) label = "Size ↓";
-        else if (currentSortMode == 3) label = "Size ↑";
-        else label = "Date ↓";
-        btn.setText("Sort: " + label);
+        int rotation;
+        if (currentSortMode == 1) { label = "Date"; rotation = 90; }
+        else if (currentSortMode == 2) { label = "Size"; rotation = 270; }
+        else if (currentSortMode == 3) { label = "Size"; rotation = 90; }
+        else { label = "Date"; rotation = 270; }
+        if (labelView != null) labelView.setText("Sort: " + label);
+        if (arrowView != null) arrowView.setRotation(rotation);
     }
 
     private void updateColBold(int[] colButtons, int selectedCols) {

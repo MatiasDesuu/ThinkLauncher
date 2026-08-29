@@ -153,12 +153,34 @@
         android:layout_width="match_parent"
         android:layout_marginTop="8dp" />
 
-    <TextView
+    <LinearLayout
         android:id="@+id/sort_button"
         style="@style/DialogButton"
-        android:text="Sort: Date ↓"
         android:layout_width="match_parent"
-        android:layout_marginTop="8dp" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/sort_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sort: Date"
+            android:textColor="?attr/text_color"
+            android:textSize="18sp"
+            android:gravity="center" />
+
+        <ImageView
+            android:id="@+id/sort_arrow"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/back_arrow"
+            android:tint="?attr/text_color" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/trash_button"
