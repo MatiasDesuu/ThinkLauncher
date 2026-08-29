@@ -102,11 +102,11 @@ public class CalculatorActivity extends AppCompatActivity {
         int txt = ThemeUtils.getTextColor(theme, this);
         int bg = surfaceColor;
         int[] ids = new int[]{
-                R.id.btn_ac, R.id.btn_del, R.id.btn_percent, R.id.btn_div,
+                R.id.btn_ac, R.id.btn_del, R.id.btn_lparen, R.id.btn_rparen, R.id.btn_div,
                 R.id.btn_7, R.id.btn_8, R.id.btn_9, R.id.btn_mul,
                 R.id.btn_4, R.id.btn_5, R.id.btn_6, R.id.btn_sub,
                 R.id.btn_1, R.id.btn_2, R.id.btn_3, R.id.btn_add,
-                R.id.btn_0, R.id.btn_dot, R.id.btn_sign, R.id.btn_eq
+                R.id.btn_0, R.id.btn_dot, R.id.btn_sign, R.id.btn_percent, R.id.btn_eq
         };
         for (int id : ids) {
             TextView tv = findViewById(id);
@@ -141,6 +141,8 @@ public class CalculatorActivity extends AppCompatActivity {
         findViewById(R.id.btn_mul).setOnClickListener(v -> inputOperator("*"));
         findViewById(R.id.btn_div).setOnClickListener(v -> inputOperator("/"));
         findViewById(R.id.btn_percent).setOnClickListener(v -> inputPercent());
+        findViewById(R.id.btn_lparen).setOnClickListener(v -> inputLParen());
+        findViewById(R.id.btn_rparen).setOnClickListener(v -> inputRParen());
         findViewById(R.id.btn_ac).setOnClickListener(v -> clearAll());
         findViewById(R.id.btn_del).setOnClickListener(v -> deleteLast());
         findViewById(R.id.btn_sign).setOnClickListener(v -> toggleSign());
@@ -151,6 +153,9 @@ public class CalculatorActivity extends AppCompatActivity {
         if (resetOnNextDigit) {
             expression.setLength(0);
             resetOnNextDigit = false;
+        }
+        if (expression.length() > 0 && expression.charAt(expression.length() - 1) == ')') {
+            expression.append("*");
         }
         expression.append(d);
         updateDisplay();
@@ -181,6 +186,7 @@ public class CalculatorActivity extends AppCompatActivity {
         if (resetOnNextDigit) resetOnNextDigit = false;
         if (expression.length() > 0) {
             char last = expression.charAt(expression.length() - 1);
+            if (last == '(') return;
             if (last == '+' || last == '-' || last == '*' || last == '/' ) {
                 expression.setCharAt(expression.length() - 1, op.charAt(0));
                 updateDisplay();
@@ -203,6 +209,37 @@ public class CalculatorActivity extends AppCompatActivity {
             expression.replace(lastOp + 1, expression.length(), s);
             updateDisplay();
         } catch (Exception ignored) {}
+    }
+
+    private void inputLParen() {
+        if (resetOnNextDigit) {
+            expression.setLength(0);
+            resetOnNextDigit = false;
+        }
+        if (expression.length() > 0) {
+            char last = expression.charAt(expression.length() - 1);
+            if ((last >= '0' && last <= '9') || last == '.' || last == ')') {
+                expression.append("*");
+            }
+        }
+        expression.append("(");
+        updateDisplay();
+    }
+
+    private void inputRParen() {
+        if (resetOnNextDigit) return;
+        int open = 0, close = 0;
+        for (int i = 0; i < expression.length(); i++) {
+            char c = expression.charAt(i);
+            if (c == '(') open++;
+            else if (c == ')') close++;
+        }
+        if (close >= open) return;
+        if (expression.length() == 0) return;
+        char last = expression.charAt(expression.length() - 1);
+        if (last == '+' || last == '-' || last == '*' || last == '/' || last == '(') return;
+        expression.append(")");
+        updateDisplay();
     }
 
     private void toggleSign() {
@@ -252,7 +289,7 @@ public class CalculatorActivity extends AppCompatActivity {
         if (expression.length() == 0) return;
         String expr = expression.toString();
         char last = expr.charAt(expr.length() - 1);
-        if (last == '+' || last == '-' || last == '*' || last == '/' ) {
+        if (last == '+' || last == '-' || last == '*' || last == '/' || last == '(') {
             expr = expr.substring(0, expr.length() - 1);
         }
         if (expr.isEmpty()) return;
@@ -284,7 +321,7 @@ public class CalculatorActivity extends AppCompatActivity {
             try {
                 String expr = expression.toString();
                 char last = expr.charAt(expr.length() - 1);
-                if (last == '+' || last == '-' || last == '*' || last == '/' ) expr = expr.substring(0, expr.length() - 1);
+                if (last == '+' || last == '-' || last == '*' || last == '/' || last == '(') expr = expr.substring(0, expr.length() - 1);
                 if (!expr.isEmpty()) {
                     double v = eval(expr);
                     if (!Double.isInfinite(v) && !Double.isNaN(v)) resultView.setText(formatResult(v));
@@ -297,11 +334,11 @@ public class CalculatorActivity extends AppCompatActivity {
     private int lastOperatorIndex() {
         for (int i = expression.length() - 1; i >= 0; i--) {
             char c = expression.charAt(i);
-            if (c == '+' || c == '*' || c == '/') return i;
+            if (c == '+' || c == '*' || c == '/' || c == '(' || c == ')') return i;
             if (c == '-') {
                 if (i == 0) return -1;
                 char prev = expression.charAt(i - 1);
-                if (prev == '+' || prev == '-' || prev == '*' || prev == '/') continue;
+                if (prev == '+' || prev == '-' || prev == '*' || prev == '/' || prev == '(') continue;
                 return i;
             }
         }
@@ -326,9 +363,9 @@ public class CalculatorActivity extends AppCompatActivity {
             char c = expr.charAt(i);
             if ((c >= '0' && c <= '9') || c == '.') {
                 num.append(c);
-            } else if (c == '-' && (i == 0 || expr.charAt(i - 1) == '+' || expr.charAt(i - 1) == '-' || expr.charAt(i - 1) == '*' || expr.charAt(i - 1) == '/')) {
+            } else if (c == '-' && (i == 0 || expr.charAt(i - 1) == '+' || expr.charAt(i - 1) == '-' || expr.charAt(i - 1) == '*' || expr.charAt(i - 1) == '/' || expr.charAt(i - 1) == '(')) {
                 num.append(c);
-            } else if (c == '+' || c == '-' || c == '*' || c == '/') {
+            } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')') {
                 if (num.length() > 0) {
                     tokens.add(num.toString());
                     num.setLength(0);
@@ -341,8 +378,16 @@ public class CalculatorActivity extends AppCompatActivity {
         Stack<Double> values = new Stack<>();
         Stack<String> ops = new Stack<>();
         for (String tok : tokens) {
-            if (tok.equals("+") || tok.equals("-") || tok.equals("*") || tok.equals("/")) {
-                while (!ops.isEmpty() && precedence(ops.peek()) >= precedence(tok)) {
+            if (tok.equals("(")) {
+                ops.push(tok);
+            } else if (tok.equals(")")) {
+                while (!ops.isEmpty() && !ops.peek().equals("(")) {
+                    applyOp(values, ops.pop());
+                }
+                if (ops.isEmpty()) throw new Exception("mismatch");
+                ops.pop();
+            } else if (tok.equals("+") || tok.equals("-") || tok.equals("*") || tok.equals("/")) {
+                while (!ops.isEmpty() && !ops.peek().equals("(") && precedence(ops.peek()) >= precedence(tok)) {
                     applyOp(values, ops.pop());
                 }
                 ops.push(tok);
@@ -350,7 +395,10 @@ public class CalculatorActivity extends AppCompatActivity {
                 values.push(Double.parseDouble(tok));
             }
         }
-        while (!ops.isEmpty()) applyOp(values, ops.pop());
+        while (!ops.isEmpty()) {
+            if (ops.peek().equals("(") || ops.peek().equals(")")) throw new Exception("mismatch");
+            applyOp(values, ops.pop());
+        }
         if (values.isEmpty()) throw new Exception("empty");
         return values.pop();
     }
