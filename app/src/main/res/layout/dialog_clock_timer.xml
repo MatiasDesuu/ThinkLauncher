@@ -143,6 +143,111 @@
             android:background="@drawable/button_border"
             android:textColor="?attr/text_color" />
     </LinearLayout>
+    <TextView
+        android:id="@+id/presets_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Presets"
+        android:textColor="?attr/text_color"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="6dp">
+        <TextView
+            android:id="@+id/preset_1m"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:gravity="center"
+            android:text="1m"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="?attr/text_color"
+            android:background="@drawable/button_border" />
+        <TextView
+            android:id="@+id/preset_5m"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:gravity="center"
+            android:text="5m"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="?attr/text_color"
+            android:background="@drawable/button_border" />
+        <TextView
+            android:id="@+id/preset_10m"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:gravity="center"
+            android:text="10m"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="?attr/text_color"
+            android:background="@drawable/button_border" />
+        <TextView
+            android:id="@+id/preset_15m"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="15m"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="?attr/text_color"
+            android:background="@drawable/button_border" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/preset_pomo_work"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:gravity="center"
+            android:text="Pomo"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="?attr/text_color"
+            android:background="@drawable/button_border" />
+        <TextView
+            android:id="@+id/preset_pomo_break"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Break"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="?attr/text_color"
+            android:background="@drawable/button_border" />
+    </LinearLayout>
     <EditText
         android:id="@+id/timer_label_edit"
         android:layout_width="match_parent"

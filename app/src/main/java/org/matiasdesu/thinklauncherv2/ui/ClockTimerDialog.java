@@ -87,6 +87,8 @@ public class ClockTimerDialog extends Dialog {
         ThemeUtils.applyTextColor(hourLabel, theme, getContext());
         ThemeUtils.applyTextColor(minuteLabel, theme, getContext());
         ThemeUtils.applyTextColor(secondLabel, theme, getContext());
+        TextView presetsLabel = findViewById(R.id.presets_label);
+        ThemeUtils.applyTextColor(presetsLabel, theme, getContext());
         ThemeUtils.applyTextColor(hourValue, theme, getContext());
         ThemeUtils.applyTextColor(minuteValue, theme, getContext());
         ThemeUtils.applyTextColor(secondValue, theme, getContext());
@@ -100,6 +102,25 @@ public class ClockTimerDialog extends Dialog {
         DialogEffectHelper.applyButtonTheme(btnCancel, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(btnSave, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(btnDelete, theme, getContext(), surfaceColor);
+
+        TextView preset1m = findViewById(R.id.preset_1m);
+        TextView preset5m = findViewById(R.id.preset_5m);
+        TextView preset10m = findViewById(R.id.preset_10m);
+        TextView preset15m = findViewById(R.id.preset_15m);
+        TextView presetPomoWork = findViewById(R.id.preset_pomo_work);
+        TextView presetPomoBreak = findViewById(R.id.preset_pomo_break);
+        if (preset1m != null) DialogEffectHelper.applyButtonTheme(preset1m, theme, getContext(), surfaceColor);
+        if (preset5m != null) DialogEffectHelper.applyButtonTheme(preset5m, theme, getContext(), surfaceColor);
+        if (preset10m != null) DialogEffectHelper.applyButtonTheme(preset10m, theme, getContext(), surfaceColor);
+        if (preset15m != null) DialogEffectHelper.applyButtonTheme(preset15m, theme, getContext(), surfaceColor);
+        if (presetPomoWork != null) DialogEffectHelper.applyButtonTheme(presetPomoWork, theme, getContext(), surfaceColor);
+        if (presetPomoBreak != null) DialogEffectHelper.applyButtonTheme(presetPomoBreak, theme, getContext(), surfaceColor);
+        if (preset1m != null) preset1m.setOnClickListener(v -> applyPreset(0, 1, 0, null));
+        if (preset5m != null) preset5m.setOnClickListener(v -> applyPreset(0, 5, 0, null));
+        if (preset10m != null) preset10m.setOnClickListener(v -> applyPreset(0, 10, 0, null));
+        if (preset15m != null) preset15m.setOnClickListener(v -> applyPreset(0, 15, 0, null));
+        if (presetPomoWork != null) presetPomoWork.setOnClickListener(v -> applyPreset(0, 25, 0, "Pomodoro"));
+        if (presetPomoBreak != null) presetPomoBreak.setOnClickListener(v -> applyPreset(0, 5, 0, "Break"));
 
         updateTimeTexts();
 
@@ -140,6 +161,17 @@ public class ClockTimerDialog extends Dialog {
             dismiss();
             if (saveCallback != null) saveCallback.onSaved(out);
         });
+    }
+
+    private void applyPreset(int h, int m, int s, String label) {
+        this.hour = h % 99;
+        this.minute = m % 60;
+        this.second = s % 60;
+        updateTimeTexts();
+        if (label != null) {
+            EditText labelEdit = findViewById(R.id.timer_label_edit);
+            if (labelEdit != null) labelEdit.setText(label);
+        }
     }
 
     private void updateTimeTexts() {
