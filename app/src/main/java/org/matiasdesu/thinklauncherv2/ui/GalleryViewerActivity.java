@@ -205,6 +205,12 @@ public class GalleryViewerActivity extends AppCompatActivity {
             }
         });
 
+        ImageView prevBtn = findViewById(R.id.prev_page_button);
+        ImageView nextBtn = findViewById(R.id.next_page_button);
+        ImageView shareBtn = findViewById(R.id.share_button);
+        if (prevBtn != null) prevBtn.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        if (nextBtn != null) nextBtn.setColorFilter(ThemeUtils.getTextColor(theme, this));
+        if (shareBtn != null) shareBtn.setColorFilter(ThemeUtils.getTextColor(theme, this));
         findViewById(R.id.prev_page_button).setOnClickListener(v -> navigatePrevious());
         findViewById(R.id.next_page_button).setOnClickListener(v -> navigateNext());
     }
@@ -366,7 +372,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
     private void showOptionsDialog() {
         new GalleryViewerOptionsDialog(this, currentImageId, currentMediaType, isTrashMode, isHiddenMode,
-                this::toggleFavorite,
+                isTrashMode ? this::restoreCurrentImage : this::toggleFavorite,
                 this::toggleHidden,
                 () -> {
                     if (isTrashMode) confirmPermanentDelete();

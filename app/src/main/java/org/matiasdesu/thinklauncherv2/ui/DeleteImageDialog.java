@@ -41,6 +41,7 @@ public class DeleteImageDialog extends Dialog {
         cancelButton.setOnClickListener(v -> dismiss());
 
         TextView messageView = findViewById(R.id.dialog_message);
+        messageView.setTextColor(org.matiasdesu.thinklauncherv2.utils.ThemeUtils.getTextColor(theme, getContext()));
         if (message != null) messageView.setText(message);
         TextView deleteButton = findViewById(R.id.delete_button);
         DialogEffectHelper.applyButtonTheme(deleteButton, theme, getContext(), surfaceColor);

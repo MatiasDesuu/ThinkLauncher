@@ -182,20 +182,10 @@ public class GalleryActivity extends AppCompatActivity {
         updateFolderButtonIcon();
         folderButton.setOnClickListener(v -> toggleFolderView());
 
-        ImageView selTrash = findViewById(R.id.selection_trash_button);
-        if (selTrash != null) {
-            selTrash.setColorFilter(ThemeUtils.getTextColor(theme, this));
-            selTrash.setOnClickListener(v -> handleBatchTrash());
-        }
-        ImageView selFav = findViewById(R.id.selection_favorite_button);
-        if (selFav != null) {
-            selFav.setColorFilter(ThemeUtils.getTextColor(theme, this));
-            selFav.setOnClickListener(v -> handleBatchFavorite());
-        }
-        ImageView selHidden = findViewById(R.id.selection_hidden_button);
-        if (selHidden != null) {
-            selHidden.setColorFilter(ThemeUtils.getTextColor(theme, this));
-            selHidden.setOnClickListener(v -> handleBatchHidden());
+        ImageView selMore = findViewById(R.id.selection_more_button);
+        if (selMore != null) {
+            selMore.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            selMore.setOnClickListener(v -> showSelectionOptionsDialog());
         }
 
         titleView.setOnLongClickListener(v -> {
@@ -1099,11 +1089,12 @@ public class GalleryActivity extends AppCompatActivity {
         if (titleView == null) return;
         ImageView backButton = findViewById(R.id.back_button);
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
+        ImageView selMore = findViewById(R.id.selection_more_button);
+        View bottomBar = findViewById(R.id.bottom_bar);
+        View bottomDivider = findViewById(R.id.bottom_divider);
         ImageView selTrash = findViewById(R.id.selection_trash_button);
         ImageView selFav = findViewById(R.id.selection_favorite_button);
         ImageView selHidden = findViewById(R.id.selection_hidden_button);
-        View bottomBar = findViewById(R.id.bottom_bar);
-        View bottomDivider = findViewById(R.id.bottom_divider);
         if (isSelectionMode) {
             titleView.setText(selectedKeys.size() + " selected");
             if (backButton != null) {
@@ -1112,27 +1103,12 @@ public class GalleryActivity extends AppCompatActivity {
                 backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
             }
             if (toggleButton != null) toggleButton.setVisibility(View.GONE);
-            if (selTrash != null) {
-                selTrash.setVisibility(View.VISIBLE);
-                selTrash.setImageResource(R.drawable.delete);
-                selTrash.setColorFilter(ThemeUtils.getTextColor(theme, this));
-            }
-            if (selFav != null) {
-                selFav.setVisibility(View.VISIBLE);
-                if (isTrashMode) selFav.setImageResource(R.drawable.restore);
-                else if (areAllSelectedFavorites()) selFav.setImageResource(R.drawable.star_outline);
-                else selFav.setImageResource(R.drawable.star_filled);
-                selFav.setColorFilter(ThemeUtils.getTextColor(theme, this));
-            }
-            if (selHidden != null) {
-                if (isTrashMode) selHidden.setVisibility(View.GONE);
-                else {
-                    selHidden.setVisibility(View.VISIBLE);
-                    if (isHiddenMode) selHidden.setImageResource(R.drawable.unhide);
-                    else if (areAllSelectedHidden()) selHidden.setImageResource(R.drawable.unhide);
-                    else selHidden.setImageResource(R.drawable.hide);
-                    selHidden.setColorFilter(ThemeUtils.getTextColor(theme, this));
-                }
+            if (selTrash != null) selTrash.setVisibility(View.GONE);
+            if (selFav != null) selFav.setVisibility(View.GONE);
+            if (selHidden != null) selHidden.setVisibility(View.GONE);
+            if (selMore != null) {
+                selMore.setVisibility(View.VISIBLE);
+                selMore.setColorFilter(ThemeUtils.getTextColor(theme, this));
             }
             if (bottomBar != null) bottomBar.setVisibility(View.GONE);
             if (bottomDivider != null) bottomDivider.setVisibility(View.GONE);
@@ -1153,8 +1129,55 @@ public class GalleryActivity extends AppCompatActivity {
             if (selTrash != null) selTrash.setVisibility(View.GONE);
             if (selFav != null) selFav.setVisibility(View.GONE);
             if (selHidden != null) selHidden.setVisibility(View.GONE);
+            if (selMore != null) selMore.setVisibility(View.GONE);
             updatePageIndicator();
         }
+    }
+
+    private void showSelectionOptionsDialog() {
+        if (!isSelectionMode || selectedKeys.isEmpty()) return;
+        boolean allFav = areAllSelectedFavorites();
+        boolean allHidden = areAllSelectedHidden();
+        String favText = isTrashMode ? "Restore" : (allFav ? "Unfavorite" : "Favorite");
+        String hiddenText = isHiddenMode ? "Unhide" : (allHidden ? "Unhide" : "Hide");
+        String trashText = isTrashMode ? "Delete permanently" : "Move to trash";
+        android.app.Dialog d = new android.app.Dialog(this, R.style.NoAnimationDialog);
+        d.setContentView(R.layout.dialog_gallery_viewer_options);
+        FontHelper.applyToViewTree(this, d.findViewById(android.R.id.content));
+        int surfaceColor = DialogEffectHelper.setup(d, theme);
+        View root = d.findViewById(android.R.id.content);
+        DialogEffectHelper.applySurface(root, theme, this, surfaceColor);
+        TextView favBtn = d.findViewById(R.id.option_favorite);
+        TextView hiddenBtn = d.findViewById(R.id.option_hidden);
+        TextView trashBtn = d.findViewById(R.id.option_trash);
+        if (favBtn != null) {
+            DialogEffectHelper.applyButtonTheme(favBtn, theme, this, surfaceColor);
+            favBtn.setText(favText);
+            favBtn.setOnClickListener(v -> { d.dismiss(); handleBatchFavorite(); });
+        }
+        if (hiddenBtn != null) {
+            DialogEffectHelper.applyButtonTheme(hiddenBtn, theme, this, surfaceColor);
+            hiddenBtn.setText(hiddenText);
+            if (isTrashMode) hiddenBtn.setVisibility(View.GONE);
+            else hiddenBtn.setOnClickListener(v -> { d.dismiss(); handleBatchHidden(); });
+        }
+        if (trashBtn != null) {
+            DialogEffectHelper.applyButtonTheme(trashBtn, theme, this, surfaceColor);
+            trashBtn.setText(trashText);
+            trashBtn.setOnClickListener(v -> {
+                d.dismiss();
+                if (isTrashMode) confirmPermanentDeleteForSelection();
+                else handleBatchTrash();
+            });
+        }
+        d.show();
+    }
+
+    private void confirmPermanentDeleteForSelection() {
+        if (!isTrashMode || selectedKeys.isEmpty()) return;
+        new DeleteImageDialog(this, "Delete permanently? This cannot be undone.", "Delete", () -> {
+            handleBatchTrash();
+        }).show();
     }
 
     private void handleBatchTrash() {
