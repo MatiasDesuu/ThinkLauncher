@@ -4,18 +4,18 @@
     android:layout_height="match_parent"
     android:background="#00000000">
 
-    <org.matiasdesu.thinklauncherv2.views.ZoomableImageView
-        android:id="@+id/page_image_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center" />
-
     <VideoView
         android:id="@+id/page_video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:visibility="gone" />
+
+    <org.matiasdesu.thinklauncherv2.views.ZoomableImageView
+        android:id="@+id/page_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
 
     <ImageView
         android:id="@+id/page_video_play"

@@ -118,6 +118,8 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         private boolean isDragging;
         long currentVideoId = -1;
         long currentImageId = -1;
+        private boolean pendingAutoPlay = false;
+        private boolean isPrepared = false;
 
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -141,6 +143,8 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                     videoView.postDelayed(() -> restoreFromFullscreen(position, isPlaying), 120);
                     return;
                 }
+                isPrepared = true;
+                pendingAutoPlay = isPlaying;
                 videoView.seekTo(position);
                 if (currentTime != null) currentTime.setText(formatTime(position));
                 if (seekContainer != null && progressView != null) {
@@ -170,7 +174,14 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                     }
                 }
                 if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
+                playButton.bringToFront();
+                if (videoControls != null) videoControls.bringToFront();
                 videoView.setVisibility(View.VISIBLE);
+                // Ensure thumbnail hidden, video revealed
+                if (imageView != null) {
+                    imageView.setVisibility(View.GONE);
+                    imageView.setImageBitmap(null);
+                }
                 final int fPos2 = position;
                 if (isPlaying) {
                     videoView.start();
@@ -247,10 +258,18 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
         void loadVideo(long videoId) {
             currentVideoId = videoId;
             currentImageId = -1;
+            pendingAutoPlay = false;
+            isPrepared = false;
             imageView.setVisibility(View.VISIBLE);
             imageView.setImageBitmap(null);
             imageView.resetZoom();
-            videoView.setVisibility(View.GONE);
+            // Keep VideoView VISIBLE so surface is ready; thumbnail overlays it to hide black flash.
+            // Z-order: image over video, but controls/play stay on top.
+            videoView.setVisibility(View.VISIBLE);
+            imageView.bringToFront();
+            playButton.bringToFront();
+            if (videoControls != null) videoControls.bringToFront();
+            // Ensure video is placed correctly for surface creation
             playButton.setVisibility(View.VISIBLE);
             if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
             if (updateRunnable != null) handler.removeCallbacks(updateRunnable);
@@ -384,23 +403,33 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
             handler.post(updateRunnable);
             try {
                 View.OnClickListener toggle = v -> {
+                    if (!isPrepared) {
+                        // Video not ready yet: queue play request (first tap = play, second = cancel)
+                        pendingAutoPlay = !pendingAutoPlay;
+                        playButton.setVisibility(pendingAutoPlay ? View.GONE : View.VISIBLE);
+                        return;
+                    }
                     if (videoView.isPlaying()) {
                         videoView.pause();
                         playButton.setVisibility(View.VISIBLE);
+                        pendingAutoPlay = false;
                     } else {
                         videoView.start();
                         playButton.setVisibility(View.GONE);
+                        pendingAutoPlay = true;
                     }
                 };
                 playButton.setOnClickListener(toggle);
                 videoView.setOnClickListener(toggle);
                 videoView.setOnPreparedListener(mp -> {
+                    isPrepared = true;
                     int dur = videoView.getDuration();
                     if (durationTime != null) durationTime.setText(formatTime(dur));
                     if (pendingVideoId == videoId) {
                         int pPos = pendingPosition;
                         boolean pPlay = pendingIsPlaying;
                         pendingVideoId = -1;
+                        pendingAutoPlay = pPlay;
                         try {
                             if (pPos >= 0 && pPos < dur) {
                                 videoView.seekTo(pPos);
@@ -426,29 +455,37 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
                             }
                             if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
                             playButton.setVisibility(pPlay ? View.GONE : View.VISIBLE);
+                            // Thumbnail already over video (visible stack); just hide thumbnail to reveal prepared video
                             imageView.postDelayed(() -> {
                                 if (currentVideoId == videoId) {
                                     imageView.setVisibility(View.GONE);
                                     imageView.setImageBitmap(null);
-                                    videoView.setVisibility(View.VISIBLE);
+                                    // videoView already VISIBLE, keep it
                                 }
                             }, 80);
                         } catch (Exception ignored) {}
                     } else {
+                        // Normal prepare: respect queued play request from early tap
                         if (currentTime != null) currentTime.setText(formatTime(0));
                         try { videoView.seekTo(1); } catch (Exception ignored) {}
-                        playButton.setVisibility(View.VISIBLE);
                         if (seekContainer != null && progressView != null) {
                             ViewGroup.LayoutParams p = progressView.getLayoutParams();
                             p.width = 0;
                             progressView.setLayoutParams(p);
                         }
                         if (videoControls != null) videoControls.setVisibility(View.VISIBLE);
+                        if (pendingAutoPlay) {
+                            try { videoView.start(); } catch (Exception ignored) {}
+                            playButton.setVisibility(View.GONE);
+                        } else {
+                            try { videoView.pause(); } catch (Exception ignored) {}
+                            playButton.setVisibility(View.VISIBLE);
+                        }
+                        // Hide thumbnail after first frame ready; video already VISIBLE underneath
                         imageView.postDelayed(() -> {
                             if (currentVideoId == videoId) {
                                 imageView.setVisibility(View.GONE);
                                 imageView.setImageBitmap(null);
-                                videoView.setVisibility(View.VISIBLE);
                             }
                         }, 80);
                     }
@@ -503,6 +540,8 @@ public class GalleryPagerAdapter extends RecyclerView.Adapter<GalleryPagerAdapte
             if (fullscreenButton != null) fullscreenButton.setOnClickListener(null);
             currentVideoId = -1;
             currentImageId = -1;
+            pendingAutoPlay = false;
+            isPrepared = false;
             imageView.setVisibility(View.VISIBLE);
         }
 
