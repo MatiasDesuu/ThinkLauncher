@@ -70,8 +70,7 @@ public class CalculatorActivity extends AppCompatActivity {
         View topLayout = findViewById(R.id.top_layout);
         View divider = findViewById(R.id.divider);
         View bottomDivider = findViewById(R.id.bottom_divider);
-        View contentLayout = findViewById(R.id.content_layout);
-        LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, surfaceColor, topLayout, contentLayout);
+        LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, surfaceColor, topLayout);
         if (divider != null) divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
         if (bottomDivider != null) bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
@@ -100,19 +99,26 @@ public class CalculatorActivity extends AppCompatActivity {
 
     private void bindButtons() {
         int txt = ThemeUtils.getTextColor(theme, this);
-        int bg = surfaceColor;
+        int bg = ThemeUtils.getBgColor(theme, this);
         int[] ids = new int[]{
-                R.id.btn_ac, R.id.btn_del, R.id.btn_lparen, R.id.btn_rparen, R.id.btn_div,
+                R.id.btn_ac, R.id.btn_paren, R.id.btn_percent, R.id.btn_div,
                 R.id.btn_7, R.id.btn_8, R.id.btn_9, R.id.btn_mul,
                 R.id.btn_4, R.id.btn_5, R.id.btn_6, R.id.btn_sub,
                 R.id.btn_1, R.id.btn_2, R.id.btn_3, R.id.btn_add,
-                R.id.btn_0, R.id.btn_dot, R.id.btn_sign, R.id.btn_percent, R.id.btn_eq
+                R.id.btn_0, R.id.btn_dot, R.id.btn_del, R.id.btn_eq
         };
         for (int id : ids) {
             TextView tv = findViewById(id);
             if (tv == null) continue;
-            org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(tv, theme, this, bg);
+            android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
+            d.setColor(bg);
+            d.setStroke((int) (2 * getResources().getDisplayMetrics().density), txt);
+            int r = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.getCornerRadiusPx(this);
+            if (r > 0) d.setCornerRadius(r);
+            tv.setBackground(d);
             tv.setTextColor(txt);
+            int pad = (int) (4 * getResources().getDisplayMetrics().density);
+            tv.setPadding(pad, pad, pad, pad);
         }
         TextView eq = findViewById(R.id.btn_eq);
         if (eq != null) {
@@ -141,11 +147,9 @@ public class CalculatorActivity extends AppCompatActivity {
         findViewById(R.id.btn_mul).setOnClickListener(v -> inputOperator("*"));
         findViewById(R.id.btn_div).setOnClickListener(v -> inputOperator("/"));
         findViewById(R.id.btn_percent).setOnClickListener(v -> inputPercent());
-        findViewById(R.id.btn_lparen).setOnClickListener(v -> inputLParen());
-        findViewById(R.id.btn_rparen).setOnClickListener(v -> inputRParen());
+        findViewById(R.id.btn_paren).setOnClickListener(v -> inputParen());
         findViewById(R.id.btn_ac).setOnClickListener(v -> clearAll());
         findViewById(R.id.btn_del).setOnClickListener(v -> deleteLast());
-        findViewById(R.id.btn_sign).setOnClickListener(v -> toggleSign());
         findViewById(R.id.btn_eq).setOnClickListener(v -> evaluate());
     }
 
@@ -211,58 +215,51 @@ public class CalculatorActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
     }
 
-    private void inputLParen() {
+    private void inputParen() {
         if (resetOnNextDigit) {
             expression.setLength(0);
             resetOnNextDigit = false;
         }
-        if (expression.length() > 0) {
-            char last = expression.charAt(expression.length() - 1);
-            if ((last >= '0' && last <= '9') || last == '.' || last == ')') {
-                expression.append("*");
-            }
-        }
-        expression.append("(");
-        updateDisplay();
-    }
-
-    private void inputRParen() {
-        if (resetOnNextDigit) return;
         int open = 0, close = 0;
         for (int i = 0; i < expression.length(); i++) {
             char c = expression.charAt(i);
             if (c == '(') open++;
             else if (c == ')') close++;
         }
-        if (close >= open) return;
-        if (expression.length() == 0) return;
-        char last = expression.charAt(expression.length() - 1);
-        if (last == '+' || last == '-' || last == '*' || last == '/' || last == '(') return;
-        expression.append(")");
-        updateDisplay();
-    }
-
-    private void toggleSign() {
-        if (expression.length() == 0) {
-            if (!lastResult.isEmpty() && !lastResult.equals("Error")) {
-                try {
-                    double v = Double.parseDouble(lastResult);
-                    v = -v;
-                    lastResult = formatResult(v);
-                    resultView.setText(lastResult);
-                    return;
-                } catch (Exception ignored) {}
+        boolean shouldOpen = true;
+        if (expression.length() > 0) {
+            char last = expression.charAt(expression.length() - 1);
+            if (open > close && (last >= '0' && last <= '9' || last == '.' || last == ')')) {
+                shouldOpen = false;
+            } else if (last == '(' || last == '+' || last == '-' || last == '*' || last == '/' ) {
+                shouldOpen = true;
+            } else if (open > close) {
+                shouldOpen = false;
             }
-            return;
         }
-        int lastOp = lastOperatorIndex();
-        int start = lastOp + 1;
-        if (start >= expression.length()) return;
-        String token = expression.substring(start);
-        if (token.startsWith("-")) {
-            expression.replace(start, start + 1, "");
+        if (shouldOpen) {
+            if (expression.length() > 0) {
+                char last = expression.charAt(expression.length() - 1);
+                if ((last >= '0' && last <= '9') || last == '.' || last == ')') {
+                    expression.append("*");
+                }
+            }
+            expression.append("(");
         } else {
-            expression.insert(start, "-");
+            if (close >= open) {
+                if (expression.length() > 0) {
+                    char last = expression.charAt(expression.length() - 1);
+                    if ((last >= '0' && last <= '9') || last == '.' || last == ')') {
+                        expression.append("*");
+                    }
+                }
+                expression.append("(");
+            } else {
+                if (expression.length() == 0) return;
+                char last = expression.charAt(expression.length() - 1);
+                if (last == '+' || last == '-' || last == '*' || last == '/' || last == '(') return;
+                expression.append(")");
+            }
         }
         updateDisplay();
     }
