@@ -24,6 +24,7 @@ import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryFavoritesHelper;
+import org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -55,6 +56,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private int currentMediaType;
     private boolean isTrashMode;
     private boolean isFavoritesMode;
+    private boolean isHiddenMode;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault());
 
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
@@ -114,6 +116,7 @@ public class GalleryViewerActivity extends AppCompatActivity {
 
         isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
         isFavoritesMode = getIntent().getBooleanExtra("favorites_mode", false);
+        isHiddenMode = getIntent().getBooleanExtra("hidden_mode", false);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -123,18 +126,16 @@ public class GalleryViewerActivity extends AppCompatActivity {
         deleteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         ImageView restoreButton = findViewById(R.id.restore_button);
         restoreButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
-        if (isTrashMode) {
-            restoreButton.setVisibility(View.VISIBLE);
-            restoreButton.setOnClickListener(v -> restoreCurrentImage());
-            deleteButton.setOnClickListener(v -> confirmPermanentDelete());
-        } else {
-            restoreButton.setVisibility(View.GONE);
-            deleteButton.setOnClickListener(v -> moveToTrash());
-        }
-
+        deleteButton.setVisibility(View.GONE);
+        restoreButton.setVisibility(View.GONE);
         favoriteButton = findViewById(R.id.favorite_button);
-        favoriteButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
-        favoriteButton.setOnClickListener(v -> toggleFavorite());
+        if (favoriteButton != null) favoriteButton.setVisibility(View.GONE);
+
+        ImageView moreButton = findViewById(R.id.more_button);
+        if (moreButton != null) {
+            moreButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            moreButton.setOnClickListener(v -> showOptionsDialog());
+        }
 
         ImageView shareButton = findViewById(R.id.share_button);
         shareButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
@@ -306,6 +307,73 @@ public class GalleryViewerActivity extends AppCompatActivity {
         }
     }
 
+    private void toggleHidden() {
+        boolean wasHidden = GalleryHiddenHelper.isHidden(this, currentImageId, currentMediaType);
+        if (wasHidden) GalleryHiddenHelper.unhide(this, currentImageId, currentMediaType);
+        else {
+            GalleryHiddenHelper.hide(this, currentImageId, currentMediaType);
+            GalleryFavoritesHelper.removeFavorite(this, currentImageId, currentMediaType);
+        }
+        favoritesChanged = true;
+        if (wasHidden && isHiddenMode) {
+            imageDeleted = true;
+            int removedIndex = currentIndex;
+            imageIds.remove(removedIndex);
+            if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
+            if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
+            if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
+            if (imageIds.isEmpty()) {
+                setResult(RESULT_OK);
+                finish();
+                return;
+            }
+            if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+                currentImageId = imageIds.get(currentIndex);
+                currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
+            }
+            adapter.notifyItemRemoved(removedIndex);
+            adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
+            viewPager.post(() -> {
+                viewPager.setCurrentItem(currentIndex, false);
+                updateCounter();
+            });
+        } else if (!wasHidden && !isTrashMode && !isHiddenMode) {
+            imageDeleted = true;
+            int removedIndex = currentIndex;
+            imageIds.remove(removedIndex);
+            if (imageNames != null && removedIndex < imageNames.size()) imageNames.remove(removedIndex);
+            if (mediaTypes != null && removedIndex < mediaTypes.size()) mediaTypes.remove(removedIndex);
+            if (imageDates != null && removedIndex < imageDates.size()) imageDates.remove(removedIndex);
+            if (imageIds.isEmpty()) {
+                setResult(RESULT_OK);
+                finish();
+                return;
+            }
+            if (currentIndex >= imageIds.size()) currentIndex = imageIds.size() - 1;
+            if (currentIndex >= 0 && currentIndex < imageIds.size()) {
+                currentImageId = imageIds.get(currentIndex);
+                currentMediaType = currentIndex < mediaTypes.size() ? mediaTypes.get(currentIndex) : GalleryTrashHelper.TYPE_IMAGE;
+            }
+            adapter.notifyItemRemoved(removedIndex);
+            adapter.notifyItemRangeChanged(currentIndex, imageIds.size() - currentIndex);
+            viewPager.post(() -> {
+                viewPager.setCurrentItem(currentIndex, false);
+                updateCounter();
+            });
+        }
+    }
+
+    private void showOptionsDialog() {
+        new GalleryViewerOptionsDialog(this, currentImageId, currentMediaType, isTrashMode, isHiddenMode,
+                this::toggleFavorite,
+                this::toggleHidden,
+                () -> {
+                    if (isTrashMode) confirmPermanentDelete();
+                    else moveToTrash();
+                }).show();
+    }
+
     private void confirmPermanentDelete() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             requestManageStoragePermission();
@@ -329,6 +397,8 @@ public class GalleryViewerActivity extends AppCompatActivity {
     private void moveToTrash() {
         try {
             GalleryTrashHelper.moveToTrash(this, currentImageId, currentMediaType);
+            GalleryHiddenHelper.unhide(this, currentImageId, currentMediaType);
+            GalleryFavoritesHelper.removeFavorite(this, currentImageId, currentMediaType);
             imageDeleted = true;
             int removedIndex = currentIndex;
             imageIds.remove(removedIndex);

@@ -43,6 +43,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryFavoritesHelper;
+import org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
@@ -67,6 +68,7 @@ public class GalleryActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION = 4001;
     private static final int REQUEST_VIEWER = 4002;
     private static final int REQUEST_TRASH = 4003;
+    private static final int REQUEST_HIDDEN = 4005;
     private int theme;
     private boolean scrollAppList;
     private boolean opacityEnabled;
@@ -95,6 +97,7 @@ public class GalleryActivity extends AppCompatActivity {
     private boolean folderShowGridTitles;
     private boolean isTrashMode;
     private boolean isFavoritesMode;
+    private boolean isHiddenMode;
     private boolean isFolderView;
     private String selectedFolder;
     private boolean galleryModified;
@@ -142,7 +145,10 @@ public class GalleryActivity extends AppCompatActivity {
         appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
         isTrashMode = getIntent().getBooleanExtra("trash_mode", false);
         isFavoritesMode = getIntent().getBooleanExtra("favorites_mode", false);
+        isHiddenMode = getIntent().getBooleanExtra("hidden_mode", false);
         if (isTrashMode && isFavoritesMode) isFavoritesMode = false;
+        if (isHiddenMode && (isTrashMode || isFavoritesMode)) { isTrashMode = false; isFavoritesMode = false; }
+        if (isTrashMode && isHiddenMode) isHiddenMode = false;
         setTheme(LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
@@ -186,6 +192,11 @@ public class GalleryActivity extends AppCompatActivity {
             selFav.setColorFilter(ThemeUtils.getTextColor(theme, this));
             selFav.setOnClickListener(v -> handleBatchFavorite());
         }
+        ImageView selHidden = findViewById(R.id.selection_hidden_button);
+        if (selHidden != null) {
+            selHidden.setColorFilter(ThemeUtils.getTextColor(theme, this));
+            selHidden.setOnClickListener(v -> handleBatchHidden());
+        }
 
         titleView.setOnLongClickListener(v -> {
             if (isSelectionMode) {
@@ -210,7 +221,7 @@ public class GalleryActivity extends AppCompatActivity {
             int curRows = isFolderView ? folderGridRows : gridRows;
             boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
             boolean curIsGrid = isFolderView ? isFolderGridView : isGridView;
-            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode, isFavoritesMode, galleryGroupMode,
+            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode, isFavoritesMode, isHiddenMode, galleryGroupMode,
                     (columns, rows) -> {
                         if (isFolderView) {
                             folderGridColumns = columns;
@@ -281,6 +292,18 @@ public class GalleryActivity extends AppCompatActivity {
                             Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
                             intent.putExtra("favorites_mode", true);
                             startActivityForResult(intent, REQUEST_FAVORITES);
+                            overridePendingTransition(0, 0);
+                        }
+                    },
+                    () -> {
+                        if (isHiddenMode) {
+                            if (galleryModified) setResult(RESULT_OK);
+                            finish();
+                            overridePendingTransition(0, 0);
+                        } else {
+                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                            intent.putExtra("hidden_mode", true);
+                            startActivityForResult(intent, REQUEST_HIDDEN);
                             overridePendingTransition(0, 0);
                         }
                     },
@@ -549,16 +572,20 @@ public class GalleryActivity extends AppCompatActivity {
             }
             GalleryTrashHelper.pruneInvalidIds(GalleryActivity.this, allImageIds, allVideoIds);
             GalleryFavoritesHelper.pruneInvalidIds(GalleryActivity.this, allImageIds, allVideoIds);
+            org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper.pruneInvalidIds(GalleryActivity.this, allImageIds, allVideoIds);
             List<GalleryImage> filtered = new ArrayList<>();
             for (GalleryImage img : loaded) {
                 boolean trashed = GalleryTrashHelper.isTrashed(GalleryActivity.this, img.id, img.mediaType);
                 boolean fav = GalleryFavoritesHelper.isFavorite(GalleryActivity.this, img.id, img.mediaType);
+                boolean hidden = org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper.isHidden(GalleryActivity.this, img.id, img.mediaType);
                 if (isTrashMode) {
                     if (trashed) filtered.add(img);
                 } else if (isFavoritesMode) {
-                    if (!trashed && fav) filtered.add(img);
+                    if (!trashed && !hidden && fav) filtered.add(img);
+                } else if (isHiddenMode) {
+                    if (!trashed && hidden) filtered.add(img);
                 } else {
-                    if (!trashed) filtered.add(img);
+                    if (!trashed && !hidden) filtered.add(img);
                 }
             }
             runOnUiThread(() -> {
@@ -628,6 +655,15 @@ public class GalleryActivity extends AppCompatActivity {
             return;
         }
         if (isFavoritesMode) {
+            List<GalleryImage> filtered = getFiltered(allMedia);
+            if (galleryGroupMode == GROUP_NONE) {
+                displayItems.addAll(filtered);
+            } else {
+                addGroupedItems(filtered);
+            }
+            return;
+        }
+        if (isHiddenMode) {
             List<GalleryImage> filtered = getFiltered(allMedia);
             if (galleryGroupMode == GROUP_NONE) {
                 displayItems.addAll(filtered);
@@ -846,6 +882,7 @@ public class GalleryActivity extends AppCompatActivity {
         if (titleView == null) return;
         if (isTrashMode) titleView.setText("Trash");
         else if (isFavoritesMode) titleView.setText("Favorites");
+        else if (isHiddenMode) titleView.setText("Hidden");
         else if (isFolderView) titleView.setText("Folders");
         else if (selectedFolder != null) titleView.setText(selectedFolder);
         else titleView.setText("Gallery");
@@ -854,7 +891,7 @@ public class GalleryActivity extends AppCompatActivity {
     private void updateFolderButtonIcon() {
         ImageView folderButton = findViewById(R.id.folder_button);
         if (folderButton == null) return;
-        if (isSelectionMode || isTrashMode || isFavoritesMode || selectedFolder != null) {
+        if (isSelectionMode || isTrashMode || isFavoritesMode || isHiddenMode || selectedFolder != null) {
             folderButton.setVisibility(View.GONE);
             return;
         }
@@ -1044,12 +1081,27 @@ public class GalleryActivity extends AppCompatActivity {
         return true;
     }
 
+    private boolean areAllSelectedHidden() {
+        if (selectedKeys.isEmpty()) return false;
+        for (String key : selectedKeys) {
+            try {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryHiddenHelper.TYPE_VIDEO : GalleryHiddenHelper.TYPE_IMAGE;
+                if (!GalleryHiddenHelper.isHidden(this, id, type)) return false;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void updateSelectionUI() {
         if (titleView == null) return;
         ImageView backButton = findViewById(R.id.back_button);
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
         ImageView selTrash = findViewById(R.id.selection_trash_button);
         ImageView selFav = findViewById(R.id.selection_favorite_button);
+        ImageView selHidden = findViewById(R.id.selection_hidden_button);
         View bottomBar = findViewById(R.id.bottom_bar);
         View bottomDivider = findViewById(R.id.bottom_divider);
         if (isSelectionMode) {
@@ -1072,6 +1124,16 @@ public class GalleryActivity extends AppCompatActivity {
                 else selFav.setImageResource(R.drawable.star_filled);
                 selFav.setColorFilter(ThemeUtils.getTextColor(theme, this));
             }
+            if (selHidden != null) {
+                if (isTrashMode) selHidden.setVisibility(View.GONE);
+                else {
+                    selHidden.setVisibility(View.VISIBLE);
+                    if (isHiddenMode) selHidden.setImageResource(R.drawable.unhide);
+                    else if (areAllSelectedHidden()) selHidden.setImageResource(R.drawable.unhide);
+                    else selHidden.setImageResource(R.drawable.hide);
+                    selHidden.setColorFilter(ThemeUtils.getTextColor(theme, this));
+                }
+            }
             if (bottomBar != null) bottomBar.setVisibility(View.GONE);
             if (bottomDivider != null) bottomDivider.setVisibility(View.GONE);
             updateFolderButtonIcon();
@@ -1090,6 +1152,7 @@ public class GalleryActivity extends AppCompatActivity {
             }
             if (selTrash != null) selTrash.setVisibility(View.GONE);
             if (selFav != null) selFav.setVisibility(View.GONE);
+            if (selHidden != null) selHidden.setVisibility(View.GONE);
             updatePageIndicator();
         }
     }
@@ -1113,6 +1176,7 @@ public class GalleryActivity extends AppCompatActivity {
                 int type = key.startsWith("video:") ? GalleryTrashHelper.TYPE_VIDEO : GalleryTrashHelper.TYPE_IMAGE;
                 GalleryTrashHelper.moveToTrash(this, id, type);
                 GalleryFavoritesHelper.removeFavorite(this, id, type);
+                GalleryHiddenHelper.unhide(this, id, type);
             }
         }
         galleryModified = true;
@@ -1161,6 +1225,42 @@ public class GalleryActivity extends AppCompatActivity {
         refreshVisibleFavorites();
     }
 
+    private void handleBatchHidden() {
+        if (selectedKeys.isEmpty()) return;
+        if (isHiddenMode) {
+            for (String key : new HashSet<>(selectedKeys)) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryHiddenHelper.TYPE_VIDEO : GalleryHiddenHelper.TYPE_IMAGE;
+                GalleryHiddenHelper.unhide(this, id, type);
+            }
+            galleryModified = true;
+            setResult(RESULT_OK);
+            exitSelectionMode();
+            loadImages();
+            return;
+        }
+        boolean allHidden = areAllSelectedHidden();
+        Set<String> keys = new HashSet<>(selectedKeys);
+        if (allHidden) {
+            for (String key : keys) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryHiddenHelper.TYPE_VIDEO : GalleryHiddenHelper.TYPE_IMAGE;
+                GalleryHiddenHelper.unhide(this, id, type);
+            }
+        } else {
+            for (String key : keys) {
+                long id = Long.parseLong(key.substring(key.indexOf(":") + 1));
+                int type = key.startsWith("video:") ? GalleryHiddenHelper.TYPE_VIDEO : GalleryHiddenHelper.TYPE_IMAGE;
+                GalleryHiddenHelper.hide(this, id, type);
+                GalleryFavoritesHelper.removeFavorite(this, id, type);
+            }
+        }
+        galleryModified = true;
+        setResult(RESULT_OK);
+        exitSelectionMode();
+        loadImages();
+    }
+
     private void confirmEmptyTrash() {
         if (!isTrashMode) return;
         int count = 0;
@@ -1193,7 +1293,7 @@ public class GalleryActivity extends AppCompatActivity {
             exitSelectionMode();
             return;
         }
-        if (isTrashMode || isFavoritesMode) return;
+        if (isTrashMode || isFavoritesMode || isHiddenMode) return;
         if (selectedFolder != null) {
             selectedFolder = null;
             isFolderView = true;
@@ -1520,6 +1620,7 @@ public class GalleryActivity extends AppCompatActivity {
         intent.putExtra("image_dates", datesArray);
         intent.putExtra("trash_mode", isTrashMode);
         intent.putExtra("favorites_mode", isFavoritesMode);
+        intent.putExtra("hidden_mode", isHiddenMode);
         startActivityForResult(intent, REQUEST_VIEWER);
         overridePendingTransition(0, appLauncherAnimations ? 0 : 0);
     }
@@ -1530,11 +1631,11 @@ public class GalleryActivity extends AppCompatActivity {
         if (requestCode == REQUEST_VIEWER && resultCode == RESULT_OK) {
             restorePage = currentPage;
             loadImages();
-            if (isTrashMode || isFavoritesMode) {
+            if (isTrashMode || isFavoritesMode || isHiddenMode) {
                 galleryModified = true;
                 setResult(RESULT_OK);
             }
-        } else if ((requestCode == REQUEST_TRASH || requestCode == REQUEST_FAVORITES) && resultCode == RESULT_OK) {
+        } else if ((requestCode == REQUEST_TRASH || requestCode == REQUEST_FAVORITES || requestCode == REQUEST_HIDDEN) && resultCode == RESULT_OK) {
             restorePage = currentPage;
             loadImages();
         }

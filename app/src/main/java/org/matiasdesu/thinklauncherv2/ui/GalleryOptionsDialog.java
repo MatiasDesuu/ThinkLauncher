@@ -30,6 +30,10 @@ public class GalleryOptionsDialog extends Dialog {
         void onFavoritesClick();
     }
 
+    public interface OnHiddenClickCallback {
+        void onHiddenClick();
+    }
+
     public interface OnGroupChangedCallback {
         void onGroupChanged(int groupMode);
     }
@@ -46,6 +50,7 @@ public class GalleryOptionsDialog extends Dialog {
     private OnShowTitlesChangedCallback titlesCallback;
     private OnTrashClickCallback trashCallback;
     private OnFavoritesClickCallback favoritesCallback;
+    private OnHiddenClickCallback hiddenCallback;
     private OnGroupChangedCallback groupCallback;
     private OnEmptyTrashCallback emptyTrashCallback;
     private OnFilterChangedCallback filterCallback;
@@ -56,6 +61,7 @@ public class GalleryOptionsDialog extends Dialog {
     private boolean hasPagination;
     private boolean isTrashMode;
     private boolean isFavoritesMode;
+    private boolean isHiddenMode;
     private int currentGroupMode;
     private int currentFilterMode;
 
@@ -67,7 +73,7 @@ public class GalleryOptionsDialog extends Dialog {
                                    OnGroupChangedCallback groupCallback,
                                    OnTrashClickCallback trashCallback,
                                    OnFavoritesClickCallback favoritesCallback) {
-        this(context, columns, rows, showTitles, isGridView, hasPagination, isTrashMode, isFavoritesMode, groupMode, gridCallback, titlesCallback, groupCallback, trashCallback, favoritesCallback, null, 0, null);
+        this(context, columns, rows, showTitles, isGridView, hasPagination, isTrashMode, isFavoritesMode, false, groupMode, gridCallback, titlesCallback, groupCallback, trashCallback, favoritesCallback, null, null, 0, null);
     }
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
@@ -79,7 +85,7 @@ public class GalleryOptionsDialog extends Dialog {
                                    OnTrashClickCallback trashCallback,
                                    OnFavoritesClickCallback favoritesCallback,
                                    OnEmptyTrashCallback emptyTrashCallback) {
-        this(context, columns, rows, showTitles, isGridView, hasPagination, isTrashMode, isFavoritesMode, groupMode, gridCallback, titlesCallback, groupCallback, trashCallback, favoritesCallback, emptyTrashCallback, 0, null);
+        this(context, columns, rows, showTitles, isGridView, hasPagination, isTrashMode, isFavoritesMode, false, groupMode, gridCallback, titlesCallback, groupCallback, trashCallback, favoritesCallback, null, emptyTrashCallback, 0, null);
     }
 
     public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
@@ -93,12 +99,28 @@ public class GalleryOptionsDialog extends Dialog {
                                    OnEmptyTrashCallback emptyTrashCallback,
                                    int filterMode,
                                    OnFilterChangedCallback filterCallback) {
+        this(context, columns, rows, showTitles, isGridView, hasPagination, isTrashMode, isFavoritesMode, false, groupMode, gridCallback, titlesCallback, groupCallback, trashCallback, favoritesCallback, null, emptyTrashCallback, filterMode, filterCallback);
+    }
+
+    public GalleryOptionsDialog(Context context, int columns, int rows, boolean showTitles,
+                                   boolean isGridView, boolean hasPagination, boolean isTrashMode, boolean isFavoritesMode, boolean isHiddenMode,
+                                   int groupMode,
+                                   OnGridChangedCallback gridCallback,
+                                   OnShowTitlesChangedCallback titlesCallback,
+                                   OnGroupChangedCallback groupCallback,
+                                   OnTrashClickCallback trashCallback,
+                                   OnFavoritesClickCallback favoritesCallback,
+                                   OnHiddenClickCallback hiddenCallback,
+                                   OnEmptyTrashCallback emptyTrashCallback,
+                                   int filterMode,
+                                   OnFilterChangedCallback filterCallback) {
         super(context, R.style.NoAnimationDialog);
         this.gridCallback = gridCallback;
         this.titlesCallback = titlesCallback;
         this.groupCallback = groupCallback;
         this.trashCallback = trashCallback;
         this.favoritesCallback = favoritesCallback;
+        this.hiddenCallback = hiddenCallback;
         this.emptyTrashCallback = emptyTrashCallback;
         this.filterCallback = filterCallback;
         this.currentColumns = columns;
@@ -108,6 +130,7 @@ public class GalleryOptionsDialog extends Dialog {
         this.hasPagination = hasPagination;
         this.isTrashMode = isTrashMode;
         this.isFavoritesMode = isFavoritesMode;
+        this.isHiddenMode = isHiddenMode;
         this.currentGroupMode = groupMode;
         this.currentFilterMode = filterMode;
         init();
@@ -210,6 +233,16 @@ public class GalleryOptionsDialog extends Dialog {
             dismiss();
             if (favoritesCallback != null) favoritesCallback.onFavoritesClick();
         });
+
+        TextView hiddenButton = findViewById(R.id.hidden_button);
+        if (hiddenButton != null) {
+            DialogEffectHelper.applyButtonTheme(hiddenButton, theme, getContext(), surfaceColor);
+            hiddenButton.setText(isHiddenMode ? "Gallery" : "Hidden");
+            hiddenButton.setOnClickListener(v -> {
+                dismiss();
+                if (hiddenCallback != null) hiddenCallback.onHiddenClick();
+            });
+        }
 
         TextView emptyTrashButton = findViewById(R.id.empty_trash_button);
         if (emptyTrashButton != null) {

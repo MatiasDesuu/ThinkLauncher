@@ -168,6 +168,13 @@
         android:layout_marginTop="8dp" />
 
     <TextView
+        android:id="@+id/hidden_button"
+        style="@style/DialogButton"
+        android:text="Hidden"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
         android:id="@+id/empty_trash_button"
         style="@style/DialogButton"
         android:text="Empty trash"

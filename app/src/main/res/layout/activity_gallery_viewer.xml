@@ -60,7 +60,8 @@
                     android:layout_height="48dp"
                     android:padding="12dp"
                     android:src="@drawable/star_outline"
-                    android:tint="?attr/text_color" />
+                    android:tint="?attr/text_color"
+                    android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/restore_button"
@@ -77,6 +78,15 @@
                     android:layout_height="48dp"
                     android:padding="12dp"
                     android:src="@drawable/delete"
+                    android:tint="?attr/text_color"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/more_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="12dp"
+                    android:src="@drawable/more_vert"
                     android:tint="?attr/text_color" />
 
             </LinearLayout>
