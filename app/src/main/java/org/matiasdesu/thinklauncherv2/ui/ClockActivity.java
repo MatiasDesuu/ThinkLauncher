@@ -564,14 +564,6 @@ public class ClockActivity extends AppCompatActivity {
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            if (items.isEmpty()) {
-                TextView tv = new TextView(parent.getContext());
-                tv.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                tv.setPadding(32, 48, 32, 48);
-                tv.setGravity(android.view.Gravity.CENTER);
-                tv.setTextSize(18);
-                return new ViewHolder(tv, true);
-            }
             if (viewType == 0) {
                 TextView tv = new TextView(parent.getContext());
                 tv.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -586,7 +578,7 @@ public class ClockActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            if (items.isEmpty()) {
+            if (items.isEmpty() || holder.timeView == null) {
                 TextView tv = (TextView) holder.itemView;
                 if (activity.clockFilterMode == FILTER_TIMERS) tv.setText("No timers\nTap + to add");
                 else tv.setText("No alarms\nTap + to add");
