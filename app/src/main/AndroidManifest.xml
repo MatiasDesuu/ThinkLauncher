@@ -29,6 +29,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:enableOnBackInvokedCallback="false"
         android:theme="@style/AppTheme">
         <service
             android:name=".services.LockAccessibilityService"
@@ -63,6 +64,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:enableOnBackInvokedCallback="false"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
             android:taskAffinity=""
@@ -76,142 +78,142 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".settings.SettingsActivity"
+            android:name=".settings.SettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.HomeScreenSettingsActivity"
+            android:name=".settings.HomeScreenSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AppearanceSettingsActivity"
+            android:name=".settings.AppearanceSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.FontsSettingsActivity"
+            android:name=".settings.FontsSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.ControlsSettingsActivity"
+            android:name=".settings.ControlsSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AppLauncherSettingsActivity"
+            android:name=".settings.AppLauncherSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.SystemSettingsActivity"
+            android:name=".settings.SystemSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.GestureSettingsActivity"
+            android:name=".settings.GestureSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.CustomGestureSettingsActivity"
+            android:name=".settings.CustomGestureSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AppBarSettingsActivity"
+            android:name=".settings.AppBarSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AppBarAppsActivity"
+            android:name=".settings.AppBarAppsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AppBarPositionActivity"
+            android:name=".settings.AppBarPositionActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AppBarStyleActivity"
+            android:name=".settings.AppBarStyleActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.DockSettingsActivity"
+            android:name=".settings.DockSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.MusicDockSettingsActivity"
+            android:name=".settings.MusicDockSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.MusicDockStyleActivity"
+            android:name=".settings.MusicDockStyleActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.DocksSettingsActivity"
+            android:name=".settings.DocksSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.RecordGestureActivity"
+            android:name=".settings.RecordGestureActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.DisplaySettingsActivity"
+            android:name=".settings.DisplaySettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.ThemeSettingsActivity"
+            android:name=".settings.ThemeSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.TimeSettingsActivity"
+            android:name=".settings.TimeSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.DateSettingsActivity"
+            android:name=".settings.DateSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.SettingsButtonSettingsActivity"
+            android:name=".settings.SettingsButtonSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.SearchButtonSettingsActivity"
+            android:name=".settings.SearchButtonSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.OpacityBlurEffectsActivity"
+            android:name=".settings.OpacityBlurEffectsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.HomeSettingsActivity"
+            android:name=".settings.HomeSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.IconSettingsActivity"
+            android:name=".settings.IconSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.TextSettingsActivity"
+            android:name=".settings.TextSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.WallpaperSettingsActivity"
+            android:name=".settings.WallpaperSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.HomeScreenPaddingActivity"
+            android:name=".settings.HomeScreenPaddingActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.FontSizesSettingsActivity"
+            android:name=".settings.FontSizesSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.FontSettingsActivity"
+            android:name=".settings.FontSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.AnimationSettingsActivity"
+            android:name=".settings.AnimationSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".settings.HardwareKeysSettingsActivity"
+            android:name=".settings.HardwareKeysSettingsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.AppLauncherActivity"
+            android:name=".ui.AppLauncherActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.HideAppsActivity"
+            android:name=".ui.HideAppsActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.AppSelectorActivity"
+            android:name=".ui.AppSelectorActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.KOReaderHistoryActivity"
+            android:name=".ui.KOReaderHistoryActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.CalendarActivity"
+            android:name=".ui.CalendarActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.FolderActivity"
+            android:name=".ui.FolderActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.GalleryActivity"
+            android:name=".ui.GalleryActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.GalleryViewerActivity"
+            android:name=".ui.GalleryViewerActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.VideoFullscreenActivity"
+            android:name=".ui.VideoFullscreenActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false"
             android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".ui.ClockActivity"
+            android:name=".ui.ClockActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false" />
         <activity
-            android:name=".ui.AlarmActivity"
+            android:name=".ui.AlarmActivity" android:enableOnBackInvokedCallback="false"
             android:exported="false"
             android:theme="@style/AlarmTheme"
             android:hardwareAccelerated="false"

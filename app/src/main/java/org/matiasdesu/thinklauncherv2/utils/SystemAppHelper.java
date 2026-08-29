@@ -156,11 +156,6 @@ public final class SystemAppHelper {
                 try {
                     context.startActivity(intent);
                     if (context instanceof Activity && !animate) ((Activity) context).overridePendingTransition(0, 0);
-                    if (context instanceof Activity && fromActivity) {
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (context instanceof Activity) ((Activity) context).finish();
-                        }, 100);
-                    }
                     return true;
                 } catch (Exception e) {
                     android.widget.Toast.makeText(context, "Bigme Control Panel not available", android.widget.Toast.LENGTH_SHORT).show();
@@ -169,9 +164,6 @@ public final class SystemAppHelper {
             }
             if (context instanceof Activity) {
                 context.startActivity(intent);
-                if (fromActivity) {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> ((Activity) context).finish(), 100);
-                }
             } else {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);

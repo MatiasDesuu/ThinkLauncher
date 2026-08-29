@@ -279,7 +279,10 @@ public class AppLauncherActivity extends AppCompatActivity {
 
     public void launchApp(String label, String packageName) {
         if (SystemAppHelper.isSystemApp(packageName)) {
-            if (SystemAppHelper.launch(this, packageName)) return;
+            if (SystemAppHelper.launch(this, packageName)) {
+                new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
+                return;
+            }
         }
         if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
