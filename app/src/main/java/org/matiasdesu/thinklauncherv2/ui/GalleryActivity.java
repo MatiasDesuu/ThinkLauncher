@@ -1090,8 +1090,6 @@ public class GalleryActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         ImageView toggleButton = findViewById(R.id.toggle_view_button);
         ImageView selMore = findViewById(R.id.selection_more_button);
-        View bottomBar = findViewById(R.id.bottom_bar);
-        View bottomDivider = findViewById(R.id.bottom_divider);
         ImageView selTrash = findViewById(R.id.selection_trash_button);
         ImageView selFav = findViewById(R.id.selection_favorite_button);
         ImageView selHidden = findViewById(R.id.selection_hidden_button);
@@ -1110,9 +1108,8 @@ public class GalleryActivity extends AppCompatActivity {
                 selMore.setVisibility(View.VISIBLE);
                 selMore.setColorFilter(ThemeUtils.getTextColor(theme, this));
             }
-            if (bottomBar != null) bottomBar.setVisibility(View.GONE);
-            if (bottomDivider != null) bottomDivider.setVisibility(View.GONE);
             updateFolderButtonIcon();
+            updatePageIndicator();
         } else {
             updateTitle();
             updateFolderButtonIcon();
@@ -1594,12 +1591,6 @@ public class GalleryActivity extends AppCompatActivity {
         TextView pageIndicator = findViewById(R.id.page_indicator);
         View bottomDivider = findViewById(R.id.bottom_divider);
         View bottomBar = findViewById(R.id.bottom_bar);
-        if (isSelectionMode) {
-            if (pageIndicator != null) pageIndicator.setVisibility(View.GONE);
-            if (bottomDivider != null) bottomDivider.setVisibility(View.GONE);
-            if (bottomBar != null) bottomBar.setVisibility(View.GONE);
-            return;
-        }
         if (scrollAppList) {
             pageIndicator.setVisibility(View.GONE);
             bottomDivider.setVisibility(View.GONE);
