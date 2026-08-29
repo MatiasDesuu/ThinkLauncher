@@ -47,6 +47,8 @@ import org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import android.view.Gravity;
+import android.widget.LinearLayout;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -106,6 +108,16 @@ public class GalleryActivity extends AppCompatActivity {
     private static final int REQUEST_FAVORITES = 4004;
     private boolean isSelectionMode;
     private final Set<String> selectedKeys = new HashSet<>();
+
+    private LinearLayout indexSidebar;
+    private LinearLayout indexSidebarHorizontal;
+    private int galleryIndexSidebar;
+    private List<String> sidebarKeys;
+    private List<String> sidebarLabels;
+    private int highlightedDotIndex = -1;
+    private TextView sidebarPopup;
+    private final Handler sidebarPopupHandler = new Handler(Looper.getMainLooper());
+    private Runnable hideSidebarPopupRunnable;
 
     private final ExecutorService thumbnailExecutor = Executors.newFixedThreadPool(2);
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
@@ -212,133 +224,7 @@ public class GalleryActivity extends AppCompatActivity {
                 exitSelectionMode();
                 return;
             }
-            int curCols = isFolderView ? folderGridColumns : gridColumns;
-            int curRows = isFolderView ? folderGridRows : gridRows;
-            boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
-            boolean curIsGrid = isFolderView ? isFolderGridView : isGridView;
-            new GalleryOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, isTrashMode, isFavoritesMode, isHiddenMode, galleryGroupMode,
-                    (columns, rows) -> {
-                        if (isFolderView) {
-                            folderGridColumns = columns;
-                            folderGridRows = rows;
-                            gridColumns = columns;
-                            gridRows = rows;
-                            prefs.edit().putInt("gallery_folder_grid_columns", columns).putInt("gallery_folder_grid_rows", rows).apply();
-                        } else {
-                            gridColumns = columns;
-                            gridRows = rows;
-                            prefs.edit().putInt("gallery_grid_columns", columns).putInt("gallery_grid_rows", rows).apply();
-                        }
-                        currentPage = 0;
-                        itemsPerPage = calculateItemsPerPage();
-                        applyGridLayoutManager();
-                        recomputePagination();
-                        if (pageNavigator != null) {
-                            pageNavigator.setCurrentPage(0);
-                            pageNavigator.setTotalItems(displayItems.size());
-                        }
-                        adapter.notifyDataSetChanged();
-                        updatePageIndicator();
-                    },
-                    show -> {
-                        if (isFolderView) {
-                            folderShowGridTitles = show;
-                            showGridTitles = show;
-                            prefs.edit().putBoolean("gallery_folder_grid_show_titles", show).apply();
-                        } else {
-                            showGridTitles = show;
-                            prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
-                        }
-                        adapter.notifyDataSetChanged();
-                    },
-                    mode -> {
-                        galleryGroupMode = mode;
-                        updateDisplayItems();
-                        currentPage = 0;
-                        itemsPerPage = calculateItemsPerPage();
-                        applyGridLayoutManager();
-                        recomputePagination();
-                        if (pageNavigator != null) {
-                            pageNavigator.setCurrentPage(0);
-                            pageNavigator.setTotalItems(displayItems.size());
-                        }
-                        adapter.notifyDataSetChanged();
-                        updatePageIndicator();
-                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                    },
-                    () -> {
-                        if (isTrashMode) {
-                            if (galleryModified) setResult(RESULT_OK);
-                            finish();
-                            overridePendingTransition(0, 0);
-                        } else {
-                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
-                            intent.putExtra("trash_mode", true);
-                            startActivityForResult(intent, REQUEST_TRASH);
-                            overridePendingTransition(0, 0);
-                        }
-                    },
-                    () -> {
-                        if (isFavoritesMode) {
-                            if (galleryModified) setResult(RESULT_OK);
-                            finish();
-                            overridePendingTransition(0, 0);
-                        } else {
-                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
-                            intent.putExtra("favorites_mode", true);
-                            startActivityForResult(intent, REQUEST_FAVORITES);
-                            overridePendingTransition(0, 0);
-                        }
-                    },
-                    () -> {
-                        if (isHiddenMode) {
-                            if (galleryModified) setResult(RESULT_OK);
-                            finish();
-                            overridePendingTransition(0, 0);
-                        } else {
-                            Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
-                            intent.putExtra("hidden_mode", true);
-                            startActivityForResult(intent, REQUEST_HIDDEN);
-                            overridePendingTransition(0, 0);
-                        }
-                    },
-                    () -> confirmEmptyTrash(),
-                    galleryFilterMode,
-                    filter -> {
-                        galleryFilterMode = filter;
-                        if (isSelectionMode) exitSelectionMode();
-                        updateDisplayItems();
-                        currentPage = 0;
-                        itemsPerPage = calculateItemsPerPage();
-                        applyGridLayoutManager();
-                        recomputePagination();
-                        if (pageNavigator != null) {
-                            pageNavigator.setCurrentPage(0);
-                            pageNavigator.setTotalItems(displayItems.size());
-                        }
-                        adapter.notifyDataSetChanged();
-                        updatePageIndicator();
-                        updateTitle();
-                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                    },
-                    gallerySortMode,
-                    sort -> {
-                        gallerySortMode = sort;
-                        if (isSelectionMode) exitSelectionMode();
-                        updateDisplayItems();
-                        currentPage = 0;
-                        itemsPerPage = calculateItemsPerPage();
-                        applyGridLayoutManager();
-                        recomputePagination();
-                        if (pageNavigator != null) {
-                            pageNavigator.setCurrentPage(0);
-                            pageNavigator.setTotalItems(displayItems.size());
-                        }
-                        adapter.notifyDataSetChanged();
-                        updatePageIndicator();
-                        updateTitle();
-                        EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
-                    }).show();
+            showGalleryOptionsDialog();
         });
 
         isGridView = prefs.getBoolean("gallery_grid_view", true);
@@ -355,6 +241,7 @@ public class GalleryActivity extends AppCompatActivity {
         if (galleryFilterMode < FILTER_ALL || galleryFilterMode > FILTER_VIDEOS) galleryFilterMode = FILTER_ALL;
         gallerySortMode = prefs.getInt("gallery_sort_by", SORT_DATE_DESC);
         if (gallerySortMode < SORT_DATE_DESC || gallerySortMode > SORT_SIZE_ASC) gallerySortMode = SORT_DATE_DESC;
+        galleryIndexSidebar = prefs.getInt("gallery_index_sidebar", 0);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
         isFolderView = false;
@@ -369,6 +256,19 @@ public class GalleryActivity extends AppCompatActivity {
         View container = findViewById(R.id.app_list_container);
         LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, gallerySurfaceColor,
                 topLayout, recyclerView, container);
+
+        indexSidebar = findViewById(R.id.index_sidebar);
+        indexSidebarHorizontal = findViewById(R.id.index_sidebar_horizontal);
+        sidebarPopup = findViewById(R.id.sidebar_popup);
+        if (sidebarPopup != null) {
+            android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
+            d.setColor(gallerySurfaceColor);
+            d.setStroke((int) (2 * getResources().getDisplayMetrics().density), ThemeUtils.getTextColor(theme, this));
+            d.setCornerRadius(DialogEffectHelper.getCornerRadiusPx(this));
+            sidebarPopup.setBackground(d);
+            sidebarPopup.setTextColor(ThemeUtils.getTextColor(theme, this));
+            sidebarPopup.setVisibility(View.GONE);
+        }
 
         adapter = new GalleryAdapter(displayItems);
         applyGridLayoutManager();
@@ -1519,10 +1419,12 @@ public class GalleryActivity extends AppCompatActivity {
     private void recomputePagination() {
         pageStartIndices.clear();
         if (scrollAppList) {
+            buildGalleryIndexSidebar();
             return;
         }
         if (displayItems.isEmpty()) {
             pageStartIndices.add(0);
+            buildGalleryIndexSidebar();
             return;
         }
         if (galleryGroupMode == GROUP_NONE || isFolderView) {
@@ -1532,6 +1434,7 @@ public class GalleryActivity extends AppCompatActivity {
             if (pageStartIndices.isEmpty()) pageStartIndices.add(0);
             if (currentPage >= pageStartIndices.size()) currentPage = pageStartIndices.size() - 1;
             if (currentPage < 0) currentPage = 0;
+            buildGalleryIndexSidebar();
             return;
         }
         float density = getResources().getDisplayMetrics().density;
@@ -1544,6 +1447,7 @@ public class GalleryActivity extends AppCompatActivity {
                 - (int) (48 * density) - (int) (4 * density) - (int) (48 * density) - navBarHeightPx;
         if (recyclerHeightPx <= 0) {
             pageStartIndices.add(0);
+            buildGalleryIndexSidebar();
             return;
         }
         int separatorHeightPx = (int) (36 * density);
@@ -1598,6 +1502,7 @@ public class GalleryActivity extends AppCompatActivity {
         if (pageStartIndices.isEmpty()) pageStartIndices.add(0);
         if (currentPage >= pageStartIndices.size()) currentPage = pageStartIndices.size() - 1;
         if (currentPage < 0) currentPage = 0;
+        buildGalleryIndexSidebar();
     }
 
     private int getPageItemCount(int page) {
@@ -1642,6 +1547,337 @@ public class GalleryActivity extends AppCompatActivity {
         int displayPage = Math.min(currentPage, totalPages - 1);
         pageIndicator.setText((displayPage + 1) + " / " + totalPages);
         ThemeUtils.applyTextColor(pageIndicator, theme, this);
+    }
+
+    private void buildGalleryIndexSidebar() {
+        if (indexSidebar == null || indexSidebarHorizontal == null) return;
+        if (galleryIndexSidebar == 0 || displayItems == null || displayItems.isEmpty() || (galleryGroupMode != GROUP_MONTH && galleryGroupMode != GROUP_YEAR) || isFolderView) {
+            indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.setVisibility(View.GONE);
+            return;
+        }
+        List<String> keys = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        List<Integer> positions = new ArrayList<>();
+        for (int i = 0; i < displayItems.size(); i++) {
+            Object o = displayItems.get(i);
+            if (o instanceof GallerySeparator) {
+                GallerySeparator sep = (GallerySeparator) o;
+                if (!keys.contains(sep.key)) {
+                    keys.add(sep.key);
+                    labels.add(sep.label);
+                    positions.add(i);
+                }
+            }
+        }
+        if (keys.isEmpty()) {
+            indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.setVisibility(View.GONE);
+            return;
+        }
+        sidebarKeys = keys;
+        sidebarLabels = labels;
+        int count = keys.size();
+        int textColor = ThemeUtils.getTextColor(theme, this);
+        int bgColor = ThemeUtils.getBgColor(theme, this);
+        highlightedDotIndex = -1;
+        if (scrollAppList) {
+            indexSidebarHorizontal.setVisibility(View.GONE);
+            indexSidebar.removeAllViews();
+            for (int i = 0; i < count; i++) {
+                TextView tv = new TextView(this);
+                tv.setText("•");
+                tv.setTextSize(16);
+                tv.setTextColor(textColor);
+                tv.setGravity(Gravity.CENTER);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+                tv.setLayoutParams(lp);
+                indexSidebar.addView(tv);
+            }
+            indexSidebar.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            indexSidebar.setOnTouchListener((v, event) -> {
+                int action = event.getActionMasked();
+                if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                    int idx = (int) (event.getY() / (v.getHeight() / (float) count));
+                    idx = Math.max(0, Math.min(idx, count - 1));
+                    if (idx != highlightedDotIndex) {
+                        highlightedDotIndex = idx;
+                        updateGallerySidebarHighlight(textColor, bgColor);
+                        navigateToSidebarDot(idx);
+                        showSidebarPopupForDot(idx);
+                    }
+                    return true;
+                } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                    highlightedDotIndex = -1;
+                    updateGallerySidebarHighlight(textColor, bgColor);
+                    scheduleHideSidebarPopup();
+                    return true;
+                }
+                return false;
+            });
+            indexSidebar.setVisibility(View.VISIBLE);
+        } else {
+            indexSidebar.setVisibility(View.GONE);
+            indexSidebarHorizontal.removeAllViews();
+            for (int i = 0; i < count; i++) {
+                TextView tv = new TextView(this);
+                tv.setText("•");
+                tv.setTextSize(14);
+                tv.setTextColor(textColor);
+                tv.setGravity(Gravity.CENTER);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+                tv.setLayoutParams(lp);
+                indexSidebarHorizontal.addView(tv);
+            }
+            indexSidebarHorizontal.setOnTouchListener((v, event) -> {
+                int action = event.getActionMasked();
+                if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                    int idx = (int) (event.getX() / (v.getWidth() / (float) count));
+                    idx = Math.max(0, Math.min(idx, count - 1));
+                    if (idx != highlightedDotIndex) {
+                        highlightedDotIndex = idx;
+                        updateGallerySidebarHighlight(textColor, bgColor);
+                        navigateToSidebarDot(idx);
+                        showSidebarPopupForDot(idx);
+                    }
+                    return true;
+                } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                    highlightedDotIndex = -1;
+                    updateGallerySidebarHighlight(textColor, bgColor);
+                    scheduleHideSidebarPopup();
+                    return true;
+                }
+                return false;
+            });
+            indexSidebarHorizontal.setVisibility(View.VISIBLE);
+        }
+        updateGallerySidebarHighlight(textColor, bgColor);
+    }
+
+    private void navigateToSidebarDot(int dotIdx) {
+        if (sidebarKeys == null || dotIdx < 0 || dotIdx >= sidebarKeys.size()) return;
+        String targetKey = sidebarKeys.get(dotIdx);
+        int globalPos = -1;
+        for (int i = 0; i < displayItems.size(); i++) {
+            Object o = displayItems.get(i);
+            if (o instanceof GallerySeparator) {
+                if (((GallerySeparator) o).key.equals(targetKey)) {
+                    globalPos = i;
+                    break;
+                }
+            }
+        }
+        if (globalPos < 0) return;
+        if (scrollAppList) {
+            if (recyclerView != null) {
+                recyclerView.scrollToPosition(globalPos);
+                EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            }
+        } else {
+            int targetPage = findPageForGlobalPosition(globalPos);
+            if (targetPage != currentPage) {
+                currentPage = targetPage;
+                if (pageNavigator != null) pageNavigator.setCurrentPage(targetPage);
+                adapter.notifyDataSetChanged();
+                updatePageIndicator();
+                EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+            }
+        }
+    }
+
+    private void updateGallerySidebarHighlight(int textColor, int bgColor) {
+        if (indexSidebar != null && indexSidebar.getVisibility() == View.VISIBLE) {
+            for (int i = 0; i < indexSidebar.getChildCount(); i++) {
+                View child = indexSidebar.getChildAt(i);
+                if (!(child instanceof TextView)) continue;
+                TextView tv = (TextView) child;
+                if (i == highlightedDotIndex) {
+                    tv.setBackgroundColor(textColor);
+                    tv.setTextColor(bgColor);
+                } else {
+                    tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    tv.setTextColor(textColor);
+                }
+            }
+        }
+        if (indexSidebarHorizontal != null && indexSidebarHorizontal.getVisibility() == View.VISIBLE) {
+            for (int i = 0; i < indexSidebarHorizontal.getChildCount(); i++) {
+                View child = indexSidebarHorizontal.getChildAt(i);
+                if (!(child instanceof TextView)) continue;
+                TextView tv = (TextView) child;
+                if (i == highlightedDotIndex) {
+                    tv.setBackgroundColor(textColor);
+                    tv.setTextColor(bgColor);
+                } else {
+                    tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    tv.setTextColor(textColor);
+                }
+            }
+        }
+    }
+
+    private void showSidebarPopupForDot(int dotIdx) {
+        if (sidebarLabels == null || dotIdx < 0 || dotIdx >= sidebarLabels.size()) return;
+        showSidebarPopup(sidebarLabels.get(dotIdx));
+    }
+
+    private void showSidebarPopup(String label) {
+        if (sidebarPopup == null) return;
+        sidebarPopup.setText(label);
+        sidebarPopup.setVisibility(View.VISIBLE);
+        sidebarPopup.bringToFront();
+        if (hideSidebarPopupRunnable != null) sidebarPopupHandler.removeCallbacks(hideSidebarPopupRunnable);
+    }
+
+    private void scheduleHideSidebarPopup() {
+        if (sidebarPopup == null) return;
+        if (hideSidebarPopupRunnable != null) sidebarPopupHandler.removeCallbacks(hideSidebarPopupRunnable);
+        hideSidebarPopupRunnable = () -> {
+            if (sidebarPopup != null) sidebarPopup.setVisibility(View.GONE);
+        };
+        sidebarPopupHandler.postDelayed(hideSidebarPopupRunnable, 900);
+    }
+
+    private void showGalleryOptionsDialog() {
+        new GalleryOptionsDialog(this, isTrashMode, isFavoritesMode, isHiddenMode,
+                galleryFilterMode, filter -> {
+                    galleryFilterMode = filter;
+                    if (isSelectionMode) exitSelectionMode();
+                    updateDisplayItems();
+                    currentPage = 0;
+                    itemsPerPage = calculateItemsPerPage();
+                    applyGridLayoutManager();
+                    recomputePagination();
+                    if (pageNavigator != null) {
+                        pageNavigator.setCurrentPage(0);
+                        pageNavigator.setTotalItems(displayItems.size());
+                    }
+                    adapter.notifyDataSetChanged();
+                    updatePageIndicator();
+                    updateTitle();
+                    buildGalleryIndexSidebar();
+                    EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                },
+                gallerySortMode, sort -> {
+                    gallerySortMode = sort;
+                    if (isSelectionMode) exitSelectionMode();
+                    updateDisplayItems();
+                    currentPage = 0;
+                    itemsPerPage = calculateItemsPerPage();
+                    applyGridLayoutManager();
+                    recomputePagination();
+                    if (pageNavigator != null) {
+                        pageNavigator.setCurrentPage(0);
+                        pageNavigator.setTotalItems(displayItems.size());
+                    }
+                    adapter.notifyDataSetChanged();
+                    updatePageIndicator();
+                    updateTitle();
+                    buildGalleryIndexSidebar();
+                    EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                },
+                () -> {
+                    if (isTrashMode) {
+                        if (galleryModified) setResult(RESULT_OK);
+                        finish();
+                        overridePendingTransition(0, 0);
+                    } else {
+                        Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                        intent.putExtra("trash_mode", true);
+                        startActivityForResult(intent, REQUEST_TRASH);
+                        overridePendingTransition(0, 0);
+                    }
+                },
+                () -> {
+                    if (isFavoritesMode) {
+                        if (galleryModified) setResult(RESULT_OK);
+                        finish();
+                        overridePendingTransition(0, 0);
+                    } else {
+                        Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                        intent.putExtra("favorites_mode", true);
+                        startActivityForResult(intent, REQUEST_FAVORITES);
+                        overridePendingTransition(0, 0);
+                    }
+                },
+                () -> {
+                    if (isHiddenMode) {
+                        if (galleryModified) setResult(RESULT_OK);
+                        finish();
+                        overridePendingTransition(0, 0);
+                    } else {
+                        Intent intent = new Intent(GalleryActivity.this, GalleryActivity.class);
+                        intent.putExtra("hidden_mode", true);
+                        startActivityForResult(intent, REQUEST_HIDDEN);
+                        overridePendingTransition(0, 0);
+                    }
+                },
+                () -> confirmEmptyTrash(),
+                () -> showGalleryMoreOptionsDialog()).show();
+    }
+
+    private void showGalleryMoreOptionsDialog() {
+        int curCols = isFolderView ? folderGridColumns : gridColumns;
+        int curRows = isFolderView ? folderGridRows : gridRows;
+        boolean curShowTitles = isFolderView ? folderShowGridTitles : showGridTitles;
+        boolean curIsGrid = isFolderView ? isFolderGridView : isGridView;
+        new GalleryMoreOptionsDialog(this, curCols, curRows, curShowTitles, curIsGrid, !scrollAppList, galleryGroupMode, galleryIndexSidebar == 1,
+                (cols, rows) -> {
+                    if (isFolderView) {
+                        folderGridColumns = cols;
+                        folderGridRows = rows;
+                        gridColumns = cols;
+                        gridRows = rows;
+                        prefs.edit().putInt("gallery_folder_grid_columns", cols).putInt("gallery_folder_grid_rows", rows).apply();
+                    } else {
+                        gridColumns = cols;
+                        gridRows = rows;
+                        prefs.edit().putInt("gallery_grid_columns", cols).putInt("gallery_grid_rows", rows).apply();
+                    }
+                    currentPage = 0;
+                    itemsPerPage = calculateItemsPerPage();
+                    applyGridLayoutManager();
+                    recomputePagination();
+                    if (pageNavigator != null) {
+                        pageNavigator.setCurrentPage(0);
+                        pageNavigator.setTotalItems(displayItems.size());
+                    }
+                    adapter.notifyDataSetChanged();
+                    updatePageIndicator();
+                },
+                show -> {
+                    if (isFolderView) {
+                        folderShowGridTitles = show;
+                        showGridTitles = show;
+                        prefs.edit().putBoolean("gallery_folder_grid_show_titles", show).apply();
+                    } else {
+                        showGridTitles = show;
+                        prefs.edit().putBoolean("gallery_grid_show_titles", show).apply();
+                    }
+                    adapter.notifyDataSetChanged();
+                },
+                mode -> {
+                    galleryGroupMode = mode;
+                    updateDisplayItems();
+                    currentPage = 0;
+                    itemsPerPage = calculateItemsPerPage();
+                    applyGridLayoutManager();
+                    recomputePagination();
+                    if (pageNavigator != null) {
+                        pageNavigator.setCurrentPage(0);
+                        pageNavigator.setTotalItems(displayItems.size());
+                    }
+                    adapter.notifyDataSetChanged();
+                    updatePageIndicator();
+                    buildGalleryIndexSidebar();
+                    EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                },
+                enabled -> {
+                    galleryIndexSidebar = enabled ? 1 : 0;
+                    buildGalleryIndexSidebar();
+                    EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
+                },
+                () -> showGalleryOptionsDialog()).show();
     }
 
     private void openImage(int position) {

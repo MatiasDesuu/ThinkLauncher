@@ -122,6 +122,14 @@
             android:layout_width="match_parent"
             android:layout_height="2dp" />
 
+        <LinearLayout
+            android:id="@+id/index_sidebar_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
         <FrameLayout
             android:id="@+id/app_list_container"
             android:layout_width="match_parent"
@@ -134,6 +142,30 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent" />
+
+            <LinearLayout
+                android:id="@+id/index_sidebar"
+                android:layout_width="28dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="right|center_vertical"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:translationZ="10dp" />
+
+            <TextView
+                android:id="@+id/sidebar_popup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:padding="12dp"
+                android:text="January 2024"
+                android:textColor="?attr/text_color"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:elevation="12dp" />
 
         </FrameLayout>
 
