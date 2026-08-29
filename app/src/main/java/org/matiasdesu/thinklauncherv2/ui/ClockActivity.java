@@ -104,6 +104,7 @@ public class ClockActivity extends AppCompatActivity {
                 if (rv != null) rv.scrollToPosition(0);
                 EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
             }
+            openAlarmTest();
             return true;
         });
 
@@ -290,6 +291,13 @@ public class ClockActivity extends AppCompatActivity {
                         topLayout, recyclerView, container);
             }
         }).show();
+    }
+
+    private void openAlarmTest() {
+        Intent intent = new Intent(this, AlarmActivity.class);
+        intent.putExtra("alarm_id", -1);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 
     private void reloadWallpaperPreference() {

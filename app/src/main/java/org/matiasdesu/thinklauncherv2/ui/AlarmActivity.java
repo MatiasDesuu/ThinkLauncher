@@ -17,6 +17,7 @@ import androidx.core.view.WindowCompat;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
+import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
@@ -29,7 +30,10 @@ public class AlarmActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         int theme = prefs.getInt("theme", 0);
         boolean disableAlarmWallpaper = prefs.getBoolean("alarm_disable_wallpaper", true);
-        boolean opacityEnabled = !disableAlarmWallpaper && prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        boolean opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
+        boolean blurEnabled = prefs.getInt("app_launcher_bg_blur_enabled", 0) == 1;
+        int blurStrength = prefs.getInt("app_launcher_bg_blur_strength", 3);
+        int opacityPercent = prefs.getInt("app_launcher_bg_opacity", 100);
         setTheme(org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper.resolveThemeResId(this, theme, opacityEnabled));
         super.onCreate(savedInstanceState);
 
@@ -69,24 +73,37 @@ public class AlarmActivity extends AppCompatActivity {
             contentLayout.setPadding(defaultPadding, defaultPadding, defaultPadding, defaultPadding);
         }
 
-        ImageView wallpaperView = findViewById(R.id.wallpaper_view);
-        int surfaceColor = ThemeUtils.getBgColor(theme, this);
-        View root = findViewById(android.R.id.content);
-        if (root != null) {
-            root.setBackgroundColor(disableAlarmWallpaper ? surfaceColor : android.graphics.Color.TRANSPARENT);
-        }
-        if (contentLayout != null) {
-            contentLayout.setBackgroundColor(disableAlarmWallpaper ? surfaceColor : android.graphics.Color.TRANSPARENT);
-        }
-
+        int baseSurfaceColor = ThemeUtils.getBgColor(theme, this);
         if (disableAlarmWallpaper) {
+            View root = findViewById(android.R.id.content);
+            if (root != null) {
+                root.setBackgroundColor(baseSurfaceColor);
+            }
+            if (contentLayout != null) {
+                contentLayout.setBackgroundColor(baseSurfaceColor);
+            }
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(baseSurfaceColor);
+                getWindow().setNavigationBarColor(baseSurfaceColor);
+            }
+            ImageView wallpaperView = findViewById(R.id.wallpaper_view);
             if (wallpaperView != null) {
                 wallpaperView.setVisibility(View.GONE);
             }
         } else {
+            LauncherBackdropHelper.Result backdrop = LauncherBackdropHelper.setup(this, theme, opacityEnabled);
+            View root = findViewById(android.R.id.content);
+            if (root != null) {
+                root.setBackgroundColor(backdrop.surfaceColor);
+            }
+            if (contentLayout != null) {
+                contentLayout.setBackgroundColor(backdrop.surfaceColor);
+            }
+            ImageView wallpaperView = findViewById(R.id.wallpaper_view);
             if (wallpaperView != null) {
                 int[] screen = WallpaperHelper.getScreenDimensions(this);
-                android.graphics.Bitmap bitmap = WallpaperHelper.getWallpaperForScreenCached(this, screen[0], screen[1], false, 3);
+                android.graphics.Bitmap bitmap = WallpaperHelper.getWallpaperForScreenCached(this, screen[0], screen[1], blurEnabled, blurStrength);
                 if (bitmap != null) {
                     wallpaperView.setImageBitmap(bitmap);
                     wallpaperView.setVisibility(View.VISIBLE);
