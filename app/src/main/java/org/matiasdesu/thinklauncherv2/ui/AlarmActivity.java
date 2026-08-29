@@ -31,7 +31,13 @@ public class AlarmActivity extends AppCompatActivity {
         boolean blurEnabled = prefs.getInt("app_launcher_bg_blur_enabled", 0) == 1;
         int blurStrength = prefs.getInt("app_launcher_bg_blur_strength", 3);
         int opacityPercent = prefs.getInt("app_launcher_bg_opacity", 100);
-        int alarmStyle = ThemeUtils.isDarkTheme(theme, this) ? R.style.AlarmTheme_Dark : R.style.AlarmTheme;
+        boolean useTranslucent = !disableAlarmWallpaper && opacityEnabled;
+        int alarmStyle;
+        if (useTranslucent) {
+            alarmStyle = ThemeUtils.isDarkTheme(theme, this) ? R.style.AlarmTheme_Translucent_Dark : R.style.AlarmTheme_Translucent;
+        } else {
+            alarmStyle = ThemeUtils.isDarkTheme(theme, this) ? R.style.AlarmTheme_Dark : R.style.AlarmTheme;
+        }
         setTheme(alarmStyle);
         super.onCreate(savedInstanceState);
         int baseSurfaceColor = ThemeUtils.getBgColor(theme, this);

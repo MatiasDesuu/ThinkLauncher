@@ -214,6 +214,7 @@
             android:name=".ui.AlarmActivity"
             android:exported="false"
             android:theme="@style/AlarmTheme"
+            android:hardwareAccelerated="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
