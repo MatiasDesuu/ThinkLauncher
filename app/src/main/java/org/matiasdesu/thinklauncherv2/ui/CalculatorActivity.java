@@ -69,10 +69,8 @@ public class CalculatorActivity extends AppCompatActivity {
 
         View topLayout = findViewById(R.id.top_layout);
         View divider = findViewById(R.id.divider);
-        View bottomDivider = findViewById(R.id.bottom_divider);
         LauncherBackdropHelper.applySurfaceBackgrounds(showWallpaperBackdrop, surfaceColor, topLayout);
         if (divider != null) divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
-        if (bottomDivider != null) bottomDivider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
         TextView titleView = findViewById(R.id.calculator_title);
         ThemeUtils.applyTextColor(titleView, theme, this);

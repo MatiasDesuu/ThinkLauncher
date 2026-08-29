@@ -58,6 +58,137 @@
             android:layout_width="match_parent"
             android:layout_height="2dp" />
 
+        <LinearLayout
+            android:id="@+id/month_header"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/prev_month_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/back_arrow"
+                android:tint="?attr/text_color" />
+
+            <TextView
+                android:id="@+id/month_title"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="May 2026"
+                android:textColor="?attr/text_color"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/next_month_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/forward_arrow"
+                android:tint="?attr/text_color" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/weekday_header"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/wd_0"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Mon"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/wd_1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Tue"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/wd_2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Wed"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/wd_3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Thu"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/wd_4"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Fri"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/wd_5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Sat"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/wd_6"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Sun"
+                android:textColor="?attr/text_color"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:includeFontPadding="false" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/month_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:clipChildren="false"
+            android:clipToPadding="false" />
+
         <FrameLayout
             android:id="@+id/app_list_container"
             android:layout_width="match_parent"

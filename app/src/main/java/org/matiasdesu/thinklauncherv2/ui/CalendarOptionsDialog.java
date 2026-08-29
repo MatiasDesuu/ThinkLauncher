@@ -17,6 +17,7 @@ public class CalendarOptionsDialog extends Dialog {
         void onOptionsChanged();
     }
 
+    private boolean showMonthGrid;
     private boolean showAccount;
     private int eventLimit;
     private boolean highlightToday;
@@ -30,6 +31,8 @@ public class CalendarOptionsDialog extends Dialog {
             boolean showMonthSeparators, boolean showDaySeparators, boolean highlightEventTimes, int highlightStyle,
             OnOptionsChangedCallback callback) {
         super(context, R.style.NoAnimationDialog);
+        SharedPreferences p = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        this.showMonthGrid = p.getBoolean("calendar_show_month_grid", false);
         this.showAccount = showAccount;
         this.eventLimit = eventLimit;
         this.highlightToday = highlightToday;
@@ -51,6 +54,7 @@ public class CalendarOptionsDialog extends Dialog {
         View root = findViewById(android.R.id.content);
         DialogEffectHelper.applySurface(root, theme, getContext(), surfaceColor);
 
+        TextView gridButton = findViewById(R.id.month_grid_button);
         TextView accountButton = findViewById(R.id.account_button);
         TextView eventLimitButton = findViewById(R.id.event_limit_button);
         TextView todayHighlightButton = findViewById(R.id.today_highlight_button);
@@ -59,6 +63,7 @@ public class CalendarOptionsDialog extends Dialog {
         TextView timeHighlightButton = findViewById(R.id.time_highlight_button);
         TextView styleButton = findViewById(R.id.time_highlight_style_button);
 
+        DialogEffectHelper.applyButtonTheme(gridButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(accountButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(eventLimitButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(todayHighlightButton, theme, getContext(), surfaceColor);
@@ -67,62 +72,70 @@ public class CalendarOptionsDialog extends Dialog {
         DialogEffectHelper.applyButtonTheme(timeHighlightButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(styleButton, theme, getContext(), surfaceColor);
 
-        updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton,
+        updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton,
                 timeHighlightButton, styleButton);
+
+        gridButton.setOnClickListener(v -> {
+            showMonthGrid = !showMonthGrid;
+            prefs.edit().putBoolean("calendar_show_month_grid", showMonthGrid).apply();
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            callback.onOptionsChanged();
+        });
 
         accountButton.setOnClickListener(v -> {
             showAccount = !showAccount;
             prefs.edit().putBoolean("calendar_show_account", showAccount).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
 
         eventLimitButton.setOnClickListener(v -> {
             eventLimit = getNextEventLimit(eventLimit);
             prefs.edit().putInt("calendar_event_limit", eventLimit).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
 
         todayHighlightButton.setOnClickListener(v -> {
             highlightToday = !highlightToday;
             prefs.edit().putBoolean("calendar_highlight_today", highlightToday).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
 
         monthSeparatorsButton.setOnClickListener(v -> {
             showMonthSeparators = !showMonthSeparators;
             prefs.edit().putBoolean("calendar_month_separators", showMonthSeparators).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
 
         daySeparatorsButton.setOnClickListener(v -> {
             showDaySeparators = !showDaySeparators;
             prefs.edit().putBoolean("calendar_day_separators", showDaySeparators).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
 
         timeHighlightButton.setOnClickListener(v -> {
             highlightEventTimes = !highlightEventTimes;
             prefs.edit().putBoolean("calendar_highlight_event_times", highlightEventTimes).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
 
         styleButton.setOnClickListener(v -> {
             highlightStyle = (highlightStyle + 1) % 3;
             prefs.edit().putInt("calendar_highlight_style", highlightStyle).apply();
-            updateTexts(accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
+            updateTexts(gridButton, accountButton, eventLimitButton, todayHighlightButton, monthSeparatorsButton, daySeparatorsButton, timeHighlightButton, styleButton);
             callback.onOptionsChanged();
         });
     }
 
-    private void updateTexts(TextView accountButton, TextView eventLimitButton, TextView todayHighlightButton,
+    private void updateTexts(TextView gridButton, TextView accountButton, TextView eventLimitButton, TextView todayHighlightButton,
             TextView monthSeparatorsButton, TextView daySeparatorsButton, TextView timeHighlightButton,
             TextView styleButton) {
+        gridButton.setText(showMonthGrid ? "Month grid: On" : "Month grid: Off");
         accountButton.setText(showAccount ? "Account: On" : "Account: Off");
         eventLimitButton.setText("Events: " + eventLimit);
         todayHighlightButton.setText(highlightToday ? "Today dot: On" : "Today dot: Off");
