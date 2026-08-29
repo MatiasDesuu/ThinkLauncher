@@ -10,7 +10,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
-public class DeleteImageDialog extends Dialog {
+public class DeleteImageDialog extends GuardedDialog {
 
     public interface OnConfirmCallback {
         void onConfirm();

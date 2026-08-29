@@ -15,7 +15,7 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.RepeatListener;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class ClockAlarmDialog extends Dialog {
+public class ClockAlarmDialog extends GuardedDialog {
 
     public interface OnAlarmSavedCallback {
         void onSaved(ClockAlarmHelper.Alarm alarm);

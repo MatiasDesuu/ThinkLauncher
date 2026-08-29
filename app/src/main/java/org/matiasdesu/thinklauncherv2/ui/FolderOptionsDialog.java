@@ -11,7 +11,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
-public class FolderOptionsDialog extends Dialog {
+public class FolderOptionsDialog extends GuardedDialog {
 
     public interface OnChangeFolderNameCallback {
         void onChangeFolderName();

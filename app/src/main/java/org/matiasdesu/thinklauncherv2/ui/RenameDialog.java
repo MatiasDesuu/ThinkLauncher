@@ -11,7 +11,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
-public class RenameDialog extends Dialog {
+public class RenameDialog extends GuardedDialog {
 
     public interface RenameCallback {
         void onRenameAccepted(String newName);

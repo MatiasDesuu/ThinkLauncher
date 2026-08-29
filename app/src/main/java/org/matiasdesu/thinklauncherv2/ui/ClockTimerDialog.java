@@ -15,7 +15,7 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.RepeatListener;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class ClockTimerDialog extends Dialog {
+public class ClockTimerDialog extends GuardedDialog {
 
     public interface OnTimerSavedCallback {
         void onSaved(ClockTimerHelper.Timer timer);

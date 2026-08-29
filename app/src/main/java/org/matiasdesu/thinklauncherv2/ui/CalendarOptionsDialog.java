@@ -11,7 +11,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class CalendarOptionsDialog extends Dialog {
+public class CalendarOptionsDialog extends GuardedDialog {
 
     public interface OnOptionsChangedCallback {
         void onOptionsChanged();

@@ -13,7 +13,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class GalleryOptionsDialog extends Dialog {
+public class GalleryOptionsDialog extends GuardedDialog {
 
     public interface OnGridChangedCallback {
         void onGridChanged(int columns, int rows);

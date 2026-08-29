@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class GalleryDetailsDialog extends Dialog {
+public class GalleryDetailsDialog extends GuardedDialog {
 
     private final long imageId;
     private final int mediaType;

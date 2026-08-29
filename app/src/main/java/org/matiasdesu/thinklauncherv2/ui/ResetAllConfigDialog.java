@@ -11,7 +11,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class ResetAllConfigDialog extends Dialog {
+public class ResetAllConfigDialog extends GuardedDialog {
 
     public interface OnConfirmCallback {
         void onConfirm();

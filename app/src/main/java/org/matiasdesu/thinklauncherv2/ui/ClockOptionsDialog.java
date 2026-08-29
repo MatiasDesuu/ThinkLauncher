@@ -10,7 +10,7 @@ import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
-public class ClockOptionsDialog extends Dialog {
+public class ClockOptionsDialog extends GuardedDialog {
 
     public interface OnOptionsChangedCallback {
         void onOptionsChanged();

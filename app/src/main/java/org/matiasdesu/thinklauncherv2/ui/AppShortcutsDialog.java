@@ -13,7 +13,7 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 
 import java.util.List;
 
-public class AppShortcutsDialog extends Dialog {
+public class AppShortcutsDialog extends GuardedDialog {
 
     public interface OnSecondaryCallback {
         void onSecondary();

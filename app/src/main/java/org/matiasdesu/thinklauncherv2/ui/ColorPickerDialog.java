@@ -17,7 +17,7 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 import org.matiasdesu.thinklauncherv2.views.ColorPickerView;
 
-public class ColorPickerDialog extends Dialog {
+public class ColorPickerDialog extends GuardedDialog {
 
     public interface ColorPickerCallback {
         void onColorSelected(int color);

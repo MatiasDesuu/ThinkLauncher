@@ -12,7 +12,7 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 
-public class GalleryViewerOptionsDialog extends Dialog {
+public class GalleryViewerOptionsDialog extends GuardedDialog {
 
     public interface OnFavoriteCallback {
         void onFavorite();

@@ -10,7 +10,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class GalleryEmptyTrashConfirmDialog extends Dialog {
+public class GalleryEmptyTrashConfirmDialog extends GuardedDialog {
 
     public interface OnConfirmCallback {
         void onConfirm();

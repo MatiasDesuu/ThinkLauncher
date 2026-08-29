@@ -10,7 +10,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class GalleryFolderOptionsDialog extends Dialog {
+public class GalleryFolderOptionsDialog extends GuardedDialog {
 
     public interface OnPinToggleCallback {
         void onPinToggle();

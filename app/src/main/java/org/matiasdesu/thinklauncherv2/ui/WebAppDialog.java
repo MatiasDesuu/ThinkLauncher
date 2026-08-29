@@ -12,7 +12,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
-public class WebAppDialog extends Dialog {
+public class WebAppDialog extends GuardedDialog {
 
     public interface WebAppCallback {
         void onWebAppAccepted(String name, String url);
