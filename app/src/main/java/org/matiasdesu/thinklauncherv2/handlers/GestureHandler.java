@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
+import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
 
 public class GestureHandler {
 
@@ -92,84 +93,8 @@ public class GestureHandler {
     }
 
     private void launchApp(String packageName) {
-        if ("notification_panel".equals(packageName)) {
-            try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
-                        .invoke(activity.getSystemService("statusbar"));
-            } catch (Exception e) {
-
-            }
-        } else if ("app_launcher".equals(packageName)) {
-            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(activity, AppLauncherActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            activity.startActivity(intent);
-            if (animate) {
-                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("koreader_history".equals(packageName)) {
-            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            activity.startActivity(intent);
-            if (animate) {
-                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("calendar".equals(packageName)) {
-            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            activity.startActivity(intent);
-            if (animate) {
-                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("gallery".equals(packageName)) {
-            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.GalleryActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            activity.startActivity(intent);
-            if (animate) {
-                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("clock".equals(packageName)) {
-            SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(activity, org.matiasdesu.thinklauncherv2.ui.ClockActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            activity.startActivity(intent);
-            if (animate) {
-                activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("launcher_settings".equals(packageName)) {
-            try {
-                Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
-                Intent intent = new Intent(activity, clazz);
-                boolean animate = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("screen_animations", 0) == 1;
-                if (!animate) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                }
-                activity.startActivity(intent);
-                if (animate) {
-                    activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
-                }
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-            }
-        } else if (!packageName.isEmpty()) {
+        if (SystemAppHelper.launch(activity, packageName)) return;
+        if (!packageName.isEmpty()) {
             Intent intent = activity.getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
                 SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);

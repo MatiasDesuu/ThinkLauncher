@@ -40,6 +40,7 @@ import org.matiasdesu.thinklauncherv2.utils.AppSearchHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
+import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.util.ArrayList;
@@ -277,72 +278,10 @@ public class AppLauncherActivity extends AppCompatActivity {
     }
 
     public void launchApp(String label, String packageName) {
-        if ("notification_panel".equals(packageName)) {
-            try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
-                        .invoke(getSystemService("statusbar"));
-            } catch (Exception e) {
-                // Log or ignore
-            }
-            finish();
-            } else if ("launcher_settings".equals(packageName)) {
-                try {
-                    Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
-                    Intent intent = new Intent(this, clazz);
-                    if (!appLauncherAnimations) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    }
-                    startActivity(intent);
-                    overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-                    new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-                    return;
-                } catch (ClassNotFoundException ex) {
-                    ex.printStackTrace();
-            }
-        } else if ("koreader_history".equals(packageName)) {
-            Intent intent = new Intent(this, KOReaderHistoryActivity.class);
-            if (!appLauncherAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-            return;
-        } else if ("calendar".equals(packageName)) {
-            Intent intent = new Intent(this, CalendarActivity.class);
-            if (!appLauncherAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-            return;
-        } else if ("gallery".equals(packageName)) {
-            Intent intent = new Intent(this, GalleryActivity.class);
-            if (!appLauncherAnimations) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-            return;
-        } else if ("bigme_control_panel".equals(packageName)) {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new android.content.ComponentName("com.xrz.sys.control",
-                        "com.xrz.settings.ControlCenterActivity"));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                if (!appLauncherAnimations) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                }
-                startActivity(intent);
-                overridePendingTransition(0, appLauncherAnimations ? R.anim.dialog_fade_out : 0);
-                new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
-                return;
-            } catch (Exception e) {
-                android.widget.Toast.makeText(this, "Bigme Control Panel not available", android.widget.Toast.LENGTH_SHORT).show();
-            }
-        } else if (!packageName.isEmpty()) {
+        if (SystemAppHelper.isSystemApp(packageName)) {
+            if (SystemAppHelper.launch(this, packageName)) return;
+        }
+        if (!packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
                 SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
@@ -440,17 +379,20 @@ public class AppLauncherActivity extends AppCompatActivity {
                 packages.add(item[1]);
             }
 
-            labels.add(0, "Launcher Settings");
-            packages.add(0, "launcher_settings");
+            labels.add(0, SystemAppHelper.getDefaultLabel(SystemAppHelper.LAUNCHER_SETTINGS));
+            packages.add(0, SystemAppHelper.LAUNCHER_SETTINGS);
 
-            labels.add(1, "KOReader History");
-            packages.add(1, "koreader_history");
+            labels.add(1, SystemAppHelper.getDefaultLabel(SystemAppHelper.KOREADER_HISTORY));
+            packages.add(1, SystemAppHelper.KOREADER_HISTORY);
 
-            labels.add(2, "Calendar Screen");
-            packages.add(2, "calendar");
+            labels.add(2, SystemAppHelper.getDefaultLabel(SystemAppHelper.CALENDAR));
+            packages.add(2, SystemAppHelper.CALENDAR);
 
-            labels.add(3, "Gallery");
-            packages.add(3, "gallery");
+            labels.add(3, SystemAppHelper.getDefaultLabel(SystemAppHelper.GALLERY));
+            packages.add(3, SystemAppHelper.GALLERY);
+
+            labels.add(4, SystemAppHelper.getDefaultLabel(SystemAppHelper.CLOCK));
+            packages.add(4, SystemAppHelper.CLOCK);
 
             runOnUiThread(() -> {
                 targetLabels.clear();

@@ -1,0 +1,214 @@
+package org.matiasdesu.thinklauncherv2.utils;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+
+import org.matiasdesu.thinklauncherv2.R;
+import org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity;
+import org.matiasdesu.thinklauncherv2.ui.CalendarActivity;
+import org.matiasdesu.thinklauncherv2.ui.ClockActivity;
+import org.matiasdesu.thinklauncherv2.ui.GalleryActivity;
+import org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity;
+
+public final class SystemAppHelper {
+
+    public static final String LAUNCHER_SETTINGS = "launcher_settings";
+    public static final String APP_LAUNCHER = "app_launcher";
+    public static final String NOTIFICATION_PANEL = "notification_panel";
+    public static final String KOREADER_HISTORY = "koreader_history";
+    public static final String CALENDAR = "calendar";
+    public static final String GALLERY = "gallery";
+    public static final String CLOCK = "clock";
+    public static final String BIGME_CONTROL_PANEL = "bigme_control_panel";
+    public static final String BIGME_EINK_SETTINGS = "bigme_eink_settings";
+    public static final String NEXT_HOME_PAGE = "next_home_page";
+    public static final String PREVIOUS_HOME_PAGE = "previous_home_page";
+    public static final String FOLDER = "folder";
+    public static final String SYSTEM_DEFAULT = "system_default";
+    public static final String BLANK = "blank";
+    public static final String WEB_APPS = "web_apps";
+    public static final String HIDDEN_APP = "hidden_app";
+
+    private SystemAppHelper() {}
+
+    public static boolean isSystemApp(String pkg) {
+        if (pkg == null) return false;
+        if (pkg.equals(LAUNCHER_SETTINGS) || pkg.equals(APP_LAUNCHER) || pkg.equals(NOTIFICATION_PANEL)
+                || pkg.equals(KOREADER_HISTORY) || pkg.equals(CALENDAR) || pkg.equals(GALLERY)
+                || pkg.equals(CLOCK) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
+                || pkg.equals(NEXT_HOME_PAGE) || pkg.equals(PREVIOUS_HOME_PAGE) || pkg.equals(FOLDER)
+                || pkg.equals(SYSTEM_DEFAULT) || pkg.equals(BLANK) || pkg.equals(WEB_APPS) || pkg.equals(HIDDEN_APP)) return true;
+        return pkg.startsWith("folder_") || pkg.startsWith("webapp_") || pkg.startsWith("hidden_app_");
+    }
+
+    public static boolean isSpecialForHome(String pkg) {
+        if (pkg == null || pkg.isEmpty()) return false;
+        if (isSystemApp(pkg)) return true;
+        return false;
+    }
+
+    public static boolean isSpecialLaunchable(String pkg) {
+        if (pkg == null) return false;
+        return pkg.equals(LAUNCHER_SETTINGS) || pkg.equals(APP_LAUNCHER) || pkg.equals(NOTIFICATION_PANEL)
+                || pkg.equals(KOREADER_HISTORY) || pkg.equals(CALENDAR) || pkg.equals(GALLERY)
+                || pkg.equals(CLOCK) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
+                || pkg.equals(NEXT_HOME_PAGE) || pkg.equals(PREVIOUS_HOME_PAGE);
+    }
+
+    public static int getIconRes(String pkg) {
+        if (pkg == null) return 0;
+        if (pkg.equals(LAUNCHER_SETTINGS)) return R.drawable.settings;
+        if (pkg.equals(APP_LAUNCHER)) return R.drawable.search;
+        if (pkg.equals(NOTIFICATION_PANEL)) return R.drawable.notifications;
+        if (pkg.equals(KOREADER_HISTORY)) return R.drawable.koreader;
+        if (pkg.equals(CALENDAR)) return R.drawable.date;
+        if (pkg.equals(GALLERY)) return R.drawable.gallery;
+        if (pkg.equals(CLOCK)) return R.drawable.time;
+        if (pkg.equals(BIGME_CONTROL_PANEL)) return R.drawable.generic_app;
+        if (pkg.equals(BIGME_EINK_SETTINGS)) return R.drawable.generic_app;
+        if (pkg.startsWith("webapp_")) return R.drawable.webapps;
+        if (pkg.startsWith("folder_") || pkg.equals(FOLDER)) return R.drawable.folder;
+        return 0;
+    }
+
+    public static String getDefaultLabel(String pkg) {
+        if (pkg == null) return "";
+        if (pkg.equals(LAUNCHER_SETTINGS)) return "Launcher Settings";
+        if (pkg.equals(APP_LAUNCHER)) return "App Launcher";
+        if (pkg.equals(NOTIFICATION_PANEL)) return "Notification Panel";
+        if (pkg.equals(KOREADER_HISTORY)) return "KOReader History";
+        if (pkg.equals(CALENDAR)) return "Calendar Screen";
+        if (pkg.equals(GALLERY)) return "Gallery";
+        if (pkg.equals(CLOCK)) return "Clock";
+        if (pkg.equals(BIGME_CONTROL_PANEL)) return "Bigme Control Panel";
+        if (pkg.equals(BIGME_EINK_SETTINGS)) return "Bigme Eink Settings";
+        if (pkg.equals(NEXT_HOME_PAGE)) return "Next Home Page";
+        if (pkg.equals(PREVIOUS_HOME_PAGE)) return "Previous Home Page";
+        return pkg;
+    }
+
+    public static Intent getLaunchIntent(Context context, String pkg) {
+        if (pkg == null) return null;
+        if (pkg.equals(CLOCK)) return new Intent(context, ClockActivity.class);
+        if (pkg.equals(CALENDAR)) return new Intent(context, CalendarActivity.class);
+        if (pkg.equals(GALLERY)) return new Intent(context, GalleryActivity.class);
+        if (pkg.equals(KOREADER_HISTORY)) return new Intent(context, KOReaderHistoryActivity.class);
+        if (pkg.equals(APP_LAUNCHER)) return new Intent(context, AppLauncherActivity.class);
+        if (pkg.equals(LAUNCHER_SETTINGS)) {
+            try {
+                Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
+                return new Intent(context, clazz);
+            } catch (ClassNotFoundException e) {
+                return null;
+            }
+        }
+        if (pkg.equals(BIGME_CONTROL_PANEL)) {
+            Intent intent = new Intent();
+            intent.setComponent(new android.content.ComponentName("com.xrz.sys.control", "com.xrz.settings.ControlCenterActivity"));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            return intent;
+        }
+        if (pkg.equals(NOTIFICATION_PANEL)) return null;
+        return null;
+    }
+
+    public static boolean launch(Context context, String pkg) {
+        SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
+        return launch(context, pkg, animate, false);
+    }
+
+    public static boolean launch(Activity activity, String pkg) {
+        SharedPreferences prefs = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        boolean animate = prefs.getInt("screen_animations", 0) == 1;
+        boolean result = launch((Context) activity, pkg, animate, true);
+        if (result && animate && pkg != null && (pkg.equals(NOTIFICATION_PANEL) || pkg.equals(BIGME_CONTROL_PANEL))) {
+        } else if (result && animate) {
+            activity.overridePendingTransition(R.anim.dialog_fade_in, 0);
+        } else if (result) {
+            activity.overridePendingTransition(0, 0);
+        }
+        return result;
+    }
+
+    private static boolean launch(Context context, String pkg, boolean animate, boolean fromActivity) {
+        if (pkg == null || pkg.isEmpty()) return false;
+        if (pkg.equals(NOTIFICATION_PANEL)) {
+            try {
+                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
+                        .invoke(context.getSystemService("statusbar"));
+                if (context instanceof Activity) {
+                    ((Activity) context).finish();
+                }
+                return true;
+            } catch (Exception e) {
+                return true;
+            }
+        }
+        Intent intent = getLaunchIntent(context, pkg);
+        if (intent != null) {
+            if (!animate) intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            if (pkg.equals(BIGME_CONTROL_PANEL)) {
+                try {
+                    context.startActivity(intent);
+                    if (context instanceof Activity && !animate) ((Activity) context).overridePendingTransition(0, 0);
+                    if (context instanceof Activity && fromActivity) {
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (context instanceof Activity) ((Activity) context).finish();
+                        }, 100);
+                    }
+                    return true;
+                } catch (Exception e) {
+                    android.widget.Toast.makeText(context, "Bigme Control Panel not available", android.widget.Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            }
+            if (context instanceof Activity) {
+                context.startActivity(intent);
+                if (fromActivity) {
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> ((Activity) context).finish(), 100);
+                }
+            } else {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+            return true;
+        }
+        if (pkg.equals(NEXT_HOME_PAGE) || pkg.equals(PREVIOUS_HOME_PAGE)) return true;
+        if (pkg.startsWith("folder_") || pkg.equals(FOLDER) || pkg.startsWith("webapp_") || pkg.equals(WEB_APPS) || pkg.startsWith("hidden_app_") || pkg.equals(HIDDEN_APP) || pkg.equals(BLANK) || pkg.equals(SYSTEM_DEFAULT)) {
+            return false;
+        }
+        Intent launch = context.getPackageManager().getLaunchIntentForPackage(pkg);
+        if (launch != null) {
+            SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+            boolean appAnimate = prefs.getInt("app_launch_animation", 0) == 1;
+            if (!appAnimate) launch.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            context.startActivity(launch);
+            if (context instanceof Activity) {
+                if (appAnimate) ((Activity) context).overridePendingTransition(R.anim.dialog_fade_in, 0);
+                else ((Activity) context).overridePendingTransition(0, 0);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> ((Activity) context).finish(), 100);
+            }
+            return true;
+        }
+        if (context instanceof Activity) ((Activity) context).finish();
+        return true;
+    }
+
+    public static void addCoreLauncherApps(java.util.List<String> labels, java.util.List<String> packages) {
+        labels.add("Launcher Settings");
+        packages.add(LAUNCHER_SETTINGS);
+        labels.add("KOReader History");
+        packages.add(KOREADER_HISTORY);
+        labels.add("Calendar Screen");
+        packages.add(CALENDAR);
+        labels.add("Gallery");
+        packages.add(GALLERY);
+        labels.add("Clock");
+        packages.add(CLOCK);
+    }
+}

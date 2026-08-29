@@ -36,6 +36,7 @@ import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.ui.RenameDialog;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
+import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import android.os.Build;
@@ -229,27 +230,27 @@ public class AppSelectorActivity extends AppCompatActivity {
                 specialIndex = 1;
             }
 
-            installedAppLabels.add(specialIndex, "Launcher Settings");
-            installedAppPackages.add(specialIndex, "launcher_settings");
+            installedAppLabels.add(specialIndex, SystemAppHelper.getDefaultLabel(SystemAppHelper.LAUNCHER_SETTINGS));
+            installedAppPackages.add(specialIndex, SystemAppHelper.LAUNCHER_SETTINGS);
 
             if (position != -2) {
-                installedAppLabels.add(specialIndex + 1, "Notification Panel");
-                installedAppPackages.add(specialIndex + 1, "notification_panel");
+                installedAppLabels.add(specialIndex + 1, SystemAppHelper.getDefaultLabel(SystemAppHelper.NOTIFICATION_PANEL));
+                installedAppPackages.add(specialIndex + 1, SystemAppHelper.NOTIFICATION_PANEL);
 
-                installedAppLabels.add(specialIndex + 2, "App Launcher");
-                installedAppPackages.add(specialIndex + 2, "app_launcher");
+                installedAppLabels.add(specialIndex + 2, SystemAppHelper.getDefaultLabel(SystemAppHelper.APP_LAUNCHER));
+                installedAppPackages.add(specialIndex + 2, SystemAppHelper.APP_LAUNCHER);
 
-                installedAppLabels.add(specialIndex + 3, "KOReader History");
-                installedAppPackages.add(specialIndex + 3, "koreader_history");
+                installedAppLabels.add(specialIndex + 3, SystemAppHelper.getDefaultLabel(SystemAppHelper.KOREADER_HISTORY));
+                installedAppPackages.add(specialIndex + 3, SystemAppHelper.KOREADER_HISTORY);
 
-                installedAppLabels.add(specialIndex + 4, "Calendar Screen");
-                installedAppPackages.add(specialIndex + 4, "calendar");
+                installedAppLabels.add(specialIndex + 4, SystemAppHelper.getDefaultLabel(SystemAppHelper.CALENDAR));
+                installedAppPackages.add(specialIndex + 4, SystemAppHelper.CALENDAR);
 
-                installedAppLabels.add(specialIndex + 5, "Gallery");
-                installedAppPackages.add(specialIndex + 5, "gallery");
+                installedAppLabels.add(specialIndex + 5, SystemAppHelper.getDefaultLabel(SystemAppHelper.GALLERY));
+                installedAppPackages.add(specialIndex + 5, SystemAppHelper.GALLERY);
 
-                installedAppLabels.add(specialIndex + 6, "Clock");
-                installedAppPackages.add(specialIndex + 6, "clock");
+                installedAppLabels.add(specialIndex + 6, SystemAppHelper.getDefaultLabel(SystemAppHelper.CLOCK));
+                installedAppPackages.add(specialIndex + 6, SystemAppHelper.CLOCK);
 
                 boolean isBigme = false;
                 try {
@@ -275,20 +276,20 @@ public class AppSelectorActivity extends AppCompatActivity {
         }
 
         if (position == -5) {
-            installedAppLabels.add(1, "Launcher Settings");
-            installedAppPackages.add(1, "launcher_settings");
+            installedAppLabels.add(1, SystemAppHelper.getDefaultLabel(SystemAppHelper.LAUNCHER_SETTINGS));
+            installedAppPackages.add(1, SystemAppHelper.LAUNCHER_SETTINGS);
 
-            installedAppLabels.add(2, "KOReader History");
-            installedAppPackages.add(2, "koreader_history");
+            installedAppLabels.add(2, SystemAppHelper.getDefaultLabel(SystemAppHelper.KOREADER_HISTORY));
+            installedAppPackages.add(2, SystemAppHelper.KOREADER_HISTORY);
 
-            installedAppLabels.add(3, "Calendar Screen");
-            installedAppPackages.add(3, "calendar");
+            installedAppLabels.add(3, SystemAppHelper.getDefaultLabel(SystemAppHelper.CALENDAR));
+            installedAppPackages.add(3, SystemAppHelper.CALENDAR);
 
-            installedAppLabels.add(4, "Gallery");
-            installedAppPackages.add(4, "gallery");
+            installedAppLabels.add(4, SystemAppHelper.getDefaultLabel(SystemAppHelper.GALLERY));
+            installedAppPackages.add(4, SystemAppHelper.GALLERY);
 
-            installedAppLabels.add(5, "Clock");
-            installedAppPackages.add(5, "clock");
+            installedAppLabels.add(5, SystemAppHelper.getDefaultLabel(SystemAppHelper.CLOCK));
+            installedAppPackages.add(5, SystemAppHelper.CLOCK);
 
             installedAppLabels.add(6, "Folder");
             installedAppPackages.add(6, "folder");

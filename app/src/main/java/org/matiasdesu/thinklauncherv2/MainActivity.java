@@ -87,6 +87,7 @@ import org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper;
 import org.matiasdesu.thinklauncherv2.utils.DockBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.SettingsBackupHelper;
+import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
 import android.graphics.Bitmap;
 
 public class MainActivity extends Activity {
@@ -2983,10 +2984,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     private boolean isSlotRealApp(String pkg) {
         if (pkg == null || pkg.isEmpty() || pkg.equals("blank")) return false;
         if (pkg.startsWith("folder_") || pkg.startsWith("webapp_")) return false;
-        if (pkg.equals("launcher_settings") || pkg.equals("app_launcher") ||
-                pkg.equals("notification_panel") || pkg.equals("koreader_history") ||
-                pkg.equals("calendar") || pkg.equals("gallery") || pkg.equals("clock") || pkg.equals("next_home_page") ||
-                pkg.equals("previous_home_page")) return false;
+        if (SystemAppHelper.isSystemApp(pkg)) return false;
         return true;
     }
 
@@ -3044,105 +3042,12 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
     }
 
     public void launchApp(String packageName) {
-        if ("notification_panel".equals(packageName)) {
-            try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
-                        .invoke(getSystemService("statusbar"));
-            } catch (Exception e) {
-                // Log or ignore
-            }
-        } else if ("app_launcher".equals(packageName)) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(MainActivity.this, AppLauncherActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            if (animate) {
-                overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("koreader_history".equals(packageName)) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(MainActivity.this,
-                    org.matiasdesu.thinklauncherv2.ui.KOReaderHistoryActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            if (animate) {
-                overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("calendar".equals(packageName)) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(MainActivity.this,
-                    org.matiasdesu.thinklauncherv2.ui.CalendarActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            if (animate) {
-                overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("gallery".equals(packageName)) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(MainActivity.this,
-                    org.matiasdesu.thinklauncherv2.ui.GalleryActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            if (animate) {
-                overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("clock".equals(packageName)) {
-            SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
-            boolean animate = prefs.getInt("screen_animations", 0) == 1;
-            Intent intent = new Intent(MainActivity.this,
-                    org.matiasdesu.thinklauncherv2.ui.ClockActivity.class);
-            if (!animate) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
-            startActivity(intent);
-            if (animate) {
-                overridePendingTransition(R.anim.dialog_fade_in, 0);
-            }
-        } else if ("launcher_settings".equals(packageName)) {
-            try {
-                Class<?> clazz = Class.forName("org.matiasdesu.thinklauncherv2.settings.SettingsActivity");
-                Intent intent = new Intent(MainActivity.this, clazz);
-                boolean animate = getSharedPreferences("prefs", MODE_PRIVATE).getInt("screen_animations", 0) == 1;
-                if (!animate) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                }
-                startActivity(intent);
-                if (animate) {
-                    overridePendingTransition(R.anim.dialog_fade_in, 0);
-                }
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-            }
-        } else if ("bigme_control_panel".equals(packageName)) {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName("com.xrz.sys.control",
-                        "com.xrz.settings.ControlCenterActivity"));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                boolean animate = getSharedPreferences("prefs", MODE_PRIVATE).getInt("screen_animations", 0) == 1;
-                if (!animate) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                }
-                startActivity(intent);
-                if (animate) {
-                    overridePendingTransition(R.anim.dialog_fade_in, 0);
-                }
-            } catch (Exception e) {
-                Toast.makeText(this, "Bigme Control Panel not available", Toast.LENGTH_SHORT).show();
-            }
-        } else if ("next_home_page".equals(packageName)) {
+        if (SystemAppHelper.isSpecialLaunchable(packageName)
+                && !packageName.equals(SystemAppHelper.NEXT_HOME_PAGE)
+                && !packageName.equals(SystemAppHelper.PREVIOUS_HOME_PAGE)) {
+            if (SystemAppHelper.launch(this, packageName)) return;
+        }
+        if ("next_home_page".equals(packageName)) {
             int current = homePagesManager.getCurrentPage();
             int nextPage = (current + 1) % homePages;
             homePagesManager.setCurrentPage(nextPage);
