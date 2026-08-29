@@ -149,65 +149,88 @@ public final class LauncherBackdropHelper {
 
         if (showWallpaperBackdrop && wallpaperView != null) {
             wallpaperView.setVisibility(View.GONE);
-            final int[] screenDimensions = WallpaperHelper.getScreenDimensions(activity);
+            wallpaperView.setScaleType(ImageView.ScaleType.FIT_XY);
             final WeakReference<Activity> activityRef = new WeakReference<>(activity);
             final WeakReference<ImageView> wallpaperViewRef = new WeakReference<>(wallpaperView);
             final int finalSurfaceColor = surfaceColor;
             final boolean finalBlurEnabled = blurEnabled;
             final int finalBlurStrength = blurStrength;
+            final View finalBackdropRoot = backdropRoot;
+            final View finalRoot = root;
 
-            Bitmap cached = WallpaperHelper.getWallpaperForScreenCached(activity, screenDimensions[0],
-                    screenDimensions[1], finalBlurEnabled, finalBlurStrength);
-            if (cached != null) {
-                wallpaperView.setImageBitmap(cached);
-                wallpaperView.setVisibility(View.VISIBLE);
-                applySurfaceBackground(backdropRoot, true, finalSurfaceColor);
-                applySurfaceBackground(root, true, finalSurfaceColor);
-            } else {
-                WALLPAPER_EXECUTOR.execute(() -> {
-                    Activity act = activityRef.get();
-                    if (act == null) {
-                        return;
-                    }
-                    Bitmap wallpaper = WallpaperHelper.getWallpaperForScreenCached(act, screenDimensions[0],
-                            screenDimensions[1], finalBlurEnabled, finalBlurStrength);
-
+            Runnable loadWithCurrentDimensions = () -> {
+                Activity act = activityRef.get();
+                ImageView iv = wallpaperViewRef.get();
+                if (act == null || iv == null) return;
+                int w = 0;
+                int h = 0;
+                View br = act.findViewById(R.id.root_layout);
+                if (br != null && br.getWidth() > 0 && br.getHeight() > 0) {
+                    w = br.getWidth();
+                    h = br.getHeight();
+                } else if (finalBackdropRoot != null && finalBackdropRoot.getWidth() > 0 && finalBackdropRoot.getHeight() > 0) {
+                    w = finalBackdropRoot.getWidth();
+                    h = finalBackdropRoot.getHeight();
+                } else {
+                    int[] dims = WallpaperHelper.getScreenDimensions(act);
+                    w = dims[0];
+                    h = dims[1];
+                }
+                final int fw = w;
+                final int fh = h;
+                Bitmap cached = WallpaperHelper.getWallpaperForScreenCached(act, fw, fh, finalBlurEnabled, finalBlurStrength);
+                if (cached != null) {
                     act.runOnUiThread(() -> {
-                        Activity a = activityRef.get();
-                        ImageView iv = wallpaperViewRef.get();
-                        if (a == null || iv == null) {
-                            return;
-                        }
-                        if (a.isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
-                                && a.isDestroyed())) {
-                            return;
-                        }
-                        if (wallpaper != null) {
-                            iv.setImageBitmap(wallpaper);
-                            iv.setVisibility(View.VISIBLE);
-                            View br = a.findViewById(R.id.root_layout);
-                            View rt = a.findViewById(android.R.id.content);
-                            applySurfaceBackground(br, true, finalSurfaceColor);
-                            applySurfaceBackground(rt, true, finalSurfaceColor);
-                        } else {
-                            showWallpaperBackdropRef.set(false);
-                            View br = a.findViewById(R.id.root_layout);
-                            if (br != null) {
-                                br.setBackgroundColor(finalSurfaceColor);
-                                br.requestApplyInsets();
-                            }
-                            View rt = a.findViewById(android.R.id.content);
-                            if (rt != null) {
-                                rt.setBackgroundColor(finalSurfaceColor);
-                            }
-                            WindowCompat.setDecorFitsSystemWindows(a.getWindow(), true);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                a.getWindow().setStatusBarColor(finalSurfaceColor);
-                                a.getWindow().setNavigationBarColor(finalSurfaceColor);
-                            }
-                        }
+                        ImageView iv2 = wallpaperViewRef.get();
+                        if (iv2 == null) return;
+                        iv2.setImageBitmap(cached);
+                        iv2.setVisibility(View.VISIBLE);
+                        applySurfaceBackground(finalBackdropRoot, true, finalSurfaceColor);
+                        applySurfaceBackground(finalRoot, true, finalSurfaceColor);
                     });
-                });
+                } else {
+                    WALLPAPER_EXECUTOR.execute(() -> {
+                        Activity act2 = activityRef.get();
+                        if (act2 == null) return;
+                        Bitmap wallpaper = WallpaperHelper.getWallpaperForScreenCached(act2, fw, fh, finalBlurEnabled, finalBlurStrength);
+                        act2.runOnUiThread(() -> {
+                            Activity a = activityRef.get();
+                            ImageView iv3 = wallpaperViewRef.get();
+                            if (a == null || iv3 == null) return;
+                            if (a.isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && a.isDestroyed())) return;
+                            if (wallpaper != null) {
+                                iv3.setImageBitmap(wallpaper);
+                                iv3.setVisibility(View.VISIBLE);
+                                View br2 = a.findViewById(R.id.root_layout);
+                                View rt2 = a.findViewById(android.R.id.content);
+                                applySurfaceBackground(br2, true, finalSurfaceColor);
+                                applySurfaceBackground(rt2, true, finalSurfaceColor);
+                            } else {
+                                showWallpaperBackdropRef.set(false);
+                                View br2 = a.findViewById(R.id.root_layout);
+                                if (br2 != null) {
+                                    br2.setBackgroundColor(finalSurfaceColor);
+                                    br2.requestApplyInsets();
+                                }
+                                View rt2 = a.findViewById(android.R.id.content);
+                                if (rt2 != null) rt2.setBackgroundColor(finalSurfaceColor);
+                                WindowCompat.setDecorFitsSystemWindows(a.getWindow(), true);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    a.getWindow().setStatusBarColor(finalSurfaceColor);
+                                    a.getWindow().setNavigationBarColor(finalSurfaceColor);
+                                }
+                            }
+                        });
+                    });
+                }
+            };
+
+            if (backdropRoot != null && backdropRoot.getWidth() > 0 && backdropRoot.getHeight() > 0) {
+                loadWithCurrentDimensions.run();
+            } else if (backdropRoot != null) {
+                backdropRoot.post(loadWithCurrentDimensions);
+            } else {
+                loadWithCurrentDimensions.run();
             }
         }
 

@@ -140,9 +140,8 @@ public final class DockBackdropHelper {
         final int rootHeight = params.parent.getHeight();
 
         CAPTURE_EXECUTOR.execute(() -> {
-            int[] screen = WallpaperHelper.getScreenDimensions(dockView.getContext());
-            Bitmap wallpaper = WallpaperHelper.getWallpaperForScreenCached(dockView.getContext(), screen[0],
-                    screen[1], blurEnabled, blurStrength);
+            Bitmap wallpaper = WallpaperHelper.getWallpaperForScreenCached(dockView.getContext(), rootWidth,
+                    rootHeight, blurEnabled, blurStrength);
             final Drawable backdrop;
             if (wallpaper == null) {
                 backdrop = buildSolidBackground(params, opacityPercent);
