@@ -41,3 +41,6 @@ captures/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+build_log.txt
+build_error.log
