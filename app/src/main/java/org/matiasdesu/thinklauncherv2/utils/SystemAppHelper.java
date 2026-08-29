@@ -141,9 +141,6 @@ public final class SystemAppHelper {
             try {
                 Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel")
                         .invoke(context.getSystemService("statusbar"));
-                if (context instanceof Activity) {
-                    ((Activity) context).finish();
-                }
                 return true;
             } catch (Exception e) {
                 return true;
@@ -162,11 +159,15 @@ public final class SystemAppHelper {
                     return true;
                 }
             }
-            if (context instanceof Activity) {
-                context.startActivity(intent);
-            } else {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+            try {
+                if (context instanceof Activity) {
+                    context.startActivity(intent);
+                } else {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+            } catch (Exception e) {
+                return false;
             }
             return true;
         }
@@ -179,16 +180,24 @@ public final class SystemAppHelper {
             SharedPreferences prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
             boolean appAnimate = prefs.getInt("app_launch_animation", 0) == 1;
             if (!appAnimate) launch.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            context.startActivity(launch);
+            try {
+                context.startActivity(launch);
+            } catch (Exception e) {
+                return false;
+            }
             if (context instanceof Activity) {
-                if (appAnimate) ((Activity) context).overridePendingTransition(R.anim.dialog_fade_in, 0);
-                else ((Activity) context).overridePendingTransition(0, 0);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> ((Activity) context).finish(), 100);
+                if (context instanceof org.matiasdesu.thinklauncherv2.ui.AppLauncherActivity) {
+                    if (appAnimate) ((Activity) context).overridePendingTransition(R.anim.dialog_fade_in, 0);
+                    else ((Activity) context).overridePendingTransition(0, 0);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> ((Activity) context).finish(), 100);
+                } else {
+                    if (appAnimate) ((Activity) context).overridePendingTransition(R.anim.dialog_fade_in, 0);
+                    else ((Activity) context).overridePendingTransition(0, 0);
+                }
             }
             return true;
         }
-        if (context instanceof Activity) ((Activity) context).finish();
-        return true;
+        return false;
     }
 
     public static void addCoreLauncherApps(java.util.List<String> labels, java.util.List<String> packages) {
