@@ -102,16 +102,12 @@ public class VideoFullscreenActivity extends AppCompatActivity {
         int bg = ThemeUtils.getBgColor(theme, this);
         int txt = ThemeUtils.getTextColor(theme, this);
         if (root != null) root.setBackgroundColor(bg);
-        // Avoid fullscreen controls being cut by bottom navigation bar / gesture inset.
-        // We draw edge-to-edge (decorFitsSystemWindows=false), so we must offset the seekbar
-        // container by the system bars insets. Listener handles both 3-button and gesture nav.
         try {
             if (root != null) {
-                View controlsRef = controls; // capture for lambda (fields are mutable)
+                View controlsRef = controls;
                 ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
                     Insets navInsets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
                     Insets cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
-                    // Also consider status bar for landscape cutout, but bottom is primary
                     int base = (int) (8 * getResources().getDisplayMetrics().density);
                     if (controlsRef != null) {
                         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) controlsRef.getLayoutParams();
@@ -122,12 +118,10 @@ public class VideoFullscreenActivity extends AppCompatActivity {
                         lp.leftMargin = base + leftExtra;
                         lp.rightMargin = base + rightExtra;
                         controlsRef.setLayoutParams(lp);
-                        // Ensure controls are above nav when transient bars appear
                         controlsRef.setTranslationZ(2f);
                     }
                     return windowInsets;
                 });
-                // Trigger initial inset dispatch
                 ViewCompat.requestApplyInsets(root);
             }
         } catch (Exception ignored) {}
