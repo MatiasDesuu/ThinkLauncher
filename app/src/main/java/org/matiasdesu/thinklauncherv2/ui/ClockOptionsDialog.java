@@ -60,13 +60,13 @@ public class ClockOptionsDialog extends Dialog {
 
         TextView filterButton = findViewById(R.id.filter_button);
         if (filterButton != null) {
-            if (currentFilterMode != ClockActivity.FILTER_ALARMS && currentFilterMode != ClockActivity.FILTER_TIMERS) {
+            if (currentFilterMode != ClockActivity.FILTER_ALARMS && currentFilterMode != ClockActivity.FILTER_TIMERS && currentFilterMode != ClockActivity.FILTER_STOPWATCH) {
                 currentFilterMode = ClockActivity.FILTER_ALARMS;
             }
             DialogEffectHelper.applyButtonTheme(filterButton, theme, getContext(), surfaceColor);
             updateFilterText(filterButton);
             filterButton.setOnClickListener(v -> {
-                currentFilterMode = currentFilterMode == ClockActivity.FILTER_ALARMS ? ClockActivity.FILTER_TIMERS : ClockActivity.FILTER_ALARMS;
+                currentFilterMode = (currentFilterMode + 1) % 3;
                 prefs.edit().putInt("clock_filter_by", currentFilterMode).apply();
                 updateFilterText(filterButton);
                 if (filterCallback != null) filterCallback.onFilterChanged(currentFilterMode);
@@ -79,7 +79,10 @@ public class ClockOptionsDialog extends Dialog {
     }
 
     private void updateFilterText(TextView btn) {
-        String label = currentFilterMode == ClockActivity.FILTER_TIMERS ? "Timers" : "Alarms";
+        String label;
+        if (currentFilterMode == ClockActivity.FILTER_TIMERS) label = "Timers";
+        else if (currentFilterMode == ClockActivity.FILTER_STOPWATCH) label = "Stopwatch";
+        else label = "Alarms";
         btn.setText("Filter: " + label);
     }
 }

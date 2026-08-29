@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.matiasdesu.thinklauncherv2.MainActivity;
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.utils.ClockAlarmHelper;
+import org.matiasdesu.thinklauncherv2.utils.ClockStopwatchHelper;
 import org.matiasdesu.thinklauncherv2.utils.ClockTimerHelper;
 import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
@@ -45,6 +46,8 @@ public class ClockActivity extends AppCompatActivity {
     private static final int REQUEST_POST_NOTIFICATIONS = 5001;
     public static final int FILTER_ALARMS = 0;
     public static final int FILTER_TIMERS = 1;
+    public static final int FILTER_STOPWATCH = 2;
+    private static final String STOPWATCH_ITEM = "STOPWATCH";
 
     private int textSize;
     private boolean boldText;
@@ -88,10 +91,7 @@ public class ClockActivity extends AppCompatActivity {
         opacityEnabled = prefs.getInt("app_launcher_bg_opacity_enabled", 0) == 1;
         appLauncherAnimations = prefs.getInt("screen_animations", 0) == 1;
         clockFilterMode = prefs.getInt("clock_filter_by", FILTER_ALARMS);
-        if (clockFilterMode == 2) {
-            clockFilterMode = FILTER_TIMERS;
-            prefs.edit().putInt("clock_filter_by", clockFilterMode).apply();
-        } else if (clockFilterMode < FILTER_ALARMS || clockFilterMode > FILTER_TIMERS) {
+        if (clockFilterMode < FILTER_ALARMS || clockFilterMode > FILTER_STOPWATCH) {
             clockFilterMode = FILTER_ALARMS;
             prefs.edit().putInt("clock_filter_by", clockFilterMode).apply();
         }
@@ -136,6 +136,7 @@ public class ClockActivity extends AppCompatActivity {
         ImageView addButton = findViewById(R.id.add_alarm_button);
         addButton.setColorFilter(ThemeUtils.getTextColor(theme, this));
         addButton.setOnClickListener(v -> openAddDialogForCurrentFilter());
+        addButton.setVisibility(clockFilterMode == FILTER_STOPWATCH ? View.GONE : View.VISIBLE);
 
         RecyclerView recyclerView = findViewById(R.id.clock_list);
         View topLayout = findViewById(R.id.top_layout);
@@ -195,6 +196,7 @@ public class ClockActivity extends AppCompatActivity {
             public void run() {
                 boolean hasRunning = false;
                 boolean hasExpired = false;
+                boolean hasStopwatch = ClockStopwatchHelper.isRunning(ClockActivity.this) && clockFilterMode == FILTER_STOPWATCH;
                 for (ClockTimerHelper.Timer t : timers) {
                     long end = ClockTimerHelper.getEndMillis(ClockActivity.this, t.id);
                     if (end != 0 && System.currentTimeMillis() >= end) {
@@ -206,10 +208,10 @@ public class ClockActivity extends AppCompatActivity {
                 }
                 if (hasExpired) {
                     loadAll();
-                } else if (hasRunning && clockFilterMode == FILTER_TIMERS) {
+                } else if ((hasRunning && clockFilterMode == FILTER_TIMERS) || hasStopwatch) {
                     if (clockAdapter != null) clockAdapter.notifyDataSetChanged();
                 }
-                long delay = hasRunning ? 250 : 1000;
+                long delay = (hasRunning || hasStopwatch) ? 250 : 1000;
                 timerHandler.postDelayed(this, delay);
             }
         };
@@ -273,8 +275,10 @@ public class ClockActivity extends AppCompatActivity {
         displayItems.clear();
         if (clockFilterMode == FILTER_ALARMS) {
             displayItems.addAll(alarms);
-        } else {
+        } else if (clockFilterMode == FILTER_TIMERS) {
             displayItems.addAll(timers);
+        } else {
+            displayItems.add(STOPWATCH_ITEM);
         }
     }
 
@@ -330,7 +334,8 @@ public class ClockActivity extends AppCompatActivity {
         TextView titleView = findViewById(R.id.clock_title);
         if (titleView == null) return;
         if (clockFilterMode == FILTER_ALARMS) titleView.setText("Alarms");
-        else titleView.setText("Timers");
+        else if (clockFilterMode == FILTER_TIMERS) titleView.setText("Timers");
+        else titleView.setText("Stopwatch");
         ThemeUtils.applyTextColor(titleView, theme, this);
     }
 
@@ -359,6 +364,8 @@ public class ClockActivity extends AppCompatActivity {
             if (clockAdapter != null) clockAdapter.notifyDataSetChanged();
             updatePageIndicator();
             updateTitle();
+            ImageView ab = findViewById(R.id.add_alarm_button);
+            if (ab != null) ab.setVisibility(clockFilterMode == FILTER_STOPWATCH ? View.GONE : View.VISIBLE);
             EinkRefreshHelper.refreshEink(getWindow(), prefs, prefs.getInt("eink_refresh_delay", 100));
         }).show();
     }
@@ -369,6 +376,7 @@ public class ClockActivity extends AppCompatActivity {
 
     private void openAddDialogForCurrentFilter() {
         if (clockFilterMode == FILTER_TIMERS) openAddTimerDialog();
+        else if (clockFilterMode == FILTER_STOPWATCH) return;
         else openAddDialog();
     }
 
@@ -558,6 +566,7 @@ public class ClockActivity extends AppCompatActivity {
         public int getItemViewType(int position) {
             if (items.isEmpty()) return 0;
             Object obj = items.get(activity.scrollAppList ? position : currentPage * itemsPerPage + position);
+            if (STOPWATCH_ITEM.equals(obj)) return 3;
             if (obj instanceof ClockTimerHelper.Timer) return 2;
             return 1;
         }
@@ -571,6 +580,10 @@ public class ClockActivity extends AppCompatActivity {
                 tv.setGravity(android.view.Gravity.CENTER);
                 tv.setTextSize(18);
                 return new ViewHolder(tv, true);
+            }
+            if (viewType == 3) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_clock_stopwatch, parent, false);
+                return new ViewHolder(view, false);
             }
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_clock_alarm, parent, false);
             return new ViewHolder(view, false);
@@ -592,7 +605,9 @@ public class ClockActivity extends AppCompatActivity {
             int globalPosition = activity.scrollAppList ? position : currentPage * itemsPerPage + position;
             if (globalPosition >= items.size()) return;
             Object obj = items.get(globalPosition);
-            if (obj instanceof ClockTimerHelper.Timer) {
+            if (STOPWATCH_ITEM.equals(obj)) {
+                bindStopwatch(holder);
+            } else if (obj instanceof ClockTimerHelper.Timer) {
                 bindTimer(holder, (ClockTimerHelper.Timer) obj);
             } else if (obj instanceof ClockAlarmHelper.Alarm) {
                 bindAlarm(holder, (ClockAlarmHelper.Alarm) obj);
@@ -736,6 +751,83 @@ public class ClockActivity extends AppCompatActivity {
                 }
             }
             holder.itemView.setOnClickListener(v -> activity.openEditTimerDialog(timer));
+        }
+
+        private void bindStopwatch(ViewHolder holder) {
+            boolean running = ClockStopwatchHelper.isRunning(activity);
+            boolean paused = ClockStopwatchHelper.isPaused(activity);
+            int elapsed = ClockStopwatchHelper.getElapsedSec(activity);
+            String timeText = ClockStopwatchHelper.formatElapsed(elapsed);
+            holder.timeView.setText(timeText);
+            holder.timeView.setTextSize(48);
+            holder.timeView.setTypeface(null, Typeface.BOLD);
+            holder.labelView.setVisibility(View.GONE);
+            holder.repeatView.setText(paused ? "Paused" : (running ? "Running" : "Stopwatch"));
+            holder.repeatView.setVisibility(View.VISIBLE);
+            holder.repeatView.setTextSize(Math.max(12, activity.textSize - 16));
+            holder.snoozedView.setVisibility(View.GONE);
+            ThemeUtils.applyTextColor(holder.timeView, theme, activity);
+            ThemeUtils.applyTextColor(holder.repeatView, theme, activity);
+            FontHelper.applyToViewTree(activity, holder.itemView);
+            LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop, activity.clockSurfaceColor);
+            boolean active = running || paused;
+            holder.toggleView.setText(active ? "RESET" : "START");
+            holder.toggleView.setTypeface(null, Typeface.BOLD);
+            int txt = ThemeUtils.getTextColor(theme, activity);
+            int bg = ThemeUtils.getBgColor(theme, activity);
+            android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+            drawable.setColor(active ? txt : bg);
+            drawable.setStroke((int)(2 * activity.getResources().getDisplayMetrics().density), txt);
+            int radius = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.getCornerRadiusPx(activity);
+            if (radius > 0) drawable.setCornerRadius(radius);
+            holder.toggleView.setBackground(drawable);
+            holder.toggleView.setTextColor(active ? bg : txt);
+            holder.toggleView.setOnClickListener(v -> {
+                if (active) {
+                    ClockStopwatchHelper.reset(activity);
+                } else {
+                    ClockStopwatchHelper.start(activity);
+                }
+                activity.clockAdapter.notifyDataSetChanged();
+                EinkRefreshHelper.refreshEink(activity.getWindow(), activity.prefs, activity.prefs.getInt("eink_refresh_delay", 100));
+            });
+            if (holder.pauseView != null) {
+                if (running) {
+                    holder.pauseView.setVisibility(View.VISIBLE);
+                    holder.pauseView.setText("PAUSE");
+                    holder.pauseView.setTypeface(null, Typeface.BOLD);
+                    android.graphics.drawable.GradientDrawable pd = new android.graphics.drawable.GradientDrawable();
+                    pd.setColor(bg);
+                    pd.setStroke((int)(2 * activity.getResources().getDisplayMetrics().density), txt);
+                    if (radius > 0) pd.setCornerRadius(radius);
+                    holder.pauseView.setBackground(pd);
+                    holder.pauseView.setTextColor(txt);
+                    holder.pauseView.setOnClickListener(v -> {
+                        ClockStopwatchHelper.pause(activity);
+                        activity.clockAdapter.notifyDataSetChanged();
+                        EinkRefreshHelper.refreshEink(activity.getWindow(), activity.prefs, activity.prefs.getInt("eink_refresh_delay", 100));
+                    });
+                } else if (paused) {
+                    holder.pauseView.setVisibility(View.VISIBLE);
+                    holder.pauseView.setText("RESUME");
+                    holder.pauseView.setTypeface(null, Typeface.BOLD);
+                    android.graphics.drawable.GradientDrawable pd = new android.graphics.drawable.GradientDrawable();
+                    pd.setColor(txt);
+                    pd.setStroke((int)(2 * activity.getResources().getDisplayMetrics().density), txt);
+                    if (radius > 0) pd.setCornerRadius(radius);
+                    holder.pauseView.setBackground(pd);
+                    holder.pauseView.setTextColor(bg);
+                    holder.pauseView.setOnClickListener(v -> {
+                        ClockStopwatchHelper.resume(activity);
+                        activity.clockAdapter.notifyDataSetChanged();
+                        EinkRefreshHelper.refreshEink(activity.getWindow(), activity.prefs, activity.prefs.getInt("eink_refresh_delay", 100));
+                    });
+                } else {
+                    holder.pauseView.setVisibility(View.GONE);
+                    holder.pauseView.setOnClickListener(null);
+                }
+            }
+            holder.itemView.setOnClickListener(null);
         }
 
         @Override
