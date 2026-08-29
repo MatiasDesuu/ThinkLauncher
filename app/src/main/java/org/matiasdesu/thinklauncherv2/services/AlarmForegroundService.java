@@ -46,9 +46,15 @@ public class AlarmForegroundService extends Service {
         if (intent == null) return START_NOT_STICKY;
         String action = intent.getAction();
         int alarmId = intent.getIntExtra("alarm_id", -1);
+        int timerId = intent.getIntExtra("timer_id", -1);
         if (ACTION_STOP.equals(action)) {
-            stopAlarm(alarmId);
+            if (timerId != -1) stopAlarm(timerId);
+            else stopAlarm(alarmId);
             return START_NOT_STICKY;
+        }
+        if (timerId != -1) {
+            startTimer(timerId);
+            return START_STICKY;
         }
         if (alarmId == -1) return START_NOT_STICKY;
         startAlarm(alarmId);
@@ -111,6 +117,50 @@ public class AlarmForegroundService extends Service {
         stopSoundAndVibration();
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
+    }
+
+    private void startTimer(int timerId) {
+        currentAlarmId = timerId;
+        org.matiasdesu.thinklauncherv2.utils.ClockTimerHelper.Timer timer = org.matiasdesu.thinklauncherv2.utils.ClockTimerHelper.getById(this, timerId);
+        String title = "Timer";
+        String text = timer != null && timer.label != null && !timer.label.trim().isEmpty() ? timer.label : (timer != null ? timer.getDurationText() : "Timer finished");
+        if (timer != null && timer.label != null && !timer.label.trim().isEmpty()) text = timer.getDurationText() + " - " + timer.label;
+
+        ensureChannel();
+
+        Intent fullScreenIntent = new Intent(this, AlarmActivity.class);
+        fullScreenIntent.putExtra("timer_id", timerId);
+        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) pendingFlags |= PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent fullScreenPi = PendingIntent.getActivity(this, timerId + 920000, fullScreenIntent, pendingFlags);
+
+        Intent dismissIntent = new Intent(this, AlarmDismissReceiver.class);
+        dismissIntent.putExtra("timer_id", timerId);
+        dismissIntent.putExtra("notif_id", NOTIF_ID);
+        PendingIntent dismissPi = PendingIntent.getBroadcast(this, timerId + 930000, dismissIntent, pendingFlags);
+
+        Notification notif = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.time)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setOngoing(true)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setFullScreenIntent(fullScreenPi, true)
+                .addAction(0, "Dismiss", dismissPi)
+                .setVibrate(new long[]{0, 500, 500, 500})
+                .build();
+
+        startForeground(NOTIF_ID, notif);
+
+        Intent activityIntent = new Intent(this, AlarmActivity.class);
+        activityIntent.putExtra("timer_id", timerId);
+        activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        try { startActivity(activityIntent); } catch (Exception ignored) {}
+
+        startSoundAndVibration();
     }
 
     private void startSoundAndVibration() {

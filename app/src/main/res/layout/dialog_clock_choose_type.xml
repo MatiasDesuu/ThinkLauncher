@@ -8,18 +8,21 @@
     android:paddingTop="16dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp">
-
     <TextView
-        android:id="@+id/alarm_wallpaper_button"
+        android:id="@+id/btn_choose_alarm"
         style="@style/DialogButton"
         android:layout_width="match_parent"
-        android:text="Enable wallpaper: Off" />
-
+        android:text="Add Alarm"
+        android:layout_marginBottom="8dp" />
     <TextView
-        android:id="@+id/filter_button"
+        android:id="@+id/btn_choose_timer"
         style="@style/DialogButton"
         android:layout_width="match_parent"
-        android:text="Filter: All"
-        android:layout_marginTop="8dp" />
-
+        android:text="Add Timer"
+        android:layout_marginBottom="8dp" />
+    <TextView
+        android:id="@+id/btn_choose_cancel"
+        style="@style/DialogButton"
+        android:layout_width="match_parent"
+        android:text="Cancel" />
 </LinearLayout>

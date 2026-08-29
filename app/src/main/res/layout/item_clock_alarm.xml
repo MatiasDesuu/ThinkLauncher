@@ -82,6 +82,22 @@
         </LinearLayout>
     </LinearLayout>
     <TextView
+        android:id="@+id/timer_pause"
+        android:layout_width="84dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:text="PAUSE"
+        android:textColor="?attr/text_color"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="none"
+        android:background="@drawable/button_border"
+        android:layout_marginStart="12dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:visibility="gone" />
+    <TextView
         android:id="@+id/alarm_toggle"
         android:layout_width="72dp"
         android:layout_height="40dp"
@@ -91,5 +107,5 @@
         android:textSize="16sp"
         android:textStyle="bold"
         android:background="@drawable/button_border"
-        android:layout_marginStart="12dp" />
+        android:layout_marginStart="8dp" />
 </LinearLayout>

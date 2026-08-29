@@ -240,6 +240,12 @@
             android:name=".receivers.CancelSnoozeReceiver"
             android:exported="false" />
         <receiver
+            android:name=".receivers.TimerReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".receivers.TimerCancelReceiver"
+            android:exported="false" />
+        <receiver
             android:name=".receivers.BootReceiver"
             android:exported="true">
             <intent-filter>

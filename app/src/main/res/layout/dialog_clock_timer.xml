@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="300dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/hour_label"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="Hours"
+            android:textColor="?attr/text_color"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/btn_hour_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="−"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="@drawable/button_border"
+            android:textColor="?attr/text_color" />
+        <TextView
+            android:id="@+id/hour_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="00"
+            android:textColor="?attr/text_color"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp" />
+        <TextView
+            android:id="@+id/btn_hour_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="@drawable/button_border"
+            android:textColor="?attr/text_color" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/minute_label"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="Minutes"
+            android:textColor="?attr/text_color"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/btn_minute_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="−"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="@drawable/button_border"
+            android:textColor="?attr/text_color" />
+        <TextView
+            android:id="@+id/minute_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="05"
+            android:textColor="?attr/text_color"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp" />
+        <TextView
+            android:id="@+id/btn_minute_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="@drawable/button_border"
+            android:textColor="?attr/text_color" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/second_label"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="Seconds"
+            android:textColor="?attr/text_color"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/btn_second_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="−"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="@drawable/button_border"
+            android:textColor="?attr/text_color" />
+        <TextView
+            android:id="@+id/second_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="00"
+            android:textColor="?attr/text_color"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp" />
+        <TextView
+            android:id="@+id/btn_second_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="@drawable/button_border"
+            android:textColor="?attr/text_color" />
+    </LinearLayout>
+    <EditText
+        android:id="@+id/timer_label_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/edit_text_border"
+        android:textColor="?attr/text_color"
+        android:hint="Label (optional)"
+        android:padding="8dp"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:inputType="textCapSentences"
+        android:imeOptions="actionDone"
+        android:layout_marginBottom="12dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <TextView
+            android:id="@+id/btn_delete"
+            style="@style/DialogButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Delete"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/btn_cancel"
+            style="@style/DialogButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:layout_marginEnd="8dp" />
+        <TextView
+            android:id="@+id/btn_save"
+            style="@style/DialogButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Save" />
+    </LinearLayout>
+</LinearLayout>

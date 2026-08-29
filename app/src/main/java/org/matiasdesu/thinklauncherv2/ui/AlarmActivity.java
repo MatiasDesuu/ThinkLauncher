@@ -21,6 +21,8 @@ import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 public class AlarmActivity extends AppCompatActivity {
 
     private int alarmId = -1;
+    private int timerId = -1;
+    private boolean isTimer = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +104,10 @@ public class AlarmActivity extends AppCompatActivity {
         if (divider != null) divider.setBackgroundColor(ThemeUtils.getTextColor(theme, this));
 
         alarmId = getIntent().getIntExtra("alarm_id", -1);
-        ClockAlarmHelper.Alarm alarm = alarmId != -1 ? ClockAlarmHelper.getById(this, alarmId) : null;
+        timerId = getIntent().getIntExtra("timer_id", -1);
+        isTimer = timerId != -1;
+        ClockAlarmHelper.Alarm alarm = !isTimer && alarmId != -1 ? ClockAlarmHelper.getById(this, alarmId) : null;
+        org.matiasdesu.thinklauncherv2.utils.ClockTimerHelper.Timer timer = isTimer ? org.matiasdesu.thinklauncherv2.utils.ClockTimerHelper.getById(this, timerId) : null;
 
         TextView timeView = findViewById(R.id.alarm_time);
         TextView labelView = findViewById(R.id.alarm_label);
@@ -110,7 +115,23 @@ public class AlarmActivity extends AppCompatActivity {
         TextView snoozeBtn = findViewById(R.id.btn_snooze);
         TextView dismissBtn = findViewById(R.id.btn_dismiss);
 
-        if (alarm != null) {
+        if (isTimer) {
+            if (timer != null) {
+                timeView.setText(timer.getDurationText());
+                if (timer.label != null && !timer.label.trim().isEmpty()) {
+                    labelView.setText(timer.label);
+                    labelView.setVisibility(View.VISIBLE);
+                } else {
+                    labelView.setVisibility(View.GONE);
+                }
+                repeatView.setText("Timer");
+            } else {
+                timeView.setText("Timer");
+                labelView.setVisibility(View.GONE);
+                repeatView.setText("");
+            }
+            if (snoozeBtn != null) snoozeBtn.setVisibility(View.GONE);
+        } else if (alarm != null) {
             timeView.setText(alarm.getTimeText());
             if (alarm.label != null && !alarm.label.trim().isEmpty()) {
                 labelView.setText(alarm.label);
@@ -152,7 +173,8 @@ public class AlarmActivity extends AppCompatActivity {
         try {
             Intent si = new Intent(this, org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.class);
             si.setAction(org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.ACTION_STOP);
-            si.putExtra("alarm_id", alarmId);
+            if (isTimer) si.putExtra("timer_id", timerId);
+            else si.putExtra("alarm_id", alarmId);
             startService(si);
         } catch (Exception ignored) {}
         try { stopService(new Intent(this, org.matiasdesu.thinklauncherv2.services.AlarmForegroundService.class)); } catch (Exception ignored) {}
@@ -193,7 +215,14 @@ public class AlarmActivity extends AppCompatActivity {
 
     private void doDismiss() {
         stopServiceSound();
-        if (alarmId != -1) {
+        if (isTimer && timerId != -1) {
+            android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) {
+                nm.cancel(timerId + 920000);
+                nm.cancel(timerId + 910000);
+            }
+            getSharedPreferences("prefs", MODE_PRIVATE).edit().remove("clock_timer_running_" + timerId).apply();
+        } else if (alarmId != -1) {
             android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm != null) nm.cancel(alarmId);
             ClockAlarmHelper.clearSnoozed(this, alarmId);
