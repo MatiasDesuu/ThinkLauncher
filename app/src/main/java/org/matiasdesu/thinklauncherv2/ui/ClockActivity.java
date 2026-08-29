@@ -658,7 +658,7 @@ public class ClockActivity extends AppCompatActivity {
             }
             FontHelper.applyToViewTree(activity, holder.itemView);
             LauncherBackdropHelper.applySurfaceBackground(holder.itemView, activity.showWallpaperBackdrop, activity.clockSurfaceColor);
-            if (holder.pauseView != null) holder.pauseView.setVisibility(View.GONE);
+            if (holder.pauseView != null) holder.pauseView.setVisibility(View.INVISIBLE);
             holder.toggleView.setText(alarm.enabled ? "ON" : "OFF");
             holder.toggleView.setTypeface(null, alarm.enabled ? Typeface.BOLD : Typeface.NORMAL);
             int txt = ThemeUtils.getTextColor(theme, activity);
@@ -746,7 +746,7 @@ public class ClockActivity extends AppCompatActivity {
                     holder.pauseView.setTextColor(bg);
                     holder.pauseView.setOnClickListener(v -> activity.toggleTimerPause(timer));
                 } else {
-                    holder.pauseView.setVisibility(View.GONE);
+                    holder.pauseView.setVisibility(View.INVISIBLE);
                     holder.pauseView.setOnClickListener(null);
                 }
             }
@@ -823,7 +823,7 @@ public class ClockActivity extends AppCompatActivity {
                         EinkRefreshHelper.refreshEink(activity.getWindow(), activity.prefs, activity.prefs.getInt("eink_refresh_delay", 100));
                     });
                 } else {
-                    holder.pauseView.setVisibility(View.GONE);
+                    holder.pauseView.setVisibility(View.INVISIBLE);
                     holder.pauseView.setOnClickListener(null);
                 }
             }
