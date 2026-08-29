@@ -112,6 +112,8 @@ public class GalleryActivity extends AppCompatActivity {
     private LinearLayout indexSidebar;
     private LinearLayout indexSidebarHorizontal;
     private int galleryIndexSidebar;
+    private int galleryIndexAnimation;
+    private int appIndexAnimation;
     private List<String> sidebarKeys;
     private List<String> sidebarLabels;
     private int highlightedDotIndex = -1;
@@ -242,6 +244,8 @@ public class GalleryActivity extends AppCompatActivity {
         gallerySortMode = prefs.getInt("gallery_sort_by", SORT_DATE_DESC);
         if (gallerySortMode < SORT_DATE_DESC || gallerySortMode > SORT_SIZE_ASC) gallerySortMode = SORT_DATE_DESC;
         galleryIndexSidebar = prefs.getInt("gallery_index_sidebar", 0);
+        galleryIndexAnimation = prefs.getInt("gallery_index_animation", 0);
+        appIndexAnimation = prefs.getInt("app_index_animation", 0);
         scrollAppList = prefs.getInt("scroll_app_list", 0) == 1;
         toggleViewButton.setImageResource(isGridView ? R.drawable.view_list : R.drawable.view_grid);
         isFolderView = false;
@@ -1551,6 +1555,8 @@ public class GalleryActivity extends AppCompatActivity {
 
     private void buildGalleryIndexSidebar() {
         if (indexSidebar == null || indexSidebarHorizontal == null) return;
+        galleryIndexAnimation = prefs.getInt("gallery_index_animation", 0);
+        appIndexAnimation = prefs.getInt("app_index_animation", 0);
         if (galleryIndexSidebar == 0 || displayItems == null || displayItems.isEmpty() || (galleryGroupMode != GROUP_MONTH && galleryGroupMode != GROUP_YEAR) || isFolderView) {
             indexSidebar.setVisibility(View.GONE);
             indexSidebarHorizontal.setVisibility(View.GONE);
@@ -1587,7 +1593,7 @@ public class GalleryActivity extends AppCompatActivity {
             for (int i = 0; i < count; i++) {
                 TextView tv = new TextView(this);
                 tv.setText("•");
-                tv.setTextSize(16);
+                tv.setTextSize(18);
                 tv.setTextColor(textColor);
                 tv.setGravity(Gravity.CENTER);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
@@ -1622,7 +1628,7 @@ public class GalleryActivity extends AppCompatActivity {
             for (int i = 0; i < count; i++) {
                 TextView tv = new TextView(this);
                 tv.setText("•");
-                tv.setTextSize(14);
+                tv.setTextSize(16);
                 tv.setTextColor(textColor);
                 tv.setGravity(Gravity.CENTER);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
@@ -1698,6 +1704,9 @@ public class GalleryActivity extends AppCompatActivity {
                     tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                     tv.setTextColor(textColor);
                 }
+                tv.setScaleX(1f);
+                tv.setScaleY(1f);
+                tv.setTranslationZ(0f);
             }
         }
         if (indexSidebarHorizontal != null && indexSidebarHorizontal.getVisibility() == View.VISIBLE) {
@@ -1712,6 +1721,9 @@ public class GalleryActivity extends AppCompatActivity {
                     tv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                     tv.setTextColor(textColor);
                 }
+                tv.setScaleX(1f);
+                tv.setScaleY(1f);
+                tv.setTranslationZ(0f);
             }
         }
     }

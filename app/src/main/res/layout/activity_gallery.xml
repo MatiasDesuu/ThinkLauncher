@@ -15,6 +15,8 @@
         android:id="@+id/content_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -126,8 +128,11 @@
             android:id="@+id/index_sidebar_horizontal"
             android:layout_width="match_parent"
             android:layout_height="28dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:gravity="center"
             android:orientation="horizontal"
+            android:translationZ="10dp"
             android:visibility="gone" />
 
         <FrameLayout
@@ -148,6 +153,8 @@
                 android:layout_width="28dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="right|center_vertical"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:visibility="gone"
