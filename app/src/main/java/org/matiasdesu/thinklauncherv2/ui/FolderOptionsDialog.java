@@ -52,15 +52,15 @@ public class FolderOptionsDialog extends GuardedDialog {
         TextView changeFolderNameButton = findViewById(R.id.change_folder_name_button);
         DialogEffectHelper.applyButtonTheme(changeFolderNameButton, theme, getContext(), surfaceColor);
         changeFolderNameButton.setOnClickListener(v -> {
-            changeFolderNameCallback.onChangeFolderName();
             dismiss();
+            changeFolderNameCallback.onChangeFolderName();
         });
 
         TextView reorderButton = findViewById(R.id.reorder_button);
         DialogEffectHelper.applyButtonTheme(reorderButton, theme, getContext(), surfaceColor);
         reorderButton.setOnClickListener(v -> {
-            reorderCallback.onReorder();
             dismiss();
+            reorderCallback.onReorder();
         });
 
         TextView sortButton = findViewById(R.id.sort_button);
@@ -102,8 +102,8 @@ public class FolderOptionsDialog extends GuardedDialog {
             reorderButton.setVisibility(View.VISIBLE);
             DialogEffectHelper.applyButtonTheme(reorderButton, theme, getContext(), surfaceColor);
             reorderButton.setOnClickListener(v -> {
-                reorderCallback.onReorder();
                 dismiss();
+                reorderCallback.onReorder();
             });
             
             // Add margin to sort button when reorder button is visible

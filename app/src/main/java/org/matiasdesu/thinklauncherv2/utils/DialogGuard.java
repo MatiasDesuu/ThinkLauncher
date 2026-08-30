@@ -15,6 +15,12 @@ public final class DialogGuard {
         return true;
     }
 
+    public static synchronized void onDismiss(Dialog dialog) {
+        if (lastDialog == dialog) {
+            lastDialog = null;
+        }
+    }
+
     public static synchronized boolean canShowAny() {
         return canShow(null);
     }

@@ -106,8 +106,8 @@ public class AppOptionsDialog extends GuardedDialog {
             renameButton.setVisibility(View.VISIBLE);
             DialogEffectHelper.applyButtonTheme(renameButton, theme, getContext(), surfaceColor);
             renameButton.setOnClickListener(v -> {
-                renameCallback.onRename();
                 dismiss();
+                renameCallback.onRename();
             });
         } else {
             renameButton.setVisibility(View.GONE);
@@ -126,6 +126,7 @@ public class AppOptionsDialog extends GuardedDialog {
         } else {
             moreInfoButton.setVisibility(View.VISIBLE);
             moreInfoButton.setOnClickListener(v -> {
+                dismiss();
                 if (moreInfoCallback != null) {
                     moreInfoCallback.onMoreInfo();
                 } else {
@@ -137,7 +138,6 @@ public class AppOptionsDialog extends GuardedDialog {
                         // Ignore
                     }
                 }
-                dismiss();
             });
         }
 
@@ -148,8 +148,8 @@ public class AppOptionsDialog extends GuardedDialog {
             hideButton.setVisibility(View.VISIBLE);
             DialogEffectHelper.applyButtonTheme(hideButton, theme, getContext(), surfaceColor);
             hideButton.setOnClickListener(v -> {
-                hideCallback.onHide();
                 dismiss();
+                hideCallback.onHide();
             });
         } else {
             hideButton.setVisibility(View.GONE);
@@ -165,10 +165,10 @@ public class AppOptionsDialog extends GuardedDialog {
         } else {
             uninstallButton.setVisibility(View.VISIBLE);
             uninstallButton.setOnClickListener(v -> {
+                dismiss();
                 Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE);
                 intent.setData(Uri.parse("package:" + packageName));
                 getContext().startActivity(intent);
-                dismiss();
             });
         }
 
@@ -176,8 +176,8 @@ public class AppOptionsDialog extends GuardedDialog {
             removeButton.setVisibility(View.VISIBLE);
             DialogEffectHelper.applyButtonTheme(removeButton, theme, getContext(), surfaceColor);
             removeButton.setOnClickListener(v -> {
-                removeCallback.onRemove();
                 dismiss();
+                removeCallback.onRemove();
             });
         } else {
             removeButton.setVisibility(View.GONE);

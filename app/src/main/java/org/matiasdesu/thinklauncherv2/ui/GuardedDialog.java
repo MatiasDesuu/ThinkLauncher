@@ -20,4 +20,16 @@ public class GuardedDialog extends Dialog {
         if (!DialogGuard.canShow(this)) return;
         super.show();
     }
+
+    @Override
+    public void dismiss() {
+        DialogGuard.onDismiss(this);
+        super.dismiss();
+    }
+
+    @Override
+    public void cancel() {
+        DialogGuard.onDismiss(this);
+        super.cancel();
+    }
 }

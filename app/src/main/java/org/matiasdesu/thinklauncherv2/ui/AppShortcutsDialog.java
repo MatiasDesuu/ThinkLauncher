@@ -70,10 +70,10 @@ public class AppShortcutsDialog extends GuardedDialog {
                 DialogEffectHelper.applyButtonTheme(tv, theme, getContext(), surfaceColor);
                 final ShortcutInfo shortcut = si;
                 tv.setOnClickListener(v -> {
+                    dismiss();
                     if (shortcutCallback != null) {
                         shortcutCallback.onShortcutClick(shortcut);
                     }
-                    v.post(this::dismiss);
                 });
                 buttonContainer.addView(tv, buttonContainer.getChildCount() - 1);
             }
@@ -82,10 +82,10 @@ public class AppShortcutsDialog extends GuardedDialog {
         secondaryButton.setText(secondaryLabel != null ? secondaryLabel : "Edit");
         DialogEffectHelper.applyButtonTheme(secondaryButton, theme, getContext(), surfaceColor);
         secondaryButton.setOnClickListener(v -> {
+            dismiss();
             if (secondaryCallback != null) {
                 secondaryCallback.onSecondary();
             }
-            v.post(this::dismiss);
         });
     }
 }
