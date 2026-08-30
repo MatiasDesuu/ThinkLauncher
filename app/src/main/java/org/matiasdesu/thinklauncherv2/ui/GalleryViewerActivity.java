@@ -29,6 +29,7 @@ import org.matiasdesu.thinklauncherv2.utils.GalleryHiddenHelper;
 import org.matiasdesu.thinklauncherv2.utils.GalleryTrashHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -378,7 +379,81 @@ public class GalleryViewerActivity extends AppCompatActivity {
                 () -> {
                     if (isTrashMode) confirmPermanentDelete();
                     else moveToTrash();
-                }).show();
+                }, this::setCurrentImageAsWallpaper).show();
+    }
+
+    private void setCurrentImageAsWallpaper() {
+        if (currentMediaType == GalleryTrashHelper.TYPE_VIDEO) {
+            return;
+        }
+        android.app.Dialog progressDialog = new android.app.Dialog(this, R.style.NoAnimationDialog);
+        progressDialog.setContentView(R.layout.dialog_wallpaper_progress);
+        progressDialog.setCancelable(false);
+        FontHelper.applyToViewTree(this, progressDialog.findViewById(android.R.id.content));
+        int themeForDialog = prefs.getInt("theme", 0);
+        TextView progressText = progressDialog.findViewById(R.id.progress_text);
+        if (progressText != null) progressText.setTextColor(ThemeUtils.getTextColor(themeForDialog, this));
+        int surfaceColorProgress = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.setup(progressDialog, themeForDialog);
+        android.view.View rootProgress = progressDialog.findViewById(android.R.id.content);
+        org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applySurface(rootProgress, themeForDialog, this, surfaceColorProgress);
+        progressDialog.show();
+        loadExecutor.execute(() -> {
+            boolean success = false;
+            try {
+                Uri baseUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                Uri uri = ContentUris.withAppendedId(baseUri, currentImageId);
+                android.graphics.Bitmap bitmap = null;
+                try (java.io.InputStream is = getContentResolver().openInputStream(uri)) {
+                    if (is != null) {
+                        bitmap = android.graphics.BitmapFactory.decodeStream(is);
+                    }
+                }
+                if (bitmap != null) {
+                    WallpaperHelper.saveWallpaper(this, bitmap);
+                    try { bitmap.recycle(); } catch (Exception ignored) {}
+                    success = true;
+                }
+            } catch (Exception ignored) {}
+            boolean finalSuccess = success;
+            runOnUiThread(() -> {
+                try { progressDialog.dismiss(); } catch (Exception ignored) {}
+                showWallpaperResultDialog(finalSuccess);
+            });
+        });
+    }
+
+    private void showWallpaperResultDialog(boolean success) {
+        android.app.Dialog dialog = new android.app.Dialog(this, R.style.NoAnimationDialog);
+        dialog.setContentView(R.layout.dialog_wallpaper_result);
+        dialog.setCancelable(true);
+        FontHelper.applyToViewTree(this, dialog.findViewById(android.R.id.content));
+        int themeForDialog = prefs.getInt("theme", 0);
+        int surfaceColor = org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.setup(dialog, themeForDialog);
+        android.view.View root = dialog.findViewById(android.R.id.content);
+        org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applySurface(root, themeForDialog, this, surfaceColor);
+        TextView resultText = dialog.findViewById(R.id.result_text);
+        TextView btnOk = dialog.findViewById(R.id.btn_ok);
+        TextView btnSettings = dialog.findViewById(R.id.btn_wallpaper_settings);
+        if (resultText != null) resultText.setTextColor(ThemeUtils.getTextColor(themeForDialog, this));
+        org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(btnOk, themeForDialog, this, surfaceColor);
+        org.matiasdesu.thinklauncherv2.utils.DialogEffectHelper.applyButtonTheme(btnSettings, themeForDialog, this, surfaceColor);
+        if (success) {
+            resultText.setText("Wallpaper set");
+            btnSettings.setVisibility(View.VISIBLE);
+        } else {
+            resultText.setText("Failed to set wallpaper");
+            btnSettings.setVisibility(View.GONE);
+        }
+        btnOk.setOnClickListener(v -> dialog.dismiss());
+        btnSettings.setOnClickListener(v -> {
+            dialog.dismiss();
+            Intent intent = new Intent(this, org.matiasdesu.thinklauncherv2.settings.WallpaperSettingsActivity.class);
+            if (!appLauncherAnimations) intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
+            if (appLauncherAnimations) overridePendingTransition(R.anim.dialog_fade_in, R.anim.dialog_fade_out);
+            else overridePendingTransition(0, 0);
+        });
+        dialog.show();
     }
 
     private void confirmPermanentDelete() {

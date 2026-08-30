@@ -27,6 +27,13 @@
         android:id="@+id/option_trash"
         style="@style/DialogButton"
         android:layout_width="match_parent"
-        android:text="Move to trash" />
+        android:text="Move to trash"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/option_wallpaper"
+        style="@style/DialogButton"
+        android:layout_width="match_parent"
+        android:text="Set as wallpaper" />
 
 </LinearLayout>

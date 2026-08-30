@@ -26,6 +26,10 @@ public class GalleryViewerOptionsDialog extends GuardedDialog {
         void onTrash();
     }
 
+    public interface OnWallpaperCallback {
+        void onWallpaper();
+    }
+
     private final long imageId;
     private final int mediaType;
     private final boolean isTrashMode;
@@ -33,9 +37,15 @@ public class GalleryViewerOptionsDialog extends GuardedDialog {
     private final OnFavoriteCallback favCallback;
     private final OnHiddenCallback hiddenCallback;
     private final OnTrashCallback trashCallback;
+    private final OnWallpaperCallback wallpaperCallback;
 
     public GalleryViewerOptionsDialog(Context context, long imageId, int mediaType, boolean isTrashMode, boolean isHiddenMode,
-                                      OnFavoriteCallback favCallback, OnHiddenCallback hiddenCallback, OnTrashCallback trashCallback) {
+                                       OnFavoriteCallback favCallback, OnHiddenCallback hiddenCallback, OnTrashCallback trashCallback) {
+        this(context, imageId, mediaType, isTrashMode, isHiddenMode, favCallback, hiddenCallback, trashCallback, null);
+    }
+
+    public GalleryViewerOptionsDialog(Context context, long imageId, int mediaType, boolean isTrashMode, boolean isHiddenMode,
+                                       OnFavoriteCallback favCallback, OnHiddenCallback hiddenCallback, OnTrashCallback trashCallback, OnWallpaperCallback wallpaperCallback) {
         super(context, R.style.NoAnimationDialog);
         this.imageId = imageId;
         this.mediaType = mediaType;
@@ -44,6 +54,7 @@ public class GalleryViewerOptionsDialog extends GuardedDialog {
         this.favCallback = favCallback;
         this.hiddenCallback = hiddenCallback;
         this.trashCallback = trashCallback;
+        this.wallpaperCallback = wallpaperCallback;
         init();
     }
 
@@ -59,10 +70,12 @@ public class GalleryViewerOptionsDialog extends GuardedDialog {
         TextView favButton = findViewById(R.id.option_favorite);
         TextView hiddenButton = findViewById(R.id.option_hidden);
         TextView trashButton = findViewById(R.id.option_trash);
+        TextView wallpaperButton = findViewById(R.id.option_wallpaper);
 
         DialogEffectHelper.applyButtonTheme(favButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(hiddenButton, theme, getContext(), surfaceColor);
         DialogEffectHelper.applyButtonTheme(trashButton, theme, getContext(), surfaceColor);
+        DialogEffectHelper.applyButtonTheme(wallpaperButton, theme, getContext(), surfaceColor);
 
         boolean isFav = isFavorite();
         boolean isHidden = GalleryHiddenHelper.isHidden(getContext(), imageId, mediaType);
@@ -81,6 +94,9 @@ public class GalleryViewerOptionsDialog extends GuardedDialog {
             trashButton.setText("Move to trash");
         }
 
+        boolean showWallpaper = !isTrashMode && mediaType != GalleryTrashHelper.TYPE_VIDEO && wallpaperCallback != null;
+        wallpaperButton.setVisibility(showWallpaper ? View.VISIBLE : View.GONE);
+
         favButton.setOnClickListener(v -> {
             dismiss();
             if (favCallback != null) favCallback.onFavorite();
@@ -92,6 +108,10 @@ public class GalleryViewerOptionsDialog extends GuardedDialog {
         trashButton.setOnClickListener(v -> {
             dismiss();
             if (trashCallback != null) trashCallback.onTrash();
+        });
+        wallpaperButton.setOnClickListener(v -> {
+            dismiss();
+            if (wallpaperCallback != null) wallpaperCallback.onWallpaper();
         });
     }
 
