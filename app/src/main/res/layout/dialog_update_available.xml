@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="300dp"
+    android:maxWidth="360dp"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update available"
+        android:textColor="?attr/text_color"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/version_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Current: 1.0 / Latest: v2.1"
+        android:textColor="?attr/text_color"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:layout_marginBottom="12dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="180dp"
+        android:layout_marginBottom="16dp"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/changelog_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Changelog..."
+            android:textColor="?attr/text_color"
+            android:textSize="13sp" />
+
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/btn_download"
+        style="@style/DialogButton"
+        android:text="Download"
+        android:layout_width="match_parent"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/btn_view"
+            style="@style/DialogButton"
+            android:text="View"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btn_later"
+            style="@style/DialogButton"
+            android:text="Later"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</LinearLayout>

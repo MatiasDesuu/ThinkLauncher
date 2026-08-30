@@ -1,7 +1,9 @@
 package org.matiasdesu.thinklauncherv2.settings;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.LinearLayout;
@@ -9,12 +11,20 @@ import android.widget.Toast;
 
 import org.matiasdesu.thinklauncherv2.R;
 import org.matiasdesu.thinklauncherv2.ui.ResetAllConfigDialog;
+import org.matiasdesu.thinklauncherv2.ui.UpdateAvailableDialog;
+import org.matiasdesu.thinklauncherv2.ui.UpdateCheckingDialog;
+import org.matiasdesu.thinklauncherv2.ui.UpdateMessageDialog;
+import org.matiasdesu.thinklauncherv2.ui.UpdateProgressDialog;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.SettingsBackupHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
+import org.matiasdesu.thinklauncherv2.utils.UpdateChecker;
+import org.matiasdesu.thinklauncherv2.utils.UpdateDownloader;
+import org.matiasdesu.thinklauncherv2.utils.UpdateInfo;
 import org.matiasdesu.thinklauncherv2.utils.WallpaperHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -134,6 +144,8 @@ public class SystemSettingsActivity extends BaseSettingsActivity {
             overridePendingTransition(R.anim.slide_in_right, screenAnimations ? R.anim.slide_out_left : 0);
         });
 
+        findViewById(R.id.check_update_button).setOnClickListener(v -> checkForUpdates());
+
         findViewById(R.id.export_config_button).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -211,5 +223,112 @@ public class SystemSettingsActivity extends BaseSettingsActivity {
                 Toast.makeText(this, "Import failed: invalid file", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void checkForUpdates() {
+        String current = getCurrentVersion();
+        UpdateCheckingDialog checking = new UpdateCheckingDialog(this);
+        checking.show();
+
+        UpdateChecker.checkForUpdate(this, (info, error) -> {
+            checking.dismiss();
+            if (error != null) {
+                new UpdateMessageDialog(this, "Update check failed", error)
+                        .setPositiveButton("Retry", v -> checkForUpdates())
+                        .setNegativeButton("Close", null)
+                        .show();
+                return;
+            }
+            if (info == null) {
+                new UpdateMessageDialog(this, "Up to date", "You are on the latest version (" + current + ").")
+                        .setPositiveButton("OK", null)
+                        .show();
+                return;
+            }
+            showUpdateAvailableDialog(info, current);
+        });
+    }
+
+    private String getCurrentVersion() {
+        try {
+            PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return pi.versionName != null ? pi.versionName : "unknown";
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
+    private void showUpdateAvailableDialog(UpdateInfo info, String current) {
+        new UpdateAvailableDialog(this, current, info.tagName, info.title, info.changelog, new UpdateAvailableDialog.Callback() {
+            @Override
+            public void onDownload() {
+                startDownload(info);
+            }
+
+            @Override
+            public void onView() {
+                try {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(info.htmlUrl != null ? info.htmlUrl : "https://github.com/MatiasDesuu/ThinkLauncher/releases/latest"));
+                    startActivity(i);
+                } catch (Exception ignored) {}
+            }
+        }).show();
+    }
+
+    private void startDownload(UpdateInfo info) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !getPackageManager().canRequestPackageInstalls()) {
+            new UpdateMessageDialog(this, "Permission required", "To install updates, allow ThinkLauncher to install unknown apps.")
+                    .setPositiveButton("Allow", v -> {
+                        UpdateDownloader.requestInstallPermission(this);
+                        doDownload(info);
+                    })
+                    .setNegativeButton("Download anyway", v -> doDownload(info))
+                    .show();
+        } else {
+            doDownload(info);
+        }
+    }
+
+    private void doDownload(UpdateInfo info) {
+        UpdateProgressDialog progress = new UpdateProgressDialog(this, "Downloading update");
+        progress.show();
+
+        UpdateDownloader.download(this, info.apkUrl, new UpdateDownloader.ProgressCallback() {
+            @Override
+            public void onProgress(int percent, long downloaded, long total) {
+                String text;
+                if (percent >= 0 && total > 0) {
+                    text = String.format("%.1f MB / %.1f MB", downloaded / 1024f / 1024f, total / 1024f / 1024f);
+                } else {
+                    text = String.format("%.1f MB downloaded", downloaded / 1024f / 1024f);
+                }
+                progress.setProgress(percent, text);
+            }
+
+            @Override
+            public void onSuccess(File apkFile) {
+                progress.dismiss();
+                new UpdateMessageDialog(SystemSettingsActivity.this, "Download complete", "APK saved: " + apkFile.getName() + "\nTap Install to update.")
+                        .setPositiveButton("Install", v -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !getPackageManager().canRequestPackageInstalls()) {
+                                Toast.makeText(SystemSettingsActivity.this, "Enable 'Install unknown apps' first", Toast.LENGTH_LONG).show();
+                                UpdateDownloader.requestInstallPermission(SystemSettingsActivity.this);
+                                return;
+                            }
+                            UpdateDownloader.install(SystemSettingsActivity.this, apkFile);
+                        })
+                        .setNegativeButton("Later", null)
+                        .show();
+            }
+
+            @Override
+            public void onError(String error) {
+                progress.dismiss();
+                new UpdateMessageDialog(SystemSettingsActivity.this, "Download failed", error)
+                        .setPositiveButton("Retry", v -> doDownload(info))
+                        .setNegativeButton("Close", null)
+                        .show();
+            }
+        });
     }
 }
