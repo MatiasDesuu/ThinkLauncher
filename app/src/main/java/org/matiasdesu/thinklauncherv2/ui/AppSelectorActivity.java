@@ -37,6 +37,7 @@ import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.ui.RenameDialog;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
+import org.matiasdesu.thinklauncherv2.utils.OnyxHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import android.os.Build;
@@ -314,7 +315,13 @@ public class AppSelectorActivity extends AppCompatActivity {
             PackageManager pm = getPackageManager();
             Intent intent = new Intent(Intent.ACTION_MAIN, null);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
-            List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
+            int queryFlags = 0;
+            try {
+                if (OnyxHelper.isOnyxDevice()) {
+                    queryFlags = PackageManager.MATCH_DISABLED_COMPONENTS;
+                }
+            } catch (Exception ignored) {}
+            List<ResolveInfo> apps = pm.queryIntentActivities(intent, queryFlags);
             List<String[]> labeled = new ArrayList<>(apps.size());
             for (ResolveInfo ri : apps) {
                 labeled.add(new String[]{ri.loadLabel(pm).toString(), ri.activityInfo.packageName});
@@ -324,6 +331,15 @@ public class AppSelectorActivity extends AppCompatActivity {
                 labels.add(item[0]);
                 packages.add(item[1]);
             }
+            try {
+                java.util.List<AppSearchHelper.AppItem> onyxApps = OnyxHelper.getAvailableOnyxApps(AppSelectorActivity.this);
+                for (AppSearchHelper.AppItem item : onyxApps) {
+                    if (!packages.contains(item.packageName)) {
+                        labels.add(item.label);
+                        packages.add(item.packageName);
+                    }
+                }
+            } catch (Exception ignored) {}
             runOnUiThread(() -> {
                 installedAppLabels.addAll(labels);
                 installedAppPackages.addAll(packages);

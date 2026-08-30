@@ -41,6 +41,7 @@ import org.matiasdesu.thinklauncherv2.utils.EinkRefreshHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.LauncherBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
+import org.matiasdesu.thinklauncherv2.utils.OnyxHelper;
 import org.matiasdesu.thinklauncherv2.utils.ThemeUtils;
 
 import java.util.ArrayList;
@@ -278,6 +279,10 @@ public class AppLauncherActivity extends AppCompatActivity {
     }
 
     public void launchApp(String label, String packageName) {
+        if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(this, packageName)) {
+            OnyxHelper.showFrozenAppDialog(this, packageName, theme);
+            return;
+        }
         if (SystemAppHelper.isSystemApp(packageName)) {
             if (SystemAppHelper.launch(this, packageName)) {
                 new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
@@ -292,14 +297,28 @@ public class AppLauncherActivity extends AppCompatActivity {
                 if (!animate) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 }
-                startActivity(intent);
-                if (animate) {
-                    overridePendingTransition(R.anim.dialog_fade_in, 0);
-                } else {
-                    overridePendingTransition(0, 0);
+                try {
+                    startActivity(intent);
+                    if (animate) {
+                        overridePendingTransition(R.anim.dialog_fade_in, 0);
+                    } else {
+                        overridePendingTransition(0, 0);
+                    }
+                } catch (Exception e) {
+                    if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(this, packageName)) {
+                        OnyxHelper.showFrozenAppDialog(this, packageName, theme);
+                        return;
+                    }
+                    finish();
+                    return;
                 }
                 new Handler(Looper.getMainLooper()).postDelayed(this::finish, 100);
                 return;
+            } else {
+                if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(this, packageName)) {
+                    OnyxHelper.showFrozenAppDialog(this, packageName, theme);
+                    return;
+                }
             }
         }
         finish();
@@ -371,7 +390,13 @@ public class AppLauncherActivity extends AppCompatActivity {
             PackageManager pm = getPackageManager();
             Intent intent = new Intent(Intent.ACTION_MAIN, null);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
-            List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
+            int queryFlags = 0;
+            try {
+                if (OnyxHelper.isOnyxDevice()) {
+                    queryFlags = PackageManager.MATCH_DISABLED_COMPONENTS;
+                }
+            } catch (Exception ignored) {}
+            List<ResolveInfo> apps = pm.queryIntentActivities(intent, queryFlags);
             List<String[]> labeled = new ArrayList<>(apps.size());
             for (ResolveInfo ri : apps) {
                 labeled.add(new String[]{ri.loadLabel(pm).toString(), ri.activityInfo.packageName});
@@ -383,6 +408,16 @@ public class AppLauncherActivity extends AppCompatActivity {
             }
 
             SystemAppHelper.insertCoreAppsForLauncher(labels, packages, 0);
+
+            try {
+                java.util.List<AppSearchHelper.AppItem> onyxApps = OnyxHelper.getAvailableOnyxApps(AppLauncherActivity.this);
+                for (AppSearchHelper.AppItem item : onyxApps) {
+                    if (!packages.contains(item.packageName)) {
+                        labels.add(item.label);
+                        packages.add(item.packageName);
+                    }
+                }
+            } catch (Exception ignored) {}
 
             runOnUiThread(() -> {
                 targetLabels.clear();

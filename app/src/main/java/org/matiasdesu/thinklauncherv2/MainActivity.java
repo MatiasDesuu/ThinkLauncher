@@ -88,6 +88,7 @@ import org.matiasdesu.thinklauncherv2.utils.DockBackdropHelper;
 import org.matiasdesu.thinklauncherv2.utils.FontHelper;
 import org.matiasdesu.thinklauncherv2.utils.SettingsBackupHelper;
 import org.matiasdesu.thinklauncherv2.utils.SystemAppHelper;
+import org.matiasdesu.thinklauncherv2.utils.OnyxHelper;
 import android.graphics.Bitmap;
 
 public class MainActivity extends Activity {
@@ -1021,26 +1022,38 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
                     || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "calculator".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || "bigme_eink_settings".equals(pkg)
+                    || OnyxHelper.isOnyxPseudoPackage(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
-                int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
-                        : "app_launcher".equals(pkg) ? R.drawable.search
-                                : "notification_panel".equals(pkg) ? R.drawable.notifications
-                                        : "koreader_history".equals(pkg) ? R.drawable.koreader
-                                                : "calendar".equals(pkg) ? R.drawable.date
-                                                                : "gallery".equals(pkg) ? R.drawable.gallery
-                                                                        : "clock".equals(pkg) ? R.drawable.time
-                                                                        : "calculator".equals(pkg) ? R.drawable.calculator
-                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
-                                                                        : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
-                                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                                        : R.drawable.folder;
-                Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
-                        appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
-                iv.setImageDrawable(specialIcon);
-                iv.clearColorFilter();
-                applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                if (OnyxHelper.isOnyxPseudoPackage(pkg)) {
+                    Drawable onyxIcon = OnyxHelper.getOnyxIcon(this, pkg);
+                    iv.setImageDrawable(onyxIcon);
+                    if (appMonochrome) {
+                        iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                    } else {
+                        iv.clearColorFilter();
+                    }
+                    applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                } else {
+                    int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
+                            : "app_launcher".equals(pkg) ? R.drawable.search
+                                    : "notification_panel".equals(pkg) ? R.drawable.notifications
+                                            : "koreader_history".equals(pkg) ? R.drawable.koreader
+                                                    : "calendar".equals(pkg) ? R.drawable.date
+                                                                    : "gallery".equals(pkg) ? R.drawable.gallery
+                                                                            : "clock".equals(pkg) ? R.drawable.time
+                                                                            : "calculator".equals(pkg) ? R.drawable.calculator
+                                                                    : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
+                                                                            : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
+                                                                                    : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                                            : R.drawable.folder;
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
+                            appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
+                    iv.setImageDrawable(specialIcon);
+                    iv.clearColorFilter();
+                    applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                }
             } else if (pkg != null && pkg.startsWith("hidden_app_")) {
                 iv.setImageDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             } else {
@@ -1200,26 +1213,38 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     || "notification_panel".equals(pkg) || "koreader_history".equals(pkg)
                     || "calendar".equals(pkg) || "gallery".equals(pkg) || "clock".equals(pkg) || "calculator".equals(pkg) || "bigme_control_panel".equals(pkg)
                     || "bigme_eink_settings".equals(pkg)
+                    || OnyxHelper.isOnyxPseudoPackage(pkg)
                     || (pkg != null && pkg.startsWith("folder_"))
                     || (pkg != null && pkg.startsWith("webapp_"));
             if (appIsSpecial) {
-                int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
-                        : "app_launcher".equals(pkg) ? R.drawable.search
-                                : "notification_panel".equals(pkg) ? R.drawable.notifications
-                                        : "koreader_history".equals(pkg) ? R.drawable.koreader
-                                                : "calendar".equals(pkg) ? R.drawable.date
-                                                                : "gallery".equals(pkg) ? R.drawable.gallery
-                                                                        : "clock".equals(pkg) ? R.drawable.time
-                                                                        : "calculator".equals(pkg) ? R.drawable.calculator
-                                                                : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
-                                                                        : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
-                                                                                : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
-                                                                                        : R.drawable.folder;
-                Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
-                        appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
-                iv.setImageDrawable(specialIcon);
-                iv.clearColorFilter();
-                applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                if (OnyxHelper.isOnyxPseudoPackage(pkg)) {
+                    Drawable onyxIcon = OnyxHelper.getOnyxIcon(this, pkg);
+                    iv.setImageDrawable(onyxIcon);
+                    if (appMonochrome) {
+                        iv.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                    } else {
+                        iv.clearColorFilter();
+                    }
+                    applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                } else {
+                    int drawableRes = "launcher_settings".equals(pkg) ? R.drawable.settings
+                            : "app_launcher".equals(pkg) ? R.drawable.search
+                                    : "notification_panel".equals(pkg) ? R.drawable.notifications
+                                            : "koreader_history".equals(pkg) ? R.drawable.koreader
+                                                    : "calendar".equals(pkg) ? R.drawable.date
+                                                                    : "gallery".equals(pkg) ? R.drawable.gallery
+                                                                            : "clock".equals(pkg) ? R.drawable.time
+                                                                            : "calculator".equals(pkg) ? R.drawable.calculator
+                                                                    : "bigme_control_panel".equals(pkg) ? R.drawable.generic_app
+                                                                            : "bigme_eink_settings".equals(pkg) ? R.drawable.generic_app
+                                                                                    : (pkg != null && pkg.startsWith("webapp_")) ? R.drawable.webapps
+                                                                                            : R.drawable.folder;
+                    Drawable specialIcon = DynamicIconHelper.createSpecialIcon(this, drawableRes, theme,
+                            appIconBackground, appDynamicColors, appInvertIconColors, appIconShape);
+                    iv.setImageDrawable(specialIcon);
+                    iv.clearColorFilter();
+                    applyAppBarIconEffect(iv, appIconEffect, appIconEffectColor);
+                }
             } else if (pkg != null && pkg.startsWith("hidden_app_")) {
                 iv.setImageDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             } else {
@@ -1610,6 +1635,31 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         return false;
     }
 
+    private void updateServiceComponents() {
+        SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+        boolean musicEnabled = prefs.getInt("music_dock_enabled", 0) == 1;
+        boolean lockEnabled = prefs.getInt("double_tap_lock", 0) == 1;
+        setComponentEnabled(MusicNotificationListenerService.class, musicEnabled);
+        setComponentEnabled(LockAccessibilityService.class, lockEnabled);
+    }
+
+    private void setComponentEnabled(Class<?> clazz, boolean enabled) {
+        try {
+            PackageManager pm = getPackageManager();
+            ComponentName cn = new ComponentName(this, clazz);
+            int current = pm.getComponentEnabledSetting(cn);
+            int expected = enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+            // Only change if needed to avoid unnecessary writes (DEFAULT means enabled via manifest)
+            if (current == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) {
+                if (!enabled) {
+                    pm.setComponentEnabledSetting(cn, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                }
+            } else if (current != expected) {
+                pm.setComponentEnabledSetting(cn, expected, PackageManager.DONT_KILL_APP);
+            }
+        } catch (Exception ignored) {}
+    }
+
     private void startMusicMonitoring() {
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         if (prefs.getInt("music_dock_enabled", 0) != 1 || !hasNotificationListenerAccess()) {
@@ -1947,6 +1997,10 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         BigmeShims.queryLauncherProvider(this);
         setContentView(R.layout.activity_main);
 
+        try {
+            OnyxHelper.showFreezeNoticeIfNeeded(this);
+        } catch (Exception ignored) {}
+
         WallpaperHelper.warmCacheAsync(this);
 
         handler = new Handler(Looper.getMainLooper());
@@ -2140,6 +2194,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
 
         prefsChangeListener = (sharedPreferences, key) -> prefsDirty = true;
         getSharedPreferences("prefs", MODE_PRIVATE).registerOnSharedPreferenceChangeListener(prefsChangeListener);
+        updateServiceComponents();
     }
 
     @Override
@@ -2433,6 +2488,7 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         refreshMusicDock();
         FontHelper.applyToViewTree(this, rootLayout);
         applyWindowInsetsToUI(statusBarInset, navBarInset);
+        updateServiceComponents();
         startMusicMonitoring();
     }
 
@@ -3129,7 +3185,13 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
         } else if (packageName != null && packageName.startsWith("hidden_app_")) {
             String realPkg = packageName.substring("hidden_app_".length());
             launchApp(realPkg);
+        } else if (packageName != null && OnyxHelper.isOnyxPseudoPackage(packageName)) {
+            OnyxHelper.launchOnyxApp(this, packageName);
         } else if (!packageName.isEmpty()) {
+            if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(this, packageName)) {
+                OnyxHelper.showFrozenAppDialog(this, packageName, theme);
+                return;
+            }
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
                 SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
@@ -3137,11 +3199,21 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                 if (!animate) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 }
-                startActivity(intent);
-                if (animate) {
-                    overridePendingTransition(R.anim.dialog_fade_in, 0);
-                } else {
-                    overridePendingTransition(0, 0);
+                try {
+                    startActivity(intent);
+                    if (animate) {
+                        overridePendingTransition(R.anim.dialog_fade_in, 0);
+                    } else {
+                        overridePendingTransition(0, 0);
+                    }
+                } catch (Exception e) {
+                    if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(this, packageName)) {
+                        OnyxHelper.showFrozenAppDialog(this, packageName, theme);
+                    }
+                }
+            } else {
+                if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(this, packageName)) {
+                    OnyxHelper.showFrozenAppDialog(this, packageName, theme);
                 }
             }
         }
@@ -3334,6 +3406,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                         iconView.setImageResource(R.drawable.webapps);
                         iconView.setColorFilter(getSpecialIconColor());
                     }
+                } else if (OnyxHelper.isOnyxPseudoPackage(appPackages.get(position))) {
+                    Drawable onyxDrawable = OnyxHelper.getOnyxIcon(this, appPackages.get(position));
+                    iconView.setImageDrawable(onyxDrawable);
+                    if (monochromeIcons) {
+                        iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                    } else {
+                        iconView.clearColorFilter();
+                    }
                 } else {
                     try {
                         Drawable drawable = DynamicIconHelper.getAppIcon(this, appPackages.get(position), dynamicIcons,
@@ -3471,6 +3551,14 @@ private int resolveAppBarThemeColor(int colorSource, boolean isBackground) {
                     } else {
                         iconView.setImageResource(R.drawable.webapps);
                         iconView.setColorFilter(getSpecialIconColor());
+                    }
+                } else if (OnyxHelper.isOnyxPseudoPackage(appPackages.get(position))) {
+                    Drawable onyxDrawable = OnyxHelper.getOnyxIcon(this, appPackages.get(position));
+                    iconView.setImageDrawable(onyxDrawable);
+                    if (monochromeIcons) {
+                        iconView.setColorFilter(IconMonochromeHelper.getMonochromeFilter());
+                    } else {
+                        iconView.clearColorFilter();
                     }
                 } else {
                     try {

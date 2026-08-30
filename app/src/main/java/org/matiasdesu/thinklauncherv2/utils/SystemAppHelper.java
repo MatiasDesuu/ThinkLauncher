@@ -39,6 +39,7 @@ public final class SystemAppHelper {
 
     public static boolean isSystemApp(String pkg) {
         if (pkg == null) return false;
+        if (OnyxHelper.isOnyxPseudoPackage(pkg)) return true;
         if (pkg.equals(LAUNCHER_SETTINGS) || pkg.equals(APP_LAUNCHER) || pkg.equals(NOTIFICATION_PANEL)
                 || pkg.equals(KOREADER_HISTORY) || pkg.equals(CALENDAR) || pkg.equals(GALLERY)
                 || pkg.equals(CLOCK) || pkg.equals(CALCULATOR) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
@@ -55,6 +56,7 @@ public final class SystemAppHelper {
 
     public static boolean isSpecialLaunchable(String pkg) {
         if (pkg == null) return false;
+        if (OnyxHelper.isOnyxPseudoPackage(pkg)) return true;
         return pkg.equals(LAUNCHER_SETTINGS) || pkg.equals(APP_LAUNCHER) || pkg.equals(NOTIFICATION_PANEL)
                 || pkg.equals(KOREADER_HISTORY) || pkg.equals(CALENDAR) || pkg.equals(GALLERY)
                 || pkg.equals(CLOCK) || pkg.equals(CALCULATOR) || pkg.equals(BIGME_CONTROL_PANEL) || pkg.equals(BIGME_EINK_SETTINGS)
@@ -63,6 +65,7 @@ public final class SystemAppHelper {
 
     public static int getIconRes(String pkg) {
         if (pkg == null) return 0;
+        if (OnyxHelper.isOnyxPseudoPackage(pkg)) return R.drawable.generic_app;
         if (pkg.equals(LAUNCHER_SETTINGS)) return R.drawable.settings;
         if (pkg.equals(APP_LAUNCHER)) return R.drawable.search;
         if (pkg.equals(NOTIFICATION_PANEL)) return R.drawable.notifications;
@@ -80,6 +83,7 @@ public final class SystemAppHelper {
 
     public static String getDefaultLabel(String pkg) {
         if (pkg == null) return "";
+        if (OnyxHelper.isOnyxPseudoPackage(pkg)) return OnyxHelper.getOnyxLabel(pkg);
         if (pkg.equals(LAUNCHER_SETTINGS)) return "Launcher Settings";
         if (pkg.equals(APP_LAUNCHER)) return "App Launcher";
         if (pkg.equals(NOTIFICATION_PANEL)) return "Notification Panel";
@@ -97,6 +101,7 @@ public final class SystemAppHelper {
 
     public static Intent getLaunchIntent(Context context, String pkg) {
         if (pkg == null) return null;
+        if (OnyxHelper.isOnyxPseudoPackage(pkg)) return OnyxHelper.getOnyxIntent(pkg);
         if (pkg.equals(CLOCK)) return new Intent(context, ClockActivity.class);
         if (pkg.equals(CALCULATOR)) return new Intent(context, CalculatorActivity.class);
         if (pkg.equals(CALENDAR)) return new Intent(context, CalendarActivity.class);
@@ -151,6 +156,18 @@ public final class SystemAppHelper {
                 return true;
             }
         }
+        if (OnyxHelper.isOnyxPseudoPackage(pkg)) {
+            return OnyxHelper.launchOnyxApp(context, pkg);
+        }
+        if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(context, pkg)) {
+            try {
+                int theme = context.getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("theme", 0);
+                OnyxHelper.showFrozenAppDialog(context, pkg, theme);
+            } catch (Exception ignored) {
+                android.widget.Toast.makeText(context, "App is frozen by Onyx system – please unfreeze in stock launcher (Apps → ❄️)", android.widget.Toast.LENGTH_LONG).show();
+            }
+            return true;
+        }
         Intent intent = getLaunchIntent(context, pkg);
         if (intent != null) {
             if (!animate) intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -188,6 +205,13 @@ public final class SystemAppHelper {
             try {
                 context.startActivity(launch);
             } catch (Exception e) {
+                if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(context, pkg)) {
+                    try {
+                        int theme = context.getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("theme", 0);
+                        OnyxHelper.showFrozenAppDialog(context, pkg, theme);
+                    } catch (Exception ignored) {}
+                    return true;
+                }
                 return false;
             }
             if (context instanceof Activity) {
@@ -200,6 +224,13 @@ public final class SystemAppHelper {
                     else ((Activity) context).overridePendingTransition(0, 0);
                 }
             }
+            return true;
+        }
+        if (OnyxHelper.isOnyxDevice() && OnyxHelper.isAppFrozen(context, pkg)) {
+            try {
+                int theme = context.getSharedPreferences("prefs", Context.MODE_PRIVATE).getInt("theme", 0);
+                OnyxHelper.showFrozenAppDialog(context, pkg, theme);
+            } catch (Exception ignored) {}
             return true;
         }
         return false;
