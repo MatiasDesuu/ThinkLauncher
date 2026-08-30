@@ -7,6 +7,10 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.graphics.Typeface;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.widget.TextView;
 
 import org.matiasdesu.thinklauncherv2.R;
@@ -98,37 +102,43 @@ public class GalleryDetailsDialog extends GuardedDialog {
             }
         } catch (Exception ignored) {}
 
-        nameView.setText("Name: " + name);
+        nameView.setText(boldValue("Name: ", name));
         ThemeUtils.applyTextColor(nameView, theme, getContext());
         if (path != null && !path.isEmpty()) {
             String loc = path;
             try { loc = new File(path).getParent(); if (loc == null) loc = path; } catch (Exception e) { loc = path; }
-            pathView.setText("Location: " + loc);
+            pathView.setText(boldValue("Location: ", loc));
             ThemeUtils.applyTextColor(pathView, theme, getContext());
             pathView.setVisibility(android.view.View.VISIBLE);
         } else {
             pathView.setVisibility(android.view.View.GONE);
         }
         SimpleDateFormat df = new SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault());
-        dateView.setText("Date: " + df.format(new Date(date * 1000)));
+        dateView.setText(boldValue("Date: ", df.format(new Date(date * 1000))));
         ThemeUtils.applyTextColor(dateView, theme, getContext());
-        sizeView.setText("Size: " + formatSize(size));
+        sizeView.setText(boldValue("Size: ", formatSize(size)));
         ThemeUtils.applyTextColor(sizeView, theme, getContext());
         if (!resolution.isEmpty() || !durationStr.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            if (!resolution.isEmpty()) sb.append("Resolution: ").append(resolution);
-            if (!durationStr.isEmpty()) {
-                if (sb.length() > 0) sb.append("  ");
-                else sb.append("Duration: ");
-                if (resolution.isEmpty()) sb = new StringBuilder("Duration: " + durationStr);
-                else sb.append(durationStr);
+            if (!resolution.isEmpty() && !durationStr.isEmpty()) {
+                SpannableString resSpan = new SpannableString("Resolution: " + resolution + "  " + durationStr);
+                resSpan.setSpan(new StyleSpan(Typeface.BOLD), 0, "Resolution: ".length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                resView.setText(resSpan);
+            } else if (!resolution.isEmpty()) {
+                resView.setText(boldValue("Resolution: ", resolution));
+            } else {
+                resView.setText(boldValue("Duration: ", durationStr));
             }
-            resView.setText(sb.toString());
             ThemeUtils.applyTextColor(resView, theme, getContext());
             resView.setVisibility(android.view.View.VISIBLE);
         } else {
             resView.setVisibility(android.view.View.GONE);
         }
+    }
+
+    private SpannableString boldValue(String label, String value) {
+        SpannableString s = new SpannableString(label + value);
+        s.setSpan(new StyleSpan(Typeface.BOLD), 0, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return s;
     }
 
     private String formatSize(long bytes) {
