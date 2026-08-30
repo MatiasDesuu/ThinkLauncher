@@ -630,11 +630,9 @@ public class MainActivity extends Activity {
             float offset = android.util.TypedValue.applyDimension(
                     android.util.TypedValue.COMPLEX_UNIT_DIP, 1.5f, getResources().getDisplayMetrics());
 
+            // Apply the same offset to every icon (system, dynamic or regular) so shadow and
+            // outline magnitude stay consistent across the home grid, dock and app bar.
             float adjustedOffset = offset * 1.5f;
-
-            if ("special".equals(iv.getTag()) && (iv == settingsButton || iv == searchButton || !iconBackground)) {
-                adjustedOffset = offset;
-            }
 
             int p = (int) (adjustedOffset * 1.5f);
 

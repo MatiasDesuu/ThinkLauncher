@@ -18,6 +18,7 @@ public class ShadowOutlineDrawable extends Drawable {
     private final float mOffset;
     private ColorFilter mColorFilter;
     private Bitmap mShadowBitmap;
+    private float mFillScale = 1f;
 
     public ShadowOutlineDrawable(Drawable drawable, int effect, int color, float offset) {
         mDrawable = drawable;
@@ -49,6 +50,7 @@ public class ShadowOutlineDrawable extends Drawable {
                     Canvas c = new Canvas(mShadowBitmap);
                     c.translate(-bounds.left, -bounds.top);
                     mDrawable.draw(c);
+                    mFillScale = computeFillScale(mShadowBitmap);
                 } catch (OutOfMemoryError e) {
                     mShadowBitmap = null;
                 }
@@ -60,18 +62,32 @@ public class ShadowOutlineDrawable extends Drawable {
                 effectPaint.setColorFilter(
                         new android.graphics.PorterDuffColorFilter(mColor, android.graphics.PorterDuff.Mode.SRC_IN));
 
+                // Scale the effect offset to the size of the actual silhouette so the shadow and
+                // outline look proportionally the same on every icon type. Launcher vector glyphs
+                // (settings, folder, gallery...) occupy a small part of the view, while app
+                // adaptive tiles fill most of it; using the same dp offset on both makes the
+                // effect look much heavier on the small glyphs. Applying fill-based scaling makes
+                // the gap proportional to the silhouette instead.
+                float effOffset = mOffset * mFillScale;
+                // Full-bleed icons (app tiles filling the whole slot) can still read a little
+                // finer than the denser launcher glyphs, so give them a small boost so apps and
+                // system icons end up with the same shadow/outline weight.
+                if (mFillScale >= 0.85f) {
+                    effOffset = mOffset * 1.25f;
+                }
+
                 if (mEffect == 2) { // Outline (Stroke)
                     for (int i = 0; i < 12; i++) {
                         double angle = i * (Math.PI / 6); // 30 degrees
-                        float dx = (float) (Math.cos(angle) * mOffset);
-                        float dy = (float) (Math.sin(angle) * mOffset);
+                        float dx = (float) (Math.cos(angle) * effOffset);
+                        float dy = (float) (Math.sin(angle) * effOffset);
                         canvas.drawBitmap(mShadowBitmap, bounds.left + dx, bounds.top + dy, effectPaint);
                     }
                 } else if (mEffect == 1) { // Shadow
                     float[][] shadowOffsets = {
-                            { mOffset * 0.5f, mOffset * 0.5f },
-                            { mOffset * 0.75f, mOffset * 0.75f },
-                            { mOffset, mOffset }
+                            { effOffset * 0.5f, effOffset * 0.5f },
+                            { effOffset * 0.75f, effOffset * 0.75f },
+                            { effOffset, effOffset }
                     };
                     for (float[] off : shadowOffsets) {
                         canvas.drawBitmap(mShadowBitmap, bounds.left + off[0], bounds.top + off[1], effectPaint);
@@ -97,6 +113,51 @@ public class ShadowOutlineDrawable extends Drawable {
     protected void onBoundsChange(Rect bounds) {
         super.onBoundsChange(bounds);
         mShadowBitmap = null;
+        mFillScale = 1f;
+    }
+
+    /**
+     * Measure how much of the drawable bounds the visible (opaque enough) silhouette
+     * occupies, used to scale the shadow/outline offset proportionally to the icon size
+     * so the effect looks equally heavy on small launcher glyphs and full app tiles.
+     */
+    private static float computeFillScale(Bitmap bitmap) {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        if (w <= 0 || h <= 0) {
+            return 1f;
+        }
+        int[] pixels = new int[w * h];
+        bitmap.getPixels(pixels, 0, w, 0, 0, w, h);
+
+        int minX = w, minY = h, maxX = -1, maxY = -1;
+        for (int y = 0; y < h; y++) {
+            int rowStart = y * w;
+            for (int x = 0; x < w; x++) {
+                if ((pixels[rowStart + x] >>> 24) > 0x08) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+
+        if (maxX < minX || maxY < minY) {
+            return 1f;
+        }
+
+        int bw = maxX - minX + 1;
+        int bh = maxY - minY + 1;
+        float scale = Math.max(bw, bh) / (float) Math.max(w, h);
+
+        // Same proportional rule for every icon: the effect offset scales with the silhouette
+        // size so the shadow/outline gap stays a constant fraction of each icon, making app
+        // icons and launcher system icons look identical. The floor only protects very sparse
+        // glyphs from losing the effect entirely, so keep it low enough not to inflate the
+        // ratio (a raised floor made smaller glyphs look heavier than app tiles).
+        if (scale <= 0f) return 1f;
+        return Math.max(0.30f, Math.min(1f, scale));
     }
 
     @Override

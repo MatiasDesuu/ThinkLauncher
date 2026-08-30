@@ -122,7 +122,14 @@ public class DynamicIconHelper {
                     }
                 }
 
-                if (tintedIcon == null && forceMonochromeFallback) {
+                if (tintedIcon == null
+                        && (forceMonochromeFallback || !iconBackground)) {
+                    // Without an icon background we want every app to render as its tinted
+                    // glyph (like the launcher's own system icons) so the shadow/outline has
+                    // the same visual weight on both. When a monochrome layer is missing, fall
+                    // back to the adaptive foreground even if the user hasn't enabled the
+                    // dedicated "force monochrome fallback" option; otherwise the full opaque
+                    // adaptive tile is shown and its outline/shadow read much finer.
                     Drawable foreground = adaptiveIcon.getForeground();
                     if (foreground != null) {
                         tintedIcon = createTintedDrawable(context, foreground, iconColor);
